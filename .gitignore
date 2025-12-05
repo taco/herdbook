@@ -36,4 +36,8 @@ lerna-debug.log*
 
 # Prisma
 packages/api/prisma/migrations/
+packages/api/src/generated/prisma
 
+
+# Keep environment variables out of version control
+.env

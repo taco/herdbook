@@ -1,0 +1,17 @@
+scalar DateTime
+
+type Horse {
+  id: ID!
+  name: String!
+  notes: String
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type Query {
+  horses: [Horse!]!
+}
+
+type Mutation {
+  createHorse(name: String!, notes: String): Horse!
+}

@@ -1,38 +1,57 @@
-import Koa from 'koa';
-import Router from '@koa/router';
+import 'dotenv/config';
+import Fastify from 'fastify';
 import { ApolloServer } from '@apollo/server';
-import { koaMiddleware } from '@as-integrations/koa';
-import { typeDefs, resolvers } from './graphql/schema';
+import { DateTimeResolver } from 'graphql-scalars';
+import fastifyApollo from '@as-integrations/fastify';
+import { PrismaClient } from './generated/prisma';
+import { PrismaPg } from '@prisma/adapter-pg';
+import { Pool } from 'pg';
+import { readFileSync } from 'fs';
+import { resolve } from 'path'
 
-async function startServer() {
-  const app = new Koa();
-  const router = new Router();
 
-  // Create Apollo Server
-  const apolloServer = new ApolloServer({
-    typeDefs,
-    resolvers,
-  });
-
-  // Start Apollo Server
-  await apolloServer.start();
-
-  // Apply Apollo GraphQL middleware
-  router.post('/graphql', koaMiddleware(apolloServer));
-  router.get('/graphql', koaMiddleware(apolloServer));
-
-  app.use(router.routes());
-  app.use(router.allowedMethods());
-
-  const PORT = process.env.PORT || 4000;
-
-  app.listen(PORT, () => {
-    console.log(`🚀 Server ready at http://localhost:${PORT}/graphql`);
-  });
+const connectionString = process.env.DATABASE_URL;
+if (!connectionString) {
+  throw new Error('DATABASE_URL environment variable is required');
 }
 
-startServer().catch((error) => {
-  console.error('Failed to start server:', error);
-  process.exit(1);
-});
+const pool = new Pool({ connectionString });
+const adapter = new PrismaPg(pool);
+const prisma = new PrismaClient({ adapter });
 
+const typeDefs = readFileSync(resolve(__dirname, 'schema.graphql'), 'utf8');
+
+const resolvers = {
+    DateTime: DateTimeResolver,
+    Query: {
+        horses: async () => prisma.horse.findMany(),
+    },
+    Mutation: {
+        createHorse: async (_: unknown, args: { name: string, notes?: string }) => {
+            return prisma.horse.create({
+                data: {
+                    name: args.name,
+                    notes: args.notes,
+                },
+            });
+        }
+    },
+};
+
+async function start() {
+    const fastify = Fastify();
+
+    const apollo = new ApolloServer({
+        typeDefs,
+        resolvers,
+    });
+
+    await apollo.start();
+
+    await fastify.register(fastifyApollo(apollo));
+
+    await fastify.listen({ port: 4000 });
+    console.log('Server is running on http://localhost:4000/graphql');
+}
+
+start();
