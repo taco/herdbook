@@ -22,6 +22,7 @@ type Rider {
   id: ID!
   name: String!
   email: String!
+  password: String!
   createdAt: DateTime!
   sessions: [Session!]!
 }
@@ -38,6 +39,11 @@ type Session {
   updatedAt: DateTime!
 }
 
+type AuthPayload {
+  token: String!
+  rider: Rider!
+}
+
 type Query {
   horses: [Horse!]!
   riders: [Rider!]!
@@ -48,7 +54,6 @@ type Query {
 
 type Mutation {
   createHorse(name: String!, notes: String): Horse!
-  createRider(name: String!, email: String!): Rider!
   createSession(
     horseId: ID!
     riderId: ID!
@@ -57,4 +62,6 @@ type Mutation {
     workType: WorkType!
     notes: String
   ): Session!
+  login(email: String!, password: String!): AuthPayload!
+  signup(name: String!, email: String!, password: String!): AuthPayload!
 }
