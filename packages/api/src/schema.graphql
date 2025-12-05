@@ -56,7 +56,6 @@ type Mutation {
   createHorse(name: String!, notes: String): Horse!
   createSession(
     horseId: ID!
-    riderId: ID!
     date: DateTime!
     durationMinutes: Int!
     workType: WorkType!

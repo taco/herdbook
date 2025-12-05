@@ -3,8 +3,11 @@ import { WorkType } from '@prisma/client';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { prisma } from './db';
+import { JWT_SECRET } from './config';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-in-prod';
+export type Context = {
+    rider: Awaited<ReturnType<typeof prisma.rider.findUnique>> | null;
+}
 
 export const resolvers = {
     DateTime: DateTimeResolver,
@@ -29,13 +32,18 @@ export const resolvers = {
             _: unknown,
             args: {
                 horseId: string;
-                riderId: string;
                 date: Date;
                 durationMinutes: number;
                 workType: WorkType;
                 notes?: string;
+            },
+            context: Context
+        ) => {
+            if (!context.rider) {
+                throw new Error('Not authenticated');
             }
-        ) => prisma.session.create({ data: args }),
+            return prisma.session.create({ data: { ...args, riderId: context.rider.id } });
+        },
         signup: async (_: unknown, args: { name: string; email: string; password: string }) => {
             const hashedPassword = await bcrypt.hash(args.password, 10);
             const rider = await prisma.rider.create({ data: { name: args.name, email: args.email, password: hashedPassword } });
