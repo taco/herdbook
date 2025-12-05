@@ -1,17 +1,20 @@
 {
-  "name": "herdbook",
-  "version": "0.1.0",
-  "private": true,
-  "scripts": {
-    "dev": "concurrently \"pnpm --filter api dev\" \"pnpm --filter web dev\"",
-    "dev:api": "pnpm --filter api dev",
-    "dev:web": "pnpm --filter web dev",
-    "build": "pnpm --filter api build && pnpm --filter web build",
-    "build:api": "pnpm --filter api build",
-    "build:web": "pnpm --filter web build"
-  },
-  "devDependencies": {
-    "concurrently": "^9.2.1"
-  },
-  "packageManager": "pnpm@10.4.0+sha512.6b849d0787d97f8f4e1f03a9b8ff8f038e79e153d6f11ae539ae7c435ff9e796df6a862c991502695c7f9e8fac8aeafc1ac5a8dab47e36148d183832d886dd52"
+    "name": "herdbook",
+    "version": "0.1.0",
+    "private": true,
+    "scripts": {
+        "dev": "concurrently \"pnpm --filter api dev\" \"pnpm --filter web dev\"",
+        "dev:api": "pnpm --filter api dev",
+        "dev:web": "pnpm --filter web dev",
+        "build": "pnpm --filter api build && pnpm --filter web build",
+        "build:api": "pnpm --filter api build",
+        "build:web": "pnpm --filter web build",
+        "format": "prettier --write \"**/*.{ts,tsx,json,md}\"",
+        "format:check": "prettier --check \"**/*.{ts,tsx,json,md}\""
+    },
+    "devDependencies": {
+        "concurrently": "^9.2.1",
+        "prettier": "^3.7.4"
+    },
+    "packageManager": "pnpm@10.4.0+sha512.6b849d0787d97f8f4e1f03a9b8ff8f038e79e153d6f11ae539ae7c435ff9e796df6a862c991502695c7f9e8fac8aeafc1ac5a8dab47e36148d183832d886dd52"
 }

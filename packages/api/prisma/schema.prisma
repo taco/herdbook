@@ -14,9 +14,41 @@ datasource db {
 }
 
 model Horse {
-  id        String   @id @default(cuid())
+  id        String    @id @default(cuid())
   name      String
   notes     String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  sessions  Session[]
+}
+
+model Rider {
+  id        String    @id @default(cuid())
+  name      String
+  email     String    @unique
+  createdAt DateTime  @default(now())
+  sessions  Session[]
+}
+
+model Session {
+  id              String   @id @default(cuid())
+  horse           Horse    @relation(fields: [horseId], references: [id])
+  horseId         String
+  rider           Rider    @relation(fields: [riderId], references: [id])
+  riderId         String
+  date            DateTime
+  durationMinutes Int
+  workType        WorkType
+  notes           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+enum WorkType {
+  FLATWORK
+  JUMPING
+  GROUNDWORK
+  IN_HAND
+  TRAIL
+  OTHER
 }

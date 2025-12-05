@@ -1,14 +1,13 @@
 import { gql } from '@apollo/server';
 
 export const typeDefs = gql`
-  type Query {
-    hello: String
-  }
+    type Query {
+        hello: String
+    }
 `;
 
 export const resolvers = {
-  Query: {
-    hello: () => 'Hello from Herdbook API!',
-  },
+    Query: {
+        hello: () => 'Hello from Herdbook API!',
+    },
 };
-
