@@ -1,4 +1,5 @@
 import { DateTimeResolver } from 'graphql-scalars';
+import { GraphQLError } from 'graphql';
 import { WorkType } from '@prisma/client';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
@@ -71,14 +72,22 @@ export const resolvers = {
                 where: { email: args.email },
             });
             if (!rider) {
-                throw new Error('Invalid email or password');
+                throw new GraphQLError('Invalid email or password', {
+                    extensions: {
+                        code: 'INVALID_CREDENTIALS',
+                    },
+                });
             }
             const passwordMatch = await bcrypt.compare(
                 args.password,
                 rider.password
             );
             if (!passwordMatch) {
-                throw new Error('Invalid email or password');
+                throw new GraphQLError('Invalid email or password', {
+                    extensions: {
+                        code: 'INVALID_CREDENTIALS',
+                    },
+                });
             }
             const token = jwt.sign({ riderId: rider.id }, JWT_SECRET, {
                 expiresIn: '1h',

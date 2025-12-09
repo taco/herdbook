@@ -1,66 +1,66 @@
 scalar DateTime
 
 enum WorkType {
-  FLATWORK
-  JUMPING
-  GROUNDWORK
-  IN_HAND
-  TRAIL
-  OTHER
+    FLATWORK
+    JUMPING
+    GROUNDWORK
+    IN_HAND
+    TRAIL
+    OTHER
 }
 
 type Horse {
-  id: ID!
-  name: String!
-  notes: String
-  createdAt: DateTime!
-  updatedAt: DateTime!
-  sessions: [Session!]!
+    id: ID!
+    name: String!
+    notes: String
+    createdAt: DateTime!
+    updatedAt: DateTime!
+    sessions: [Session!]!
 }
 
 type Rider {
-  id: ID!
-  name: String!
-  email: String!
-  password: String!
-  createdAt: DateTime!
-  sessions: [Session!]!
+    id: ID!
+    name: String!
+    email: String!
+    password: String!
+    createdAt: DateTime!
+    sessions: [Session!]!
 }
 
 type Session {
-  id: ID!
-  horse: Horse!
-  rider: Rider!
-  date: DateTime!
-  durationMinutes: Int!
-  workType: WorkType!
-  notes: String
-  createdAt: DateTime!
-  updatedAt: DateTime!
-}
-
-type AuthPayload {
-  token: String!
-  rider: Rider!
-}
-
-type Query {
-  horses: [Horse!]!
-  riders: [Rider!]!
-  sessions: [Session!]!
-  horse(id: ID!): Horse
-  lastSessionForHorse(horseId: ID!): Session
-}
-
-type Mutation {
-  createHorse(name: String!, notes: String): Horse!
-  createSession(
-    horseId: ID!
+    id: ID!
+    horse: Horse!
+    rider: Rider!
     date: DateTime!
     durationMinutes: Int!
     workType: WorkType!
     notes: String
-  ): Session!
-  login(email: String!, password: String!): AuthPayload!
-  signup(name: String!, email: String!, password: String!): AuthPayload!
+    createdAt: DateTime!
+    updatedAt: DateTime!
+}
+
+type AuthPayload {
+    token: String!
+    rider: Rider!
+}
+
+type Query {
+    horses: [Horse!]!
+    riders: [Rider!]!
+    sessions: [Session!]!
+    horse(id: ID!): Horse
+    lastSessionForHorse(horseId: ID!): Session
+}
+
+type Mutation {
+    createHorse(name: String!, notes: String): Horse!
+    createSession(
+        horseId: ID!
+        date: DateTime!
+        durationMinutes: Int!
+        workType: WorkType!
+        notes: String
+    ): Session!
+    login(email: String!, password: String!): AuthPayload!
+    signup(name: String!, email: String!, password: String!): AuthPayload!
 }

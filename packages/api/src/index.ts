@@ -1,12 +1,13 @@
 import 'dotenv/config';
 import Fastify, { FastifyRequest } from 'fastify';
+import cors from '@fastify/cors';
 import { ApolloServer } from '@apollo/server';
 import fastifyApollo from '@as-integrations/fastify';
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
 import jwt from 'jsonwebtoken';
 
-import { prisma } from './db';
+import { prisma } from '@/db';
 import { resolvers, Context } from './resolvers';
 import { JWT_SECRET } from './config';
 
@@ -33,6 +34,11 @@ const typeDefs = readFileSync(resolve(__dirname, 'schema.graphql'), 'utf8');
 
 async function start() {
     const fastify = Fastify();
+
+    await fastify.register(cors, {
+        origin: 'http://localhost:3000',
+        credentials: true,
+    });
 
     const apollo = new ApolloServer<Context>({
         typeDefs,

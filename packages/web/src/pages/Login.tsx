@@ -1,18 +1,12 @@
-import React, { useState } from 'react';
+import { gql, CombinedGraphQLErrors } from '@apollo/client';
 import { useMutation } from '@apollo/client/react';
-import { gql } from '@apollo/client';
-import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import {
-    Card,
-    CardHeader,
-    CardTitle,
-    CardContent,
-    CardFooter,
-} from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { useAuth } from '@/context/AuthContext';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const LOGIN_MUTATION = gql`
     mutation Login($email: String!, $password: String!) {
@@ -21,7 +15,6 @@ const LOGIN_MUTATION = gql`
             rider {
                 id
                 name
-                email
             }
         }
     }
@@ -30,83 +23,79 @@ const LOGIN_MUTATION = gql`
 export default function Login() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [error, setError] = useState('');
+    const [formError, setFormError] = useState('');
+    const [loginMutation] = useMutation(LOGIN_MUTATION);
     const navigate = useNavigate();
     const { login } = useAuth();
-    const [loginMutation, { loading }] = useMutation<any>(LOGIN_MUTATION);
-
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        setError('');
+
         try {
-            const { data } = await loginMutation({
+            const result = await loginMutation({
                 variables: { email, password },
             });
-            login(data.login.token, data.login.rider);
+
+            const {
+                data: {
+                    login: {
+                        token,
+                        rider: { id, name },
+                    },
+                },
+            } = result as {
+                data: {
+                    login: {
+                        token: string;
+                        rider: { id: string; name: string };
+                    };
+                };
+            };
+            login(token, id, name);
             navigate('/');
-        } catch (err: any) {
-            setError(err.message || 'An error occurred during login');
+        } catch (err) {
+            if (CombinedGraphQLErrors.is(err)) {
+                const errorCode = err.errors[0].extensions?.code;
+                if (errorCode === 'INVALID_CREDENTIALS') {
+                    setFormError('Invalid email or password');
+                } else {
+                    setFormError(err.errors[0].message);
+                }
+            }
         }
     };
-
     return (
-        <div className="flex items-center justify-center min-h-screen bg-gray-100">
-            <Card className="w-[350px]">
-                <CardHeader>
-                    <CardTitle>Login</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <form onSubmit={handleSubmit}>
-                        <div className="grid w-full items-center gap-4">
-                            <div className="flex flex-col space-y-1.5">
-                                <Label htmlFor="email">Email</Label>
-                                <Input
-                                    id="email"
-                                    type="email"
-                                    placeholder="Enter your email"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    required
-                                />
-                            </div>
-                            <div className="flex flex-col space-y-1.5">
-                                <Label htmlFor="password">Password</Label>
-                                <Input
-                                    id="password"
-                                    type="password"
-                                    placeholder="Enter your password"
-                                    value={password}
-                                    onChange={(e) =>
-                                        setPassword(e.target.value)
-                                    }
-                                    required
-                                />
-                            </div>
-                        </div>
-                        {error && (
-                            <p className="text-red-500 text-sm mt-2">{error}</p>
+        <Card className="max-w-md mx-auto mt-10">
+            <CardHeader>
+                <CardTitle>Login</CardTitle>
+            </CardHeader>
+            <CardContent>
+                <form onSubmit={handleSubmit}>
+                    <div>
+                        <Label htmlFor="email">Email</Label>
+                        <Input
+                            id="email"
+                            type="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                        />
+                    </div>
+                    <div>
+                        <Label htmlFor="password">Password</Label>
+                        <Input
+                            id="password"
+                            type="password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                        />
+                    </div>
+                    <div>
+                        {formError && (
+                            <p className="text-red-500">{formError}</p>
                         )}
-                        <Button
-                            className="w-full mt-6"
-                            type="submit"
-                            disabled={loading}
-                        >
-                            {loading ? 'Logging in...' : 'Login'}
-                        </Button>
-                    </form>
-                </CardContent>
-                <CardFooter className="flex justify-center">
-                    <p className="text-sm text-gray-500">
-                        Don't have an account?{' '}
-                        <Link
-                            to="/signup"
-                            className="text-blue-500 hover:underline"
-                        >
-                            Sign up
-                        </Link>
-                    </p>
-                </CardFooter>
-            </Card>
-        </div>
+                    </div>
+                    <Button type="submit">Login</Button>
+                </form>
+            </CardContent>
+        </Card>
     );
 }

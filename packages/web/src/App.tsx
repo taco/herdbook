@@ -5,7 +5,7 @@ import {
     Route,
     Navigate,
 } from 'react-router-dom';
-import { useAuth } from '@/context/AuthContext';
+// import { useAuth } from '@/context/AuthContext';
 import Login from '@/pages/Login';
 import Signup from '@/pages/Signup';
 import Dashboard from '@/pages/Dashboard';
@@ -13,15 +13,15 @@ import Dashboard from '@/pages/Dashboard';
 const PrivateRoute: React.FC<{ element: React.ReactElement }> = ({
     element,
 }) => {
-    const { isAuthenticated } = useAuth();
-    return isAuthenticated ? element : <Navigate to="/login" />;
+    // const { isAuthenticated } = useAuth();
+    return false ? element : <Navigate to="/login" />;
 };
 
 const PublicRoute: React.FC<{ element: React.ReactElement }> = ({
     element,
 }) => {
-    const { isAuthenticated } = useAuth();
-    return !isAuthenticated ? element : <Navigate to="/" />;
+    // const { isAuthenticated } = useAuth();
+    return !false ? element : <Navigate to="/" />;
 };
 
 function App() {

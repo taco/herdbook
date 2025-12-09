@@ -1,68 +1,67 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { useApolloClient } from '@apollo/client/react';
+import { createContext, useContext, useState } from 'react';
 
-interface Rider {
-    id: string;
-    name: string;
-    email: string;
-}
-
-interface AuthContextType {
-    user: Rider | null;
+interface AuthContextInterface {
     token: string | null;
-    login: (token: string, user: Rider) => void;
-    logout: () => void;
+    riderId: string | null;
+    riderName: string | null;
     isAuthenticated: boolean;
+    login: (token: string, riderId: string, riderName: string) => void;
+    logout: () => void;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextInterface | undefined>(undefined);
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
-    children,
-}) => {
-    const [user, setUser] = useState<Rider | null>(null);
+export const useAuth = () => {
+    const context = useContext(AuthContext);
+    if (!context) {
+        throw new Error('useAuth must be used within an AuthProvider');
+    }
+    return context;
+};
+
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [token, setToken] = useState<string | null>(
-        localStorage.getItem('token')
+        localStorage.getItem('token') || null
     );
-    const client = useApolloClient();
+    const [riderId, setRiderId] = useState<string | null>(
+        localStorage.getItem('riderId') || null
+    );
+    const [riderName, setRiderName] = useState<string | null>(
+        localStorage.getItem('riderName') || null
+    );
 
-    useEffect(() => {
-        const storedToken = localStorage.getItem('token');
-        const storedUser = localStorage.getItem('user');
-        if (storedToken && storedUser) {
-            setToken(storedToken);
-            setUser(JSON.parse(storedUser));
-        }
-    }, []);
-
-    const login = (newToken: string, newUser: Rider) => {
-        localStorage.setItem('token', newToken);
-        localStorage.setItem('user', JSON.stringify(newUser));
-        setToken(newToken);
-        setUser(newUser);
+    const login = (token: string, riderId: string, riderName: string) => {
+        setToken(token);
+        localStorage.setItem('token', token);
+        setRiderId(riderId);
+        localStorage.setItem('riderId', riderId);
+        setRiderName(riderName);
+        localStorage.setItem('riderName', riderName);
     };
 
     const logout = () => {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
         setToken(null);
-        setUser(null);
-        client.resetStore();
+        localStorage.removeItem('token');
+        setRiderId(null);
+        localStorage.removeItem('riderId');
+        setRiderName(null);
+        localStorage.removeItem('riderName');
     };
 
     return (
         <AuthContext.Provider
-            value={{ user, token, login, logout, isAuthenticated: !!token }}
+            value={{
+                token,
+                riderId,
+                riderName,
+                isAuthenticated: !!token,
+                login,
+                logout,
+            }}
         >
             {children}
         </AuthContext.Provider>
     );
 };
 
-export const useAuth = () => {
-    const context = useContext(AuthContext);
-    if (context === undefined) {
-        throw new Error('useAuth must be used within an AuthProvider');
-    }
-    return context;
-};
+export default AuthContext;
