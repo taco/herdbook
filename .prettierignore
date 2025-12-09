@@ -1,27 +1,7 @@
-# Dependencies
-node_modules/
-.pnp
-.pnp.js
-
-# Production builds
-dist/
-build/
-*.tsbuildinfo
-
-# Generated files
-packages/api/src/generated/
-packages/api/prisma/migrations/
-
-# Logs
-*.log
-
-# Package manager files
-pnpm-lock.yaml
-package-lock.json
-yarn.lock
-
-# Environment files
-.env
-.env.local
-.env.*.local
-
+.pnpm-store
+node_modules
+dist
+build
+coverage
+.cursor
+packages/api/src/generated/prisma

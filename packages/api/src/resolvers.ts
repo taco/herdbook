@@ -7,7 +7,7 @@ import { JWT_SECRET } from './config';
 
 export type Context = {
     rider: Awaited<ReturnType<typeof prisma.rider.findUnique>> | null;
-}
+};
 
 export const resolvers = {
     DateTime: DateTimeResolver,
@@ -42,24 +42,47 @@ export const resolvers = {
             if (!context.rider) {
                 throw new Error('Not authenticated');
             }
-            return prisma.session.create({ data: { ...args, riderId: context.rider.id } });
+            return prisma.session.create({
+                data: { ...args, riderId: context.rider.id },
+            });
         },
-        signup: async (_: unknown, args: { name: string; email: string; password: string }) => {
+        signup: async (
+            _: unknown,
+            args: { name: string; email: string; password: string }
+        ) => {
             const hashedPassword = await bcrypt.hash(args.password, 10);
-            const rider = await prisma.rider.create({ data: { name: args.name, email: args.email, password: hashedPassword } });
-            const token = jwt.sign({ riderId: rider.id }, JWT_SECRET, { expiresIn: '1h' });
+            const rider = await prisma.rider.create({
+                data: {
+                    name: args.name,
+                    email: args.email,
+                    password: hashedPassword,
+                },
+            });
+            const token = jwt.sign({ riderId: rider.id }, JWT_SECRET, {
+                expiresIn: '1h',
+            });
             return { token, rider };
         },
-        login: async (_: unknown, args: { email: string; password: string }) => {
-            const rider = await prisma.rider.findUnique({ where: { email: args.email } });
+        login: async (
+            _: unknown,
+            args: { email: string; password: string }
+        ) => {
+            const rider = await prisma.rider.findUnique({
+                where: { email: args.email },
+            });
             if (!rider) {
                 throw new Error('Invalid email or password');
             }
-            const passwordMatch = await bcrypt.compare(args.password, rider.password);
+            const passwordMatch = await bcrypt.compare(
+                args.password,
+                rider.password
+            );
             if (!passwordMatch) {
                 throw new Error('Invalid email or password');
             }
-            const token = jwt.sign({ riderId: rider.id }, JWT_SECRET, { expiresIn: '1h' });
+            const token = jwt.sign({ riderId: rider.id }, JWT_SECRET, {
+                expiresIn: '1h',
+            });
             return { token, rider };
         },
     },
