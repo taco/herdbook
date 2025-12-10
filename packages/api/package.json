@@ -22,7 +22,7 @@
     "dependencies": {
         "@apollo/server": "^5.2.0",
         "@as-integrations/fastify": "^3.1.0",
-        "@fastify/cors": "^11.1.0",
+        "@fastify/cors": "^11.2.0",
         "@prisma/adapter-pg": "^7.1.0",
         "@prisma/client": "^7.1.0",
         "bcrypt": "^6.0.0",
@@ -36,7 +36,7 @@
     "devDependencies": {
         "@types/bcrypt": "^6.0.0",
         "@types/jsonwebtoken": "^9.0.10",
-        "@types/node": "^24.10.1",
+        "@types/node": "^24.10.2",
         "@types/pg": "^8.15.6",
         "csv-parse": "^6.1.0",
         "prisma": "^7.1.0",

@@ -9,19 +9,20 @@ import {
 import Login from '@/pages/Login';
 import Signup from '@/pages/Signup';
 import Dashboard from '@/pages/Dashboard';
+import { useAuth } from '@/context/AuthContext';
 
 const PrivateRoute: React.FC<{ element: React.ReactElement }> = ({
     element,
 }) => {
-    // const { isAuthenticated } = useAuth();
-    return false ? element : <Navigate to="/login" />;
+    const { isAuthenticated } = useAuth();
+    return isAuthenticated ? element : <Navigate to="/login" />;
 };
 
 const PublicRoute: React.FC<{ element: React.ReactElement }> = ({
     element,
 }) => {
-    // const { isAuthenticated } = useAuth();
-    return !false ? element : <Navigate to="/" />;
+    const { isAuthenticated } = useAuth();
+    return !isAuthenticated ? element : <Navigate to="/" />;
 };
 
 function App() {
