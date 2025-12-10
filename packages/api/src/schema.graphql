@@ -47,7 +47,7 @@ type AuthPayload {
 type Query {
     horses: [Horse!]!
     riders: [Rider!]!
-    sessions: [Session!]!
+    sessions(limit: Int, offset: Int): [Session!]!
     horse(id: ID!): Horse
     lastSessionForHorse(horseId: ID!): Session
 }

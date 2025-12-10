@@ -16,7 +16,12 @@ export const resolvers = {
     Query: {
         horses: () => prisma.horse.findMany(),
         riders: () => prisma.rider.findMany(),
-        sessions: () => prisma.session.findMany(),
+        sessions: (_: unknown, args: { limit?: number; offset?: number }) =>
+            prisma.session.findMany({
+                take: args.limit,
+                skip: args.offset,
+                orderBy: { date: 'desc' },
+            }),
         horse: (_: unknown, args: { id: string }) =>
             prisma.horse.findUnique({ where: { id: args.id } }),
         lastSessionForHorse: (_: unknown, args: { horseId: string }) =>

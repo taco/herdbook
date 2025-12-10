@@ -1,6 +1,6 @@
 import { useQuery } from '@apollo/client/react';
 import { gql } from '@apollo/client';
-import ActivityItem from '@/components/ActivityItem';
+import ActivityCard from '@/components/ActivityCard';
 import { Button } from '@/components/ui/button';
 import { Menu, Plus } from 'lucide-react';
 
@@ -24,7 +24,7 @@ const DASHBOARD_QUERY = gql`
             id
             name
         }
-        sessions {
+        sessions(limit: 20) {
             id
             date
             durationMinutes
@@ -40,11 +40,13 @@ const DASHBOARD_QUERY = gql`
     }
 `;
 
-export default function Dashboard() {
-    const { data, loading, error } = useQuery(DASHBOARD_QUERY);
+interface DashboardData {
+    horses: { id: string; name: string }[];
+    sessions: Session[];
+}
 
-    console.log('data.sessions', data?.sessions);
-    console.log('data.horses', data?.horses);
+export default function Dashboard() {
+    const { data, loading, error } = useQuery<DashboardData>(DASHBOARD_QUERY);
 
     if (loading)
         return <div className="p-4 text-center">Loading activity...</div>;
@@ -73,9 +75,9 @@ export default function Dashboard() {
                     <h2 className="text-lg font-semibold mb-4 text-muted-foreground">
                         Recent Activity
                     </h2>
-                    <div className="space-y-3 pb-24">
+                    <div className="space-y-2 pb-24">
                         {data?.sessions.map((session: Session) => (
-                            <ActivityItem
+                            <ActivityCard
                                 key={session.id}
                                 session={{
                                     id: session.id,
