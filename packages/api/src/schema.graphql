@@ -9,6 +9,11 @@ enum WorkType {
     OTHER
 }
 
+type WeeklyActivity {
+    weekStart: DateTime!
+    count: Int!
+}
+
 type Horse {
     id: ID!
     name: String!
@@ -16,6 +21,7 @@ type Horse {
     createdAt: DateTime!
     updatedAt: DateTime!
     sessions: [Session!]!
+    activity(weeks: Int): [WeeklyActivity!]!
 }
 
 type Rider {

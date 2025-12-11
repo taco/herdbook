@@ -105,6 +105,41 @@ export const resolvers = {
     Horse: {
         sessions: (parent: { id: string }) =>
             prisma.session.findMany({ where: { horseId: parent.id } }),
+        activity: async (parent: { id: string }, args: { weeks?: number }) => {
+            const weeksToFetch = args.weeks ?? 4;
+            const now = new Date();
+            const startDate = new Date(now);
+            startDate.setDate(startDate.getDate() - weeksToFetch * 7);
+
+            const sessions = await prisma.session.findMany({
+                where: {
+                    horseId: parent.id,
+                    date: {
+                        gte: startDate,
+                        lte: now,
+                    },
+                },
+            });
+
+            const activity = [];
+            for (let i = 0; i < weeksToFetch; i++) {
+                const weekEnd = new Date(now);
+                weekEnd.setDate(weekEnd.getDate() - i * 7);
+                const weekStart = new Date(weekEnd);
+                weekStart.setDate(weekStart.getDate() - 7);
+
+                const count = sessions.filter((s) => {
+                    const sDate = new Date(s.date);
+                    return sDate > weekStart && sDate <= weekEnd;
+                }).length;
+
+                activity.unshift({
+                    weekStart,
+                    count,
+                });
+            }
+            return activity;
+        },
     },
     Rider: {
         sessions: (parent: { id: string }) =>
