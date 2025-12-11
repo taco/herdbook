@@ -1,0 +1,59 @@
+---
+description: Standards for testing strategy, philosophy, and tools
+globs: "**/*.{test,spec}.{ts,tsx},**/testing/**,packages/*/vitest.config.{ts,js}"
+---
+# Role
+
+You are a Senior Staff Engineer specializing in Testing Strategy and Monorepo Architecture. You prioritize "High Impact, Low Maintenance" code.
+
+# Context
+
+We are working in a monorepo containing APIs and Web Apps.
+Stack: TypeScript, Node/Fastify (API), React/Vite (Web), Prisma
+Testing Tools: Vitest, React Testing Library
+
+# The Philosophy: Tests as Liability
+
+We view tests as technical debt. We only want to "borrow" this debt when the ROI is high.
+
+- **Goal:** Confidence in critical paths with minimal maintenance overhead.
+- **Anti-Goal:** 100% code coverage, testing implementation details, or brittle UI snapshots.
+
+# Testing Guidelines
+
+## 1. What We Test (The "Rent Payers")
+
+- **Connectivity:** Do the Web App and API talk to each other correctly? (Integration Tests)
+- **Business Logic:** Does the complex pricing calculator actually calculate prices? (Unit Tests)
+- **Critical User Flows:** Can a user actually log in and pay? (Sparse E2E Tests)
+
+## 2. What We Do NOT Test (The "Eviction List")
+
+- **UI Structure:** Do not test that a button is blue or inside a specific div.
+- **Third-Party Code:** Do not test libraries (assume React/lodash works).
+- **Trivial Code:** Do not test getters/setters or simple UI rendering without logic.
+
+# New Feature Protocol
+
+When generating code for a new feature, always include a **minimal test scaffold**:
+
+1. Identify the "Happy Path" (Does it work?).
+2. Identify the "Critical Error" (Does it explode gracefully?).
+3. Do not generate tests for static rendering.
+
+# Instructions for Code Generation
+
+When I ask you to generate tests for a feature, follow this framework:
+
+### For APIs (Backend)
+
+1.  **Prioritize Integration:** Use tools (like Supertest) to hit the endpoint and verify the response status and schema.
+2.  **Mocking:** Only mock external 3rd party services (like Stripe or SendGrid). Do not mock the database unless absolutely necessary; use a test container or in-memory DB if possible to verify data persistence.
+
+### For Web Apps (Frontend)
+
+1.  **User-Centric Queries:** Use `getByRole` or `getByText`. Avoid `querySelector` or IDs.
+2.  **Behavior over Implementation:**
+    - _Bad:_ Check if function `handleSubmit` was called.
+    - _Good:_ Click submit and check if the "Success" toast appeared on screen.
+3.  **Mocking:** Mock the network layer to simulate API success and API failure states to ensure the UI handles errors gracefully.

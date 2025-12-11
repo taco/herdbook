@@ -1,0 +1,21 @@
+---
+description: Backend specific rules for Fastify and Prisma
+globs: "packages/api/**/*"
+---
+# Backend Development
+
+- **Schema**: Always update `schema.graphql` if `schema.prisma` changes.
+
+## API Patterns
+- **Service Layer**: **None**. Use Direct-to-Prisma pattern in Resolvers. Do not create Service classes/layers until logic complexity demands it.
+- **Error Handling**: Throw explicit errors (e.g., `GraphQLError` with specific codes like `NOT_FOUND` or `UNAUTHENTICATED`). **Do not return `null`** for errors or missing resources; the client expects data or an explosion.
+- **Validation**: Manual validation in resolvers is preferred. Do not introduce Zod/Yup yet.
+- **Authorization**: Simple RBAC (Authenticated vs Guest). No complex roles yet.
+- **Configuration**: Runtime crashes on missing env vars are acceptable. No complex config validation libraries yet.
+- **Database**:
+  - **No N+1 Queries**: Be mindful of nested resolvers. Use Prisma's `include` for simple depths. If performance degrades, flag it for DataHelper/Loader refactor.
+
+## Testing Strategy
+- **Integration over Unit**: Prefer testing the full request/response cycle.
+- **Tooling**: Use `fastify.inject()` or Supertest for endpoints.
+- **Mocking**: Minimize mocking. Connect to a test container database/in-memory DB to verify actual data persistence. Only mock external HTTP services (e.g., Auth0, Stripe).
