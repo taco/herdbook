@@ -28,27 +28,23 @@ export default function ActivityCard({ session }: ActivityCardProps) {
 
     return (
         <Card>
-            <CardHeader className="p-3 pb-1">
-                <div className="flex justify-between items-start">
-                    <div>
-                        <CardTitle className="text-base font-semibold text-primary">
-                            {session.horse.name}
-                        </CardTitle>
-                        <div className="flex items-center text-muted-foreground text-xs mt-0.5">
-                            <Activity className="w-3 h-3 mr-1" />
-                            <span className="font-medium">
-                                {getWorkTypeLabel(session.workType)}
-                            </span>
+            <CardHeader>
+                <div className="flex justify-between items-start gap-2">
+                    <div className="space-y-1">
+                        <CardTitle>{session.horse.name}</CardTitle>
+                        <div className="flex items-center text-muted-foreground text-xs">
+                            <Activity className="w-3 h-3 mr-1.5" />
+                            <span>{getWorkTypeLabel(session.workType)}</span>
                         </div>
                     </div>
-                    <div className="flex items-center text-muted-foreground text-[10px] bg-secondary px-1.5 py-0.5 rounded-full">
-                        <Calendar className="w-3 h-3 mr-1" />
+                    <div className="shrink-0 flex items-center text-muted-foreground text-xs bg-secondary/50 px-2 py-0.5 rounded-md">
+                        <Calendar className="w-3 h-3 mr-1.5" />
                         {formattedDate}
                     </div>
                 </div>
             </CardHeader>
-            <CardContent className="p-3 pt-1 text-xs space-y-1.5">
-                <div className="flex justify-between items-center text-muted-foreground">
+            <CardContent className="space-y-2">
+                <div className="flex items-center gap-4 text-xs text-muted-foreground">
                     <div className="flex items-center">
                         <Clock className="w-3 h-3 mr-1.5" />
                         <span>{session.durationMinutes} min</span>
@@ -60,8 +56,8 @@ export default function ActivityCard({ session }: ActivityCardProps) {
                 </div>
 
                 {session.notes && (
-                    <div className="mt-1 p-2 bg-muted/100 rounded-md text-muted-foreground italic text-xs">
-                        <div className="line-clamp-2">"{session.notes}"</div>
+                    <div className="p-2 bg-muted/30 rounded-md text-muted-foreground text-xs italic">
+                        <p className="line-clamp-2">{session.notes}</p>
                     </div>
                 )}
             </CardContent>
