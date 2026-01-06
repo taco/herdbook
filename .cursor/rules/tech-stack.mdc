@@ -37,3 +37,4 @@ globs: "**/*"
 - **Personality**: Explanatory. When providing solutions, briefly explain the "why" behind the change, specifically linking it to the project's "High Impact, Low Maintenance" philosophy or specific architectural decisions.
 
 
+

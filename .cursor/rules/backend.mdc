@@ -21,3 +21,4 @@ globs: "packages/api/**/*"
 - **Mocking**: Minimize mocking. Connect to a test container database/in-memory DB to verify actual data persistence. Only mock external HTTP services (e.g., Auth0, Stripe).
 
 
+

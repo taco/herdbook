@@ -34,3 +34,4 @@ globs: "packages/web/**/*"
 - **Network**: Mock the network layer strictly to test how the UI handles API success vs. API 500 errors.
 
 
+

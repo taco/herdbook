@@ -17,3 +17,4 @@ globs: "**/*"
 - **Rich Text**: Avoid rendering HTML from strings (`dangerouslySetInnerHTML`) unless absolutely necessary and sanitized.
 
 
+
