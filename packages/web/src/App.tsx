@@ -12,13 +12,7 @@ import Login from '@/pages/Login';
 import Signup from '@/pages/Signup';
 import Dashboard from '@/pages/Dashboard';
 import Logout from '@/pages/Logout';
-
-const PrivateRoute: React.FC<{ element: React.ReactElement }> = ({
-    element,
-}) => {
-    const { isAuthenticated } = useAuth();
-    return isAuthenticated ? element : <Navigate to="/login" />;
-};
+import PrivateLayout from '@/layouts/PrivateLayout';
 
 const PublicRoute: React.FC<{ element: React.ReactElement }> = ({
     element,
@@ -36,17 +30,16 @@ function App() {
                     element={<PublicRoute element={<Login />} />}
                 />
                 <Route
-                    path="/logout"
-                    element={<PrivateRoute element={<Logout />} />}
-                />
-                <Route
                     path="/signup"
                     element={<PublicRoute element={<Signup />} />}
                 />
-                <Route
-                    path="/"
-                    element={<PrivateRoute element={<Dashboard />} />}
-                />
+
+                {/* Authenticated routes */}
+                <Route element={<PrivateLayout />}>
+                    <Route path="/" element={<Dashboard />} />
+                    <Route path="/logout" element={<Logout />} />
+                </Route>
+
                 <Route path="*" element={<Navigate to="/" />} />
             </Routes>
         </Router>
