@@ -5,11 +5,13 @@ import {
     Route,
     Navigate,
 } from 'react-router-dom';
-// import { useAuth } from '@/context/AuthContext';
+
+import { useAuth } from '@/context/AuthContext';
+
 import Login from '@/pages/Login';
 import Signup from '@/pages/Signup';
 import Dashboard from '@/pages/Dashboard';
-import { useAuth } from '@/context/AuthContext';
+import Logout from '@/pages/Logout';
 
 const PrivateRoute: React.FC<{ element: React.ReactElement }> = ({
     element,
@@ -32,6 +34,10 @@ function App() {
                 <Route
                     path="/login"
                     element={<PublicRoute element={<Login />} />}
+                />
+                <Route
+                    path="/logout"
+                    element={<PrivateRoute element={<Logout />} />}
                 />
                 <Route
                     path="/signup"

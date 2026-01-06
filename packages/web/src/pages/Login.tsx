@@ -1,3 +1,5 @@
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { gql, CombinedGraphQLErrors } from '@apollo/client';
 import { useMutation } from '@apollo/client/react';
 import { Button } from '@/components/ui/button';
@@ -5,8 +7,6 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/context/AuthContext';
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 
 const LOGIN_MUTATION = gql`
     mutation Login($email: String!, $password: String!) {
@@ -27,6 +27,11 @@ export default function Login() {
     const [loginMutation] = useMutation(LOGIN_MUTATION);
     const navigate = useNavigate();
     const { login } = useAuth();
+
+    useEffect(() => {
+        setEmail('travis@example.com');
+        setPassword('travis');
+    });
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
