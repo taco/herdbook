@@ -32,3 +32,5 @@ globs: "packages/web/**/*"
   - _Bad_: Checking if `handleSave()` was called.
   - _Good_: Clicking "Save" and verifying the success toast appears or the URL changes.
 - **Network**: Mock the network layer strictly to test how the UI handles API success vs. API 500 errors.
+
+

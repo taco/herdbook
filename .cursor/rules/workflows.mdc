@@ -20,3 +20,5 @@ globs: "**/*"
 2. **Backend Logic**: Implement resolvers/services.
 3. **Frontend Integration**: Build UI and connect.
 4. **Smoke Test**: Manual verification of the happy path.
+
+

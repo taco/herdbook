@@ -19,3 +19,5 @@ globs: "packages/api/**/*"
 - **Integration over Unit**: Prefer testing the full request/response cycle.
 - **Tooling**: Use `fastify.inject()` or Supertest for endpoints.
 - **Mocking**: Minimize mocking. Connect to a test container database/in-memory DB to verify actual data persistence. Only mock external HTTP services (e.g., Auth0, Stripe).
+
+

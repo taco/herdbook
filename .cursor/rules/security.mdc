@@ -15,3 +15,5 @@ globs: "**/*"
 ## Input Handling
 - **Sanitization**: Do not blindly trust user input. Treat all strings as potentially malicious.
 - **Rich Text**: Avoid rendering HTML from strings (`dangerouslySetInnerHTML`) unless absolutely necessary and sanitized.
+
+
