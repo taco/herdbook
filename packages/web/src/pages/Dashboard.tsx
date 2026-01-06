@@ -78,7 +78,7 @@ export default function Dashboard() {
                 <Button
                     variant="ghost"
                     size="icon"
-                    className="h-9 w-9 text-muted-foreground"
+                    className="text-muted-foreground"
                 >
                     <Menu className="h-5 w-5" />
                 </Button>
@@ -127,7 +127,7 @@ export default function Dashboard() {
             <div className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-background via-background/95 to-transparent pt-8 pointer-events-none">
                 <div className="w-full pointer-events-auto">
                     <Button
-                        className="w-full shadow-lg rounded-full h-12 text-base font-medium"
+                        className="w-full shadow-lg rounded-full text-base font-medium"
                         size="lg"
                     >
                         <Plus className="mr-2 h-5 w-5" />
