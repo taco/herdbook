@@ -1,0 +1,45 @@
+---
+description: Git conventions, commit message standards, and branching strategy
+globs:
+alwaysApply: false
+---
+# Git and Version Control
+
+All git operations should follow these standards to maintain a clean, readable history and ensure smooth collaboration.
+
+## Conventional Commits
+All commit messages MUST follow the [Conventional Commits](https://www.conventionalcommits.org/) specification.
+
+### Format
+`<type>(<scope>): <description>`
+
+### Types
+- `feat`: A new feature affecting the core product
+- `fix`: A bug fix affecting the core product
+- `refactor`: Code change that neither fixes a bug nor adds a feature
+- `chore`: Maintenance, dependencies, config, docs, tests, or AI rules
+
+### Examples
+- `feat(api): add Horse entity and resolvers`
+- `fix(web): resolve layout shift on HorseCard`
+- `refactor: simplify auth middleware logic`
+- `chore(rules): update git conventions`
+
+## Guidelines for Agents
+When performing git operations, follow these steps:
+
+1. **Status Check**: Always run `git status` before staging or committing to understand the current state.
+2. **.gitignore**: Check to see if you introduced junk that needs to be added to `.gitignore` before commiting.
+3. **Atomic Commits**: Group related changes into small, logical commits. Avoid "batching" unrelated fixes and features.
+4. **Specific Staging**: Prefer `git add <file>` over `git add .` to avoid accidentally committing temporary files or unrelated changes.
+5. **Descriptive Messages**: If the change is complex, use a multi-line commit message to explain the "why".
+
+## Branching Strategy
+- **Branch Naming**: Use the format `type/description` (e.g., `feat/add-search`, `fix/broken-link`).
+- **Main Branch**: The `main` branch is always stable. Do not commit directly to `main` unless it's a trivial fix or explicitly requested.
+- **Cleanup**: Delete local and remote branches after they have been merged.
+
+## Pull Requests
+- Keep PRs focused on a single conceptual change.
+- Link relevant issues or tickets in the PR description.
+- Ensure all tests pass before requesting a review.

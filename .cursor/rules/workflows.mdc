@@ -5,12 +5,7 @@ globs: "**/*"
 # Development Workflows
 
 ## Git & Version Control
-- **Conventional Commits**: Use conventional commits for all messages.
-  - `feat: ...` for new features
-  - `fix: ...` for bug fixes
-  - `refactor: ...` for code changes that neither fix a bug nor add a feature
-  - `chore: ...` for maintenance (dependencies, config)
-- **Pull Requests**: "One conceptual change per PR." Do not mix refactoring with new feature work.
+Follow the standards defined in [.cursor/rules/git.mdc](.cursor/rules/git.mdc).
 
 ## Data Management
 - **Local Data**: Local development data should be persistent. Use manual reset scripts when a clean slate is needed.
@@ -20,5 +15,6 @@ globs: "**/*"
 2. **Backend Logic**: Implement resolvers/services.
 3. **Frontend Integration**: Build UI and connect.
 4. **Smoke Test**: Manual verification of the happy path.
+
 
 
