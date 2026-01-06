@@ -48,7 +48,7 @@ async function start() {
     const fastify = Fastify();
 
     await fastify.register(cors, {
-        origin: 'http://localhost:3000',
+        origin: true, // Allow all origins in dev for easy iPhone access
         credentials: true,
     });
 
@@ -62,8 +62,8 @@ async function start() {
         context: (request: FastifyRequest) => buildContext(request),
     });
 
-    await fastify.listen({ port: 4000 });
-    console.log('Server is running on http://localhost:4000/graphql');
+    await fastify.listen({ port: 4000, host: '0.0.0.0' });
+    console.log('Server is running on http://0.0.0.0:4000/graphql');
 }
 
 start();
