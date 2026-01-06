@@ -72,7 +72,7 @@ export default function Dashboard() {
         );
 
     return (
-        <div className="h-dvh flex flex-col bg-background">
+        <div className="min-h-dvh flex flex-col bg-background">
             <header className="flex items-center justify-between px-4 py-3 border-b bg-card sticky top-0 z-10">
                 <h1 className="text-lg font-semibold">Herdbook</h1>
                 <Button

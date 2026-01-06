@@ -64,38 +64,40 @@ export default function Login() {
         }
     };
     return (
-        <Card className="max-w-md mx-auto mt-10">
-            <CardHeader>
-                <CardTitle>Login</CardTitle>
-            </CardHeader>
-            <CardContent>
-                <form onSubmit={handleSubmit}>
-                    <div>
-                        <Label htmlFor="email">Email</Label>
-                        <Input
-                            id="email"
-                            type="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                        />
-                    </div>
-                    <div>
-                        <Label htmlFor="password">Password</Label>
-                        <Input
-                            id="password"
-                            type="password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                        />
-                    </div>
-                    <div>
-                        {formError && (
-                            <p className="text-red-500">{formError}</p>
-                        )}
-                    </div>
-                    <Button type="submit">Login</Button>
-                </form>
-            </CardContent>
-        </Card>
+        <div className="min-h-dvh flex items-start justify-center p-4 bg-background">
+            <Card className="w-full max-w-md mt-10">
+                <CardHeader>
+                    <CardTitle>Login</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <form onSubmit={handleSubmit}>
+                        <div>
+                            <Label htmlFor="email">Email</Label>
+                            <Input
+                                id="email"
+                                type="email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                            />
+                        </div>
+                        <div>
+                            <Label htmlFor="password">Password</Label>
+                            <Input
+                                id="password"
+                                type="password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                            />
+                        </div>
+                        <div>
+                            {formError && (
+                                <p className="text-red-500">{formError}</p>
+                            )}
+                        </div>
+                        <Button type="submit">Login</Button>
+                    </form>
+                </CardContent>
+            </Card>
+        </div>
     );
 }
