@@ -1,5 +1,15 @@
 scalar DateTime
 
+directive @public on FIELD_DEFINITION
+
+type Rider {
+    id: ID!
+    name: String!
+    email: String!
+    createdAt: DateTime!
+    sessions: [Session!]!
+}
+
 enum WorkType {
     FLATWORK
     JUMPING
@@ -22,15 +32,6 @@ type Horse {
     updatedAt: DateTime!
     sessions: [Session!]!
     activity(weeks: Int): [WeeklyActivity!]!
-}
-
-type Rider {
-    id: ID!
-    name: String!
-    email: String!
-    password: String!
-    createdAt: DateTime!
-    sessions: [Session!]!
 }
 
 type Session {
@@ -67,6 +68,7 @@ type Mutation {
         workType: WorkType!
         notes: String
     ): Session!
-    login(email: String!, password: String!): AuthPayload!
+    login(email: String!, password: String!): AuthPayload! @public
     signup(name: String!, email: String!, password: String!): AuthPayload!
+        @public
 }

@@ -54,7 +54,8 @@ export const resolvers = {
         },
         signup: async (
             _: unknown,
-            args: { name: string; email: string; password: string }
+            args: { name: string; email: string; password: string },
+            context: Context
         ) => {
             const hashedPassword = await bcrypt.hash(args.password, 10);
             const rider = await prisma.rider.create({
@@ -67,11 +68,13 @@ export const resolvers = {
             const token = jwt.sign({ riderId: rider.id }, JWT_SECRET, {
                 expiresIn: '1h',
             });
+            context.rider = rider;
             return { token, rider };
         },
         login: async (
             _: unknown,
-            args: { email: string; password: string }
+            args: { email: string; password: string },
+            context: Context
         ) => {
             const rider = await prisma.rider.findUnique({
                 where: { email: args.email },
@@ -97,6 +100,7 @@ export const resolvers = {
             const token = jwt.sign({ riderId: rider.id }, JWT_SECRET, {
                 expiresIn: '1h',
             });
+            context.rider = rider;
             return { token, rider };
         },
     },
