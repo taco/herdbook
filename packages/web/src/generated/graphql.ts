@@ -135,6 +135,16 @@ export enum WorkType {
   Trail = 'TRAIL'
 }
 
+export type GetHorsesQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetHorsesQuery = { __typename?: 'Query', horses: Array<{ __typename?: 'Horse', id: string, name: string }> };
+
+export type GetRidersQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetRidersQuery = { __typename?: 'Query', riders: Array<{ __typename?: 'Rider', id: string, name: string }> };
+
 export type CreateSessionMutationVariables = Exact<{
   horseId: Scalars['ID']['input'];
   date: Scalars['DateTime']['input'];

@@ -12,6 +12,7 @@ import Login from '@/pages/Login';
 import Signup from '@/pages/Signup';
 import Dashboard from '@/pages/Dashboard';
 import Logout from '@/pages/Logout';
+import CreateSession from '@/pages/CreateSession';
 import PrivateLayout from '@/layouts/PrivateLayout';
 
 const PublicRoute: React.FC<{ element: React.ReactElement }> = ({
@@ -38,6 +39,7 @@ function App() {
                 <Route element={<PrivateLayout />}>
                     <Route path="/" element={<Dashboard />} />
                     <Route path="/logout" element={<Logout />} />
+                    <Route path="/sessions/new" element={<CreateSession />} />
                 </Route>
 
                 <Route path="*" element={<Navigate to="/" />} />

@@ -13,36 +13,39 @@
 **Goal**: Herdbook can do its job — riders can sign up, log sessions, and see what others have done.
 
 ### 1.1 Signup UX
+
 **Status**: API ready, web is stub  
 **Effort**: Small (1-2 hours)
 
-- [ ] Build signup form mirroring Login structure
-- [ ] Wire to existing `signup` mutation
-- [ ] Auto-login on success (store token, redirect to dashboard)
-- [ ] Handle errors (duplicate email, validation)
+- [x] Build signup form mirroring Login structure
+- [x] Wire to existing `signup` mutation
+- [x] Auto-login on success (store token, redirect to dashboard)
+- [x] Handle errors (duplicate email, validation)
 
 **Done when**: A new user can create an account and land on the dashboard.
 
 ---
 
 ### 1.2 Log Session Form
+
 **Status**: Button exists, no behavior  
 **Effort**: Medium (3-4 hours)
 
-- [ ] New route: `/sessions/new`
-- [ ] Horse picker dropdown (fetch from `horses` query)
+- [x] New route: `/sessions/new`
+- [x] Horse picker dropdown (fetch from `horses` query)
 - [ ] Display `lastSessionForHorse` context when horse selected
-  - This is the core handoff value — "here's what happened last time"
-- [ ] Form fields: date (default today), duration, work type, notes
-- [ ] Submit via `createSession` mutation
-- [ ] Success: redirect to dashboard, session appears in feed
-- [ ] Error handling: display validation/server errors
+    - This is the core handoff value — "here's what happened last time"
+- [x] Form fields: date (default today), duration, work type, notes
+- [x] Submit via `createSession` mutation
+- [x] Success: redirect to dashboard, session appears in feed
+- [x] Error handling: display validation/server errors
 
 **Done when**: A rider can log a session and see it appear in Recent Activity.
 
 ---
 
 ### 1.3 N+1 Query Resolution
+
 **Status**: Known issue, not yet addressed  
 **Effort**: Medium (2-3 hours)
 
@@ -63,6 +66,7 @@
 ---
 
 ### 1.4 JWT Secret Hardening
+
 **Status**: Defaults to insecure value  
 **Effort**: Small (30 min)
 
@@ -80,6 +84,7 @@
 **Goal**: Infrastructure and practices that demonstrate production-grade thinking.
 
 ### 2.1 E2E Testing Foundation
+
 **Effort**: Medium (3-4 hours)
 
 **Tool**: Playwright (good ecosystem, runs in CI, supports mobile viewports)
@@ -97,6 +102,7 @@
 ---
 
 ### 2.2 Observability
+
 **Effort**: Medium (2-3 hours)
 
 **Why now**: Essential for debugging AI agent behavior in Phase 3.
@@ -111,6 +117,7 @@
 ---
 
 ### 2.3 Security & Rate Limiting
+
 **Effort**: Medium (2-3 hours)
 
 - [ ] Rate limiting on `/graphql` for auth mutations (prevent brute force)
@@ -129,6 +136,7 @@
 **Reference**: See `agent-design.md` for detailed architecture.
 
 ### 3.1 Foundation: Agent Infrastructure
+
 **Effort**: Medium-Large (4-6 hours)
 
 - [ ] Anthropic SDK setup in API package
@@ -142,6 +150,7 @@
 ---
 
 ### 3.2 Level 1: Training Plan Generator
+
 **Effort**: Large (6-8 hours)
 
 **User story**: "I want to get Beau ready for the May 15th show. What should my training plan look like?"
@@ -157,6 +166,7 @@
 ---
 
 ### 3.3 Level 2: Interactive Refinement
+
 **Effort**: Medium (3-4 hours)
 
 **User story**: "That plan is too aggressive — adjust for his sore foot."
@@ -171,6 +181,7 @@
 ---
 
 ### 3.4 Level 3: Plan Execution Assistant (Stretch)
+
 **Effort**: Large (6-8 hours)
 
 **User story**: "I just logged a session. Am I on track with the plan?"
@@ -185,6 +196,7 @@
 ---
 
 ### 3.5 Level 4: Multi-Agent Coordination (Stretch)
+
 **Effort**: Very Large (8-12 hours)
 
 **User story**: "Weekly report on all horses' training progress"
@@ -203,29 +215,34 @@
 **Goal**: Herdbook is live on the internet, usable by real people, demonstrable in interviews.
 
 ### 4.1 Hosting & Infrastructure
+
 - [ ] Choose hosting (Fly.io, Railway, or similar)
 - [ ] Database hosting (managed Postgres)
 - [ ] Environment configuration (secrets, env vars)
 - [ ] Domain and HTTPS
 
 ### 4.2 Security Hardening
+
 - [ ] Security review of all endpoints
 - [ ] Input validation audit
 - [ ] Dependency vulnerability scan
 - [ ] Consider: WAF, DDoS protection
 
 ### 4.3 Operational Readiness
+
 - [ ] Error tracking (Sentry or similar)
 - [ ] Uptime monitoring
 - [ ] Log aggregation
 - [ ] Alerting for critical errors
 
 ### 4.4 User Management
+
 - [ ] Terms of service, privacy policy
 - [ ] Account deletion capability
 - [ ] Data export
 
 ### 4.5 Cost Management
+
 - [ ] LLM usage monitoring and budgets
 - [ ] Database connection pooling
 - [ ] Caching strategy if needed

@@ -4,7 +4,11 @@ import ActivityCard from '@/components/ActivityCard';
 import { HorseCard } from '@/components/HorseCard';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
-import { GetDashboardDataQuery, GetDashboardDataQueryVariables } from '@/generated/graphql';
+import {
+    GetDashboardDataQuery,
+    GetDashboardDataQueryVariables,
+} from '@/generated/graphql';
+import { useNavigate } from 'react-router-dom';
 
 const DASHBOARD_QUERY = gql`
     query GetDashboardData {
@@ -33,7 +37,11 @@ const DASHBOARD_QUERY = gql`
 `;
 
 export default function Dashboard() {
-    const { data, loading, error } = useQuery<GetDashboardDataQuery, GetDashboardDataQueryVariables>(DASHBOARD_QUERY);
+    const { data, loading, error } = useQuery<
+        GetDashboardDataQuery,
+        GetDashboardDataQueryVariables
+    >(DASHBOARD_QUERY);
+    const navigate = useNavigate();
 
     if (loading)
         return <div className="p-4 text-center">Loading activity...</div>;
@@ -88,6 +96,7 @@ export default function Dashboard() {
                     <Button
                         className="w-full shadow-lg rounded-full text-base font-medium"
                         size="lg"
+                        onClick={() => navigate('/sessions/new')}
                     >
                         <Plus className="mr-2 h-5 w-5" />
                         Log Session
