@@ -1,5 +1,5 @@
 import { DateTimeResolver } from 'graphql-scalars';
-import { GraphQLError } from 'graphql';
+import { GraphQLError, type GraphQLResolveInfo } from 'graphql';
 import { WorkType } from '@prisma/client';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
@@ -12,30 +12,106 @@ export type Context = {
     rider: Awaited<ReturnType<typeof prisma.rider.findUnique>> | null;
 };
 
+function redactSensitive(value: unknown): unknown {
+    if (Array.isArray(value)) {
+        return value.map(redactSensitive);
+    }
+    if (value && typeof value === 'object') {
+        const obj = value as Record<string, unknown>;
+        const redacted: Record<string, unknown> = {};
+        for (const [key, val] of Object.entries(obj)) {
+            if (/password/i.test(key)) {
+                redacted[key] = '[REDACTED]';
+                continue;
+            }
+            redacted[key] = redactSensitive(val);
+        }
+        return redacted;
+    }
+    return value;
+}
+
+function logResolverCall(
+    info: GraphQLResolveInfo,
+    args: unknown,
+    context: Context | undefined
+): void {
+    // Avoid logging full context (it includes password hash on rider)
+    const riderId = context?.rider?.id ?? null;
+    console.info(`[gql] ${info.parentType.name}.${info.fieldName}`, {
+        riderId,
+        args: redactSensitive(args),
+    });
+}
+
 export const resolvers = {
     DateTime: DateTimeResolver,
 
     Query: {
-        horses: () => prisma.horse.findMany(),
-        riders: () => prisma.rider.findMany(),
-        sessions: (_: unknown, args: { limit?: number; offset?: number }) =>
-            prisma.session.findMany({
+        horses: (
+            _: unknown,
+            args: unknown,
+            context: Context,
+            info: GraphQLResolveInfo
+        ) => {
+            logResolverCall(info, args, context);
+            return prisma.horse.findMany();
+        },
+        riders: (
+            _: unknown,
+            args: unknown,
+            context: Context,
+            info: GraphQLResolveInfo
+        ) => {
+            logResolverCall(info, args, context);
+            return prisma.rider.findMany();
+        },
+        sessions: (
+            _: unknown,
+            args: { limit?: number; offset?: number },
+            context: Context,
+            info: GraphQLResolveInfo
+        ) => {
+            logResolverCall(info, args, context);
+            return prisma.session.findMany({
                 take: args.limit,
                 skip: args.offset,
                 orderBy: { date: 'desc' },
-            }),
-        horse: (_: unknown, args: { id: string }) =>
-            prisma.horse.findUnique({ where: { id: args.id } }),
-        lastSessionForHorse: (_: unknown, args: { horseId: string }) =>
-            prisma.session.findFirst({
+            });
+        },
+        horse: (
+            _: unknown,
+            args: { id: string },
+            context: Context,
+            info: GraphQLResolveInfo
+        ) => {
+            logResolverCall(info, args, context);
+            return prisma.horse.findUnique({ where: { id: args.id } });
+        },
+        lastSessionForHorse: (
+            _: unknown,
+            args: { horseId: string },
+            context: Context,
+            info: GraphQLResolveInfo
+        ) => {
+            logResolverCall(info, args, context);
+            return prisma.session.findFirst({
                 where: { horseId: args.horseId },
                 orderBy: { date: 'desc' },
-            }),
+            });
+        },
     },
 
     Mutation: {
-        createHorse: (_: unknown, args: { name: string; notes?: string }) =>
-            prisma.horse.create({ data: args }),
+        createHorse: (
+            _: unknown,
+            args: { name: string; notes?: string },
+            context: Context,
+            info: GraphQLResolveInfo
+        ) => {
+            logResolverCall(info, args, context);
+            return prisma.horse.create({ data: args });
+        },
         createSession: (
             _: unknown,
             args: {
@@ -45,8 +121,10 @@ export const resolvers = {
                 workType: WorkType;
                 notes?: string;
             },
-            context: Context
+            context: Context,
+            info: GraphQLResolveInfo
         ) => {
+            logResolverCall(info, args, context);
             if (!context.rider) {
                 throw new GraphQLError('No rider found');
             }
@@ -57,8 +135,10 @@ export const resolvers = {
         signup: async (
             _: unknown,
             args: { name: string; email: string; password: string },
-            context: Context
+            context: Context,
+            info: GraphQLResolveInfo
         ) => {
+            logResolverCall(info, args, context);
             const existingRider = await prisma.rider.findUnique({
                 where: { email: args.email },
             });
@@ -84,8 +164,10 @@ export const resolvers = {
         login: async (
             _: unknown,
             args: { email: string; password: string },
-            context: Context
+            context: Context,
+            info: GraphQLResolveInfo
         ) => {
+            logResolverCall(info, args, context);
             const rider = await prisma.rider.findUnique({
                 where: { email: args.email },
             });
