@@ -6,6 +6,8 @@ import jwt from 'jsonwebtoken';
 import { prisma } from './db';
 import { JWT_SECRET } from './config';
 
+const JWT_EXPIRATION = '1h';
+
 export type Context = {
     rider: Awaited<ReturnType<typeof prisma.rider.findUnique>> | null;
 };
@@ -46,7 +48,7 @@ export const resolvers = {
             context: Context
         ) => {
             if (!context.rider) {
-                throw new Error('Not authenticated');
+                throw new GraphQLError('No rider found');
             }
             return prisma.session.create({
                 data: { ...args, riderId: context.rider.id },
@@ -57,6 +59,14 @@ export const resolvers = {
             args: { name: string; email: string; password: string },
             context: Context
         ) => {
+            const existingRider = await prisma.rider.findUnique({
+                where: { email: args.email },
+            });
+            if (existingRider) {
+                throw new GraphQLError('Email already in use', {
+                    extensions: { code: 'EMAIL_IN_USE' },
+                });
+            }
             const hashedPassword = await bcrypt.hash(args.password, 10);
             const rider = await prisma.rider.create({
                 data: {
@@ -66,7 +76,7 @@ export const resolvers = {
                 },
             });
             const token = jwt.sign({ riderId: rider.id }, JWT_SECRET, {
-                expiresIn: '1h',
+                expiresIn: JWT_EXPIRATION,
             });
             context.rider = rider;
             return { token, rider };
@@ -98,7 +108,7 @@ export const resolvers = {
                 });
             }
             const token = jwt.sign({ riderId: rider.id }, JWT_SECRET, {
-                expiresIn: '1h',
+                expiresIn: JWT_EXPIRATION,
             });
             context.rider = rider;
             return { token, rider };
