@@ -4,29 +4,7 @@ import ActivityCard from '@/components/ActivityCard';
 import { HorseCard } from '@/components/HorseCard';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
-
-interface Session {
-    id: string;
-    date: string;
-    durationMinutes: number;
-    workType: string;
-    notes: string;
-    horse: {
-        name: string;
-    };
-    rider: {
-        name: string;
-    };
-}
-
-interface Horse {
-    id: string;
-    name: string;
-    activity: {
-        weekStart: string;
-        count: number;
-    }[];
-}
+import { GetDashboardDataQuery, GetDashboardDataQueryVariables } from '@/generated/graphql';
 
 const DASHBOARD_QUERY = gql`
     query GetDashboardData {
@@ -54,13 +32,8 @@ const DASHBOARD_QUERY = gql`
     }
 `;
 
-interface DashboardData {
-    horses: Horse[];
-    sessions: Session[];
-}
-
 export default function Dashboard() {
-    const { data, loading, error } = useQuery<DashboardData>(DASHBOARD_QUERY);
+    const { data, loading, error } = useQuery<GetDashboardDataQuery, GetDashboardDataQueryVariables>(DASHBOARD_QUERY);
 
     if (loading)
         return <div className="p-4 text-center">Loading activity...</div>;
@@ -92,7 +65,7 @@ export default function Dashboard() {
                         Recent Activity
                     </h2>
                     <div className="space-y-3">
-                        {data?.sessions.map((session: Session) => (
+                        {data?.sessions.map((session) => (
                             <ActivityCard
                                 key={session.id}
                                 session={{

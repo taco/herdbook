@@ -7,7 +7,8 @@
         "dev": "vite --host",
         "build": "tsc && vite build",
         "preview": "vite preview",
-        "test": "vitest"
+        "test": "vitest",
+        "codegen": "graphql-codegen --config codegen.config.ts"
     },
     "dependencies": {
         "@apollo/client": "^4.0.10",
@@ -27,6 +28,10 @@
         "tailwindcss-animate": "^1.0.7"
     },
     "devDependencies": {
+        "@graphql-codegen/cli": "^6.1.0",
+        "@graphql-codegen/client-preset": "^5.2.2",
+        "@graphql-codegen/typescript": "^5.0.7",
+        "@graphql-codegen/typescript-operations": "^5.0.7",
         "@tailwindcss/cli": "^4.1.17",
         "@tailwindcss/vite": "^4.1.17",
         "@testing-library/jest-dom": "^6.9.1",

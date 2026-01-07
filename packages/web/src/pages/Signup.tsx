@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { SignupMutation, SignupMutationVariables } from '@/generated/graphql';
 
 const SIGNUP_MUTATION = gql`
     mutation Signup($name: String!, $email: String!, $password: String!) {
@@ -26,7 +27,7 @@ export default function Signup() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [formError, setFormError] = useState('');
-    const [signupMutation] = useMutation(SIGNUP_MUTATION);
+    const [signupMutation] = useMutation<SignupMutation, SignupMutationVariables>(SIGNUP_MUTATION);
     const navigate = useNavigate();
     const { login } = useAuth();
 
@@ -38,31 +39,14 @@ export default function Signup() {
                 variables: { name, email, password },
             });
 
-            const {
-                data: {
-                    signup: {
-                        token,
-                        rider: { id, name: riderName },
-                    },
-                },
-            } = result as {
-                data: {
-                    signup: {
-                        token: string;
-                        rider: { id: string; name: string };
-                    };
-                };
-            };
-            login(token, id, riderName);
-            navigate('/');
+            if (result.data) {
+                const { token, rider } = result.data.signup;
+                login(token, rider.id, rider.name);
+                navigate('/');
+            }
         } catch (err) {
             if (CombinedGraphQLErrors.is(err)) {
-                const errorCode = err.errors[0].extensions?.code;
-                if (errorCode === 'EMAIL_IN_USE') {
-                    setFormError('Email already in use');
-                } else {
-                    setFormError(err.errors[0].message);
-                }
+                setFormError(err.errors[0].message);
             }
         }
     };

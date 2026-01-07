@@ -7,6 +7,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/context/AuthContext';
+import { LoginMutation, LoginMutationVariables } from '@/generated/graphql';
 
 const LOGIN_MUTATION = gql`
     mutation Login($email: String!, $password: String!) {
@@ -24,7 +25,7 @@ export default function Login() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [formError, setFormError] = useState('');
-    const [loginMutation] = useMutation(LOGIN_MUTATION);
+    const [loginMutation] = useMutation<LoginMutation, LoginMutationVariables>(LOGIN_MUTATION);
     const navigate = useNavigate();
     const { login } = useAuth();
 
@@ -40,23 +41,11 @@ export default function Login() {
                 variables: { email, password },
             });
 
-            const {
-                data: {
-                    login: {
-                        token,
-                        rider: { id, name },
-                    },
-                },
-            } = result as {
-                data: {
-                    login: {
-                        token: string;
-                        rider: { id: string; name: string };
-                    };
-                };
-            };
-            login(token, id, name);
-            navigate('/');
+            if (result.data) {
+                const { token, rider } = result.data.login;
+                login(token, rider.id, rider.name);
+                navigate('/');
+            }
         } catch (err) {
             if (CombinedGraphQLErrors.is(err)) {
                 const errorCode = err.errors[0].extensions?.code;
