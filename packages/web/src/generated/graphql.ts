@@ -156,6 +156,13 @@ export type CreateSessionMutationVariables = Exact<{
 
 export type CreateSessionMutation = { __typename?: 'Mutation', createSession: { __typename?: 'Session', id: string } };
 
+export type GetLastSessionForHorseQueryVariables = Exact<{
+  horseId: Scalars['ID']['input'];
+}>;
+
+
+export type GetLastSessionForHorseQuery = { __typename?: 'Query', lastSessionForHorse: { __typename?: 'Session', id: string, date: any, durationMinutes: number, workType: WorkType, notes: string, horse: { __typename?: 'Horse', name: string }, rider: { __typename?: 'Rider', name: string } } | null };
+
 export type GetDashboardDataQueryVariables = Exact<{ [key: string]: never; }>;
 
 

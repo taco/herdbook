@@ -33,7 +33,7 @@
 
 - [x] New route: `/sessions/new`
 - [x] Horse picker dropdown (fetch from `horses` query)
-- [ ] Display `lastSessionForHorse` context when horse selected
+- [x] Display `lastSessionForHorse` context when horse selected
     - This is the core handoff value — "here's what happened last time"
 - [x] Form fields: date (default today), duration, work type, notes
 - [x] Submit via `createSession` mutation

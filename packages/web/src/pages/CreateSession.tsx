@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { gql } from '@apollo/client';
-import { useMutation } from '@apollo/client/react';
+import { useMutation, useQuery } from '@apollo/client/react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -17,12 +17,18 @@ import {
     WorkType,
     CreateSessionMutation,
     CreateSessionMutationVariables,
+    Session,
+    GetLastSessionForHorseQuery,
+    GetLastSessionForHorseQueryVariables,
 } from '@/generated/graphql';
 
 import SelectHorse from '@/components/fields/SelectHorse';
 import SelectWorkType from '@/components/fields/SelectWorkType';
 import { useAuth } from '@/context/AuthContext';
 import SelectRider from '@/components/fields/SelectRider';
+import ActivityCard from '@/components/ActivityCard';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Plus } from 'lucide-react';
 
 const REQUIRED_FIELDS_ERROR_MESSAGE = 'Please fill in all required fields.';
 
@@ -53,6 +59,24 @@ const CREATE_SESSION_MUTATION = gql`
     }
 `;
 
+const GET_LAST_SESSION_FOR_HORSE_QUERY = gql`
+    query GetLastSessionForHorse($horseId: ID!) {
+        lastSessionForHorse(horseId: $horseId) {
+            id
+            date
+            durationMinutes
+            workType
+            notes
+            horse {
+                name
+            }
+            rider {
+                name
+            }
+        }
+    }
+`;
+
 export default function CreateSession() {
     const persistedVariables = JSON.parse(
         localStorage.getItem('createSession') || '{}'
@@ -60,6 +84,17 @@ export default function CreateSession() {
     const { riderId: currentRiderId } = useAuth();
     const [riderId, setRiderId] = useState(currentRiderId || '');
     const [horseId, setHorseId] = useState(persistedVariables.horseId || '');
+
+    const {
+        loading: lastSessionLoading,
+        data: { lastSessionForHorse } = { lastSessionForHorse: null },
+    } = useQuery<
+        GetLastSessionForHorseQuery,
+        GetLastSessionForHorseQueryVariables
+    >(GET_LAST_SESSION_FOR_HORSE_QUERY, {
+        variables: { horseId },
+        skip: !horseId,
+    });
 
     const [date, setDate] = useState(() =>
         formatAsDateTimeLocalValue(new Date())
@@ -80,15 +115,28 @@ export default function CreateSession() {
 
     const [formError, setFormError] = useState<string | null>(null);
 
+    const handleHorseChange = async (value: string) => {
+        setHorseId(value);
+
+        // const result = await getLastSessionForHorseQuery({
+        //     variables: {
+        //         horseId: value,
+        //     },
+        // });
+
+        // if (result.data) {
+        //     setLastSessionForHorse(result.data.lastSessionForHorse as Session);
+        // }
+    };
+
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setFormError(null);
 
-        const trimmedHorseId = horseId.trim();
         const trimmedNotes = notes.trim();
 
         if (
-            !trimmedHorseId ||
+            !horseId ||
             !date ||
             durationMinutes == null ||
             !workType ||
@@ -101,7 +149,7 @@ export default function CreateSession() {
 
         try {
             const persistedVariables = {
-                horseId: trimmedHorseId,
+                horseId,
                 durationMinutes,
                 workType,
             };
@@ -200,6 +248,21 @@ export default function CreateSession() {
                         </div>
 
                         <div className="space-y-1.5">
+                            <Label htmlFor="lastSessionForHorse">
+                                Previous session
+                            </Label>
+                            <div className="min-h-[126px]">
+                                {lastSessionForHorse && !lastSessionLoading ? (
+                                    <ActivityCard
+                                        session={lastSessionForHorse}
+                                    />
+                                ) : (
+                                    <Skeleton className="w-full h-[126px]" />
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="space-y-1.5">
                             <Label htmlFor="notes">Notes</Label>
                             <textarea
                                 id="notes"
@@ -207,7 +270,7 @@ export default function CreateSession() {
                                 onChange={(e) => setNotes(e.target.value)}
                                 placeholder="e.g. 'Good session, worked on lateral movement'"
                                 required
-                                rows={4}
+                                rows={9}
                                 className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-base shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
                             />
                         </div>
@@ -217,11 +280,13 @@ export default function CreateSession() {
                         )}
 
                         <Button
+                            className="w-full shadow-lg rounded-full text-base font-medium"
+                            size="lg"
                             type="submit"
-                            className="w-full"
                             disabled={loading}
                         >
-                            {loading ? 'Creating…' : 'Create session'}
+                            <Plus className="mr-2 h-5 w-5" />
+                            {loading ? 'Creating…' : 'Log Session'}
                         </Button>
                     </form>
                 </CardContent>
