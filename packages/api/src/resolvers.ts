@@ -246,5 +246,7 @@ export const resolvers = {
             prisma.horse.findUnique({ where: { id: parent.horseId } }),
         rider: (parent: { riderId: string }) =>
             prisma.rider.findUnique({ where: { id: parent.riderId } }),
+        // Backwards-compat: older DB rows may have NULL notes, but GraphQL requires String!
+        notes: (parent: { notes: string | null }) => parent.notes ?? '',
     },
 };

@@ -36,7 +36,6 @@ lerna-debug.log*
 *.sw?
 
 # Prisma
-packages/api/prisma/migrations/
 packages/api/src/generated/prisma
 
 

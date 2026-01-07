@@ -47,6 +47,10 @@ async function seedSessions() {
         }
 
         try {
+            const notes =
+                row.notes && row.notes.trim().length > 0
+                    ? row.notes.trim()
+                    : '';
             await prisma.session.create({
                 data: {
                     horseId: row.horseId,
@@ -54,7 +58,7 @@ async function seedSessions() {
                     date: new Date(row.date),
                     durationMinutes: duration,
                     workType: WorkType[workTypeUpper],
-                    notes: row.notes && row.notes.length > 0 ? row.notes : null,
+                    notes,
                 },
             });
         } catch (err) {
