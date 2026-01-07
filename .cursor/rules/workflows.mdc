@@ -10,6 +10,9 @@ Follow the standards defined in [.cursor/rules/git.mdc](.cursor/rules/git.mdc).
 ## Data Management
 - **Local Data**: Local development data should be persistent. Use manual reset scripts when a clean slate is needed.
 
+## Implementation Guidelines
+- **Abstraction**: Don't over-abstract prematurely—prefer explicit code until patterns repeat 3+ times.
+
 ## New Feature Protocol
 1. **Define Schema**: Start with `schema.prisma` and `schema.graphql`.
 2. **Backend Logic**: Implement resolvers/services.

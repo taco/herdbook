@@ -14,6 +14,7 @@
 
 ## Code Style
 - **TypeScript**: No `any`. Explicit return types on public functions. No magic strings—use constants.
+- **Abstraction**: Don't over-abstract prematurely—prefer explicit code until patterns repeat 3+ times.
 - **Naming**: `PascalCase.tsx` (components), `camelCase.ts` (utils). Types: `PascalCase` (no `I` prefix).
 - **Imports**: Use absolute imports (`@/components/ui/button`). Colocate tests with source files.
 - **Errors (API)**: Throw `GraphQLError` with codes (`NOT_FOUND`, `UNAUTHENTICATED`). Never return `null` for errors.
