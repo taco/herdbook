@@ -39,7 +39,7 @@ const CREATE_SESSION_MUTATION = gql`
         $date: DateTime!
         $durationMinutes: Int!
         $workType: WorkType!
-        $notes: String
+        $notes: String!
     ) {
         createSession(
             horseId: $horseId
@@ -93,7 +93,7 @@ export default function CreateSession() {
             durationMinutes == null ||
             !workType ||
             !riderId ||
-            notes.length === 0
+            trimmedNotes.length === 0
         ) {
             setFormError(REQUIRED_FIELDS_ERROR_MESSAGE);
             return;
@@ -109,7 +109,7 @@ export default function CreateSession() {
                 variables: {
                     ...persistedVariables,
                     date: new Date(date).toISOString(),
-                    notes: trimmedNotes.length > 0 ? trimmedNotes : null,
+                    notes: trimmedNotes,
                 },
             });
 

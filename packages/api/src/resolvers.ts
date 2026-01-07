@@ -119,7 +119,7 @@ export const resolvers = {
                 date: Date;
                 durationMinutes: number;
                 workType: WorkType;
-                notes?: string;
+                notes: string;
             },
             context: Context,
             info: GraphQLResolveInfo

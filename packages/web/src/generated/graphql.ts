@@ -56,7 +56,7 @@ export type MutationCreateSessionArgs = {
   date: Scalars['DateTime']['input'];
   durationMinutes: Scalars['Int']['input'];
   horseId: Scalars['ID']['input'];
-  notes: InputMaybe<Scalars['String']['input']>;
+  notes: Scalars['String']['input'];
   workType: WorkType;
 };
 
@@ -114,7 +114,7 @@ export type Session = {
   durationMinutes: Scalars['Int']['output'];
   horse: Horse;
   id: Scalars['ID']['output'];
-  notes: Maybe<Scalars['String']['output']>;
+  notes: Scalars['String']['output'];
   rider: Rider;
   updatedAt: Scalars['DateTime']['output'];
   workType: WorkType;
@@ -150,7 +150,7 @@ export type CreateSessionMutationVariables = Exact<{
   date: Scalars['DateTime']['input'];
   durationMinutes: Scalars['Int']['input'];
   workType: WorkType;
-  notes: InputMaybe<Scalars['String']['input']>;
+  notes: Scalars['String']['input'];
 }>;
 
 
@@ -159,7 +159,7 @@ export type CreateSessionMutation = { __typename?: 'Mutation', createSession: { 
 export type GetDashboardDataQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetDashboardDataQuery = { __typename?: 'Query', horses: Array<{ __typename?: 'Horse', id: string, name: string, activity: Array<{ __typename?: 'WeeklyActivity', weekStart: any, count: number }> }>, sessions: Array<{ __typename?: 'Session', id: string, date: any, durationMinutes: number, workType: WorkType, notes: string | null, horse: { __typename?: 'Horse', name: string }, rider: { __typename?: 'Rider', name: string } }> };
+export type GetDashboardDataQuery = { __typename?: 'Query', horses: Array<{ __typename?: 'Horse', id: string, name: string, activity: Array<{ __typename?: 'WeeklyActivity', weekStart: any, count: number }> }>, sessions: Array<{ __typename?: 'Session', id: string, date: any, durationMinutes: number, workType: WorkType, notes: string, horse: { __typename?: 'Horse', name: string }, rider: { __typename?: 'Rider', name: string } }> };
 
 export type LoginMutationVariables = Exact<{
   email: Scalars['String']['input'];
