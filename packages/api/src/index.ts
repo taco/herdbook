@@ -10,14 +10,19 @@ import { resolve } from 'path';
 import jwt from 'jsonwebtoken';
 
 import { prisma } from '@/db';
-import { resolvers, Context } from './resolvers';
-import { JWT_SECRET } from './config';
-import { secureByDefaultTransformer } from './directives';
+import { createLoaders } from '@/loaders';
+import { resolvers, Context } from '@/resolvers';
+import { JWT_SECRET } from '@/config';
+import { secureByDefaultTransformer } from '@/directives';
 
 async function buildContext(request: FastifyRequest): Promise<Context> {
     const auth = request.headers.authorization;
+    const context: Context = {
+        rider: null,
+        loaders: createLoaders(),
+    };
     if (!auth || !auth.startsWith('Bearer ')) {
-        return { rider: null };
+        return context;
     }
 
     const token = auth.slice(7);
@@ -26,10 +31,11 @@ async function buildContext(request: FastifyRequest): Promise<Context> {
         const rider = await prisma.rider.findUnique({
             where: { id: payload.riderId },
         });
-        return { rider };
+        context.rider = rider;
+        return context;
     } catch (error) {
         console.error('Error verifying token:', error);
-        return { rider: null };
+        return context;
     }
 }
 

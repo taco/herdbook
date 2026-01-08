@@ -28,6 +28,7 @@
         "@prisma/adapter-pg": "^7.1.0",
         "@prisma/client": "^7.1.0",
         "bcrypt": "^6.0.0",
+        "dataloader": "^2.2.3",
         "dotenv": "^17.2.3",
         "fastify": "^5.6.2",
         "graphql": "^16.12.0",

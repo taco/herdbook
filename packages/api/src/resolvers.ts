@@ -5,11 +5,17 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { prisma } from './db';
 import { JWT_SECRET } from './config';
+import DataLoader from 'dataloader';
+import { Horse, Rider } from '@prisma/client';
 
 const JWT_EXPIRATION = '1h';
 
 export type Context = {
     rider: Awaited<ReturnType<typeof prisma.rider.findUnique>> | null;
+    loaders: {
+        horse: DataLoader<string, Horse | null>;
+        rider: DataLoader<string, Rider | null>;
+    };
 };
 
 function redactSensitive(value: unknown): unknown {
@@ -242,10 +248,10 @@ export const resolvers = {
             prisma.session.findMany({ where: { riderId: parent.id } }),
     },
     Session: {
-        horse: (parent: { horseId: string }) =>
-            prisma.horse.findUnique({ where: { id: parent.horseId } }),
-        rider: (parent: { riderId: string }) =>
-            prisma.rider.findUnique({ where: { id: parent.riderId } }),
+        horse: (parent: { horseId: string }, _: unknown, context: Context) =>
+            context.loaders.horse.load(parent.horseId),
+        rider: (parent: { riderId: string }, _: unknown, context: Context) =>
+            context.loaders.rider.load(parent.riderId),
         // Backwards-compat: older DB rows may have NULL notes, but GraphQL requires String!
         notes: (parent: { notes: string | null }) => parent.notes ?? '',
     },
