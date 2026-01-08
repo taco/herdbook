@@ -30,6 +30,7 @@ async function buildContext(request: FastifyRequest): Promise<Context> {
         const payload = jwt.verify(token, JWT_SECRET) as { riderId: string };
         const rider = await prisma.rider.findUnique({
             where: { id: payload.riderId },
+            omit: { password: true },
         });
         context.rider = rider;
         return context;

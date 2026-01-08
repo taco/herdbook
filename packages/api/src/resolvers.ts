@@ -1,21 +1,19 @@
 import { DateTimeResolver } from 'graphql-scalars';
 import { GraphQLError, type GraphQLResolveInfo } from 'graphql';
-import { WorkType } from '@prisma/client';
+import { WorkType, type Prisma } from '@prisma/client';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { prisma } from './db';
 import { JWT_SECRET } from './config';
-import DataLoader from 'dataloader';
-import { Horse, Rider } from '@prisma/client';
+import type { Loaders } from './loaders';
 
 const JWT_EXPIRATION = '1h';
 
+export type RiderSafe = Prisma.RiderGetPayload<{ omit: { password: true } }>;
+
 export type Context = {
-    rider: Awaited<ReturnType<typeof prisma.rider.findUnique>> | null;
-    loaders: {
-        horse: DataLoader<string, Horse | null>;
-        rider: DataLoader<string, Rider | null>;
-    };
+    rider: RiderSafe | null;
+    loaders: Loaders;
 };
 
 function redactSensitive(value: unknown): unknown {
@@ -70,7 +68,7 @@ export const resolvers = {
             info: GraphQLResolveInfo
         ) => {
             logResolverCall(info, args, context);
-            return prisma.rider.findMany();
+            return prisma.rider.findMany({ omit: { password: true } });
         },
         sessions: (
             _: unknown,
@@ -147,6 +145,7 @@ export const resolvers = {
             logResolverCall(info, args, context);
             const existingRider = await prisma.rider.findUnique({
                 where: { email: args.email },
+                omit: { password: true },
             });
             if (existingRider) {
                 throw new GraphQLError('Email already in use', {
@@ -164,8 +163,9 @@ export const resolvers = {
             const token = jwt.sign({ riderId: rider.id }, JWT_SECRET, {
                 expiresIn: JWT_EXPIRATION,
             });
-            context.rider = rider;
-            return { token, rider };
+            const { password: _password, ...safeRider } = rider;
+            context.rider = safeRider;
+            return { token, rider: safeRider };
         },
         login: async (
             _: unknown,
@@ -198,8 +198,9 @@ export const resolvers = {
             const token = jwt.sign({ riderId: rider.id }, JWT_SECRET, {
                 expiresIn: JWT_EXPIRATION,
             });
-            context.rider = rider;
-            return { token, rider };
+            const { password: _password, ...safeRider } = rider;
+            context.rider = safeRider;
+            return { token, rider: safeRider };
         },
     },
 
