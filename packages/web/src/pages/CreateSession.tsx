@@ -17,7 +17,6 @@ import {
     WorkType,
     CreateSessionMutation,
     CreateSessionMutationVariables,
-    Session,
     GetLastSessionForHorseQuery,
     GetLastSessionForHorseQueryVariables,
 } from '@/generated/graphql';
@@ -114,20 +113,6 @@ export default function CreateSession() {
     >(CREATE_SESSION_MUTATION);
 
     const [formError, setFormError] = useState<string | null>(null);
-
-    const handleHorseChange = async (value: string) => {
-        setHorseId(value);
-
-        // const result = await getLastSessionForHorseQuery({
-        //     variables: {
-        //         horseId: value,
-        //     },
-        // });
-
-        // if (result.data) {
-        //     setLastSessionForHorse(result.data.lastSessionForHorse as Session);
-        // }
-    };
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
