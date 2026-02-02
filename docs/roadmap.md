@@ -57,7 +57,7 @@
 - [x] Create loaders for Horse and Rider (batch by ID)
 - [x] Inject loaders into GraphQL context per-request
 - [x] Update session field resolvers to use loaders
-- [ ] Add basic API tests to verify batching behavior
+- [x] Add basic API tests to verify batching behavior
 
 **Done when**: Fetching 20 sessions with horse/rider data uses 3 queries (sessions + batch horses + batch riders), not 41.
 

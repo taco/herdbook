@@ -11,6 +11,7 @@
         "build:web": "pnpm --filter web build",
         "format": "prettier --write \"**/*.{ts,tsx,json,md}\"",
         "format:check": "prettier --check \"**/*.{ts,tsx,json,md}\"",
+        "test": "pnpm --filter api test && pnpm --filter web test",
         "test:e2e": "pnpm --filter e2e test"
     },
     "devDependencies": {
