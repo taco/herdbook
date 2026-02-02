@@ -23,9 +23,11 @@ const GET_RIDERS_QUERY = gql`
 export default function SelectRider({
     value,
     onChange,
+    id,
 }: {
     value: string;
     onChange: (value: string) => void;
+    id: string;
 }) {
     const { data, loading } = useQuery<GetRidersQuery, GetRidersQueryVariables>(
         GET_RIDERS_QUERY
@@ -33,7 +35,7 @@ export default function SelectRider({
 
     return (
         <Select value={value} onValueChange={onChange} disabled={loading}>
-            <SelectTrigger>
+            <SelectTrigger id={id}>
                 <SelectValue placeholder="Select a rider" />
             </SelectTrigger>
             <SelectContent>

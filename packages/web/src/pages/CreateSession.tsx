@@ -144,6 +144,11 @@ export default function CreateSession() {
                     date: new Date(date).toISOString(),
                     notes: trimmedNotes,
                 },
+                update(cache) {
+                    cache.evict({ fieldName: 'sessions' });
+                    cache.evict({ fieldName: 'lastSessionForHorse' });
+                    cache.gc();
+                }
             });
 
             localStorage.setItem(
@@ -174,6 +179,7 @@ export default function CreateSession() {
                             <SelectHorse
                                 value={horseId}
                                 onChange={setHorseId}
+                                id="horseId"
                             />
                         </div>
 
@@ -182,6 +188,7 @@ export default function CreateSession() {
                             <SelectRider
                                 value={riderId}
                                 onChange={setRiderId}
+                                id="riderId"
                             />
                         </div>
 
@@ -229,11 +236,12 @@ export default function CreateSession() {
                             <SelectWorkType
                                 value={workType}
                                 onChange={setWorkType}
+                                id="workType"
                             />
                         </div>
 
                         <div className="space-y-1.5">
-                            <Label htmlFor="lastSessionForHorse">
+                            <Label>
                                 Previous session
                             </Label>
                             <div className="min-h-[126px]">

@@ -19,13 +19,15 @@ const WORK_TYPE_OPTIONS: Array<{ value: WorkType; label: string }> = [
 export default function SelectWorkType({
     value,
     onChange,
+    id,
 }: {
     value: WorkType | null;
     onChange: (value: WorkType) => void;
+    id: string;
 }) {
     return (
         <Select value={value ?? undefined} onValueChange={onChange}>
-            <SelectTrigger>
+            <SelectTrigger id={id}>
                 <SelectValue placeholder="Select a work type" />
             </SelectTrigger>
             <SelectContent>

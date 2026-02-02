@@ -22,9 +22,11 @@ const GET_HORSES_QUERY = gql`
 export default function SelectHorse({
     value,
     onChange,
+    id,
 }: {
     value: string;
     onChange: (value: string) => void;
+    id: string;
 }) {
     const { data, loading } = useQuery<GetHorsesQuery, GetHorsesQueryVariables>(
         GET_HORSES_QUERY
@@ -32,7 +34,7 @@ export default function SelectHorse({
 
     return (
         <Select value={value} onValueChange={onChange} disabled={loading}>
-            <SelectTrigger>
+            <SelectTrigger id={id}>
                 <SelectValue placeholder="Select a horse" />
             </SelectTrigger>
             <SelectContent>
