@@ -19,4 +19,3 @@ export const WORK_TYPE_LABELS: Record<WorkType, string> = {
 export const getWorkTypeLabel = (workType: string): string => {
     return WORK_TYPE_LABELS[workType as WorkType] || workType;
 };
-

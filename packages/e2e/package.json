@@ -1,15 +1,15 @@
 {
-  "name": "@herdbook/e2e",
-  "version": "0.1.0",
-  "private": true,
-  "type": "module",
-  "scripts": {
-    "test": "playwright test",
-    "test:ui": "playwright test --ui"
-  },
-  "devDependencies": {
-    "@playwright/test": "^1.57.0",
-    "@types/node": "^24.10.2",
-    "typescript": "^5.9.3"
-  }
+    "name": "@herdbook/e2e",
+    "version": "0.1.0",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "test": "playwright test",
+        "test:ui": "playwright test --ui"
+    },
+    "devDependencies": {
+        "@playwright/test": "^1.57.0",
+        "@types/node": "^24.10.2",
+        "typescript": "^5.9.3"
+    }
 }

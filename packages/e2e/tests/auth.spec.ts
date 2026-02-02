@@ -48,7 +48,9 @@ test.describe('Authentication', () => {
         await page.click('button[type="submit"]');
 
         // Should show error message
-        await expect(page.locator('text=Invalid email or password')).toBeVisible();
+        await expect(
+            page.locator('text=Invalid email or password')
+        ).toBeVisible();
 
         // Should still be on login page
         await expect(page).toHaveURL('/login');

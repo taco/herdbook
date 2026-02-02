@@ -15,6 +15,7 @@ Herdbook needs automated testing to support confident iteration, CI/CD pipelines
 **Current state**: Changes are verified manually. A developer makes a change, runs the app locally, clicks through flows, and hopes they didn't break something.
 
 **Pain points**:
+
 - Manual testing is slow and inconsistent
 - Regressions slip through, especially in flows you didn't think to check
 - Refactoring is scary — no safety net
@@ -28,6 +29,7 @@ Herdbook needs automated testing to support confident iteration, CI/CD pipelines
 **Emerging reality**: Travis wants to use AI agents for code contributions. Multiple branches may be in flight. CI pipelines will run tests on PRs.
 
 **Pain points**:
+
 - Tests hitting a shared database corrupt each other's state
 - Branch A's test run pollutes Branch B's environment
 - "Works on my machine" problems when dev and CI environments differ
@@ -82,6 +84,7 @@ Herdbook needs automated testing to support confident iteration, CI/CD pipelines
 **What it is**: Microsoft's browser automation library. Focuses on web testing with native async/await API.
 
 **Pros**:
+
 - Fast: parallel execution by default, lightweight browser contexts
 - Multi-browser: Chromium, Firefox, WebKit all first-class
 - Modern API: async/await, no chaining quirks
@@ -91,6 +94,7 @@ Herdbook needs automated testing to support confident iteration, CI/CD pipelines
 - Active development, fast-moving
 
 **Cons**:
+
 - Smaller community than Cypress (fewer blog posts, plugins)
 - Debugging experience is good but not as polished as Cypress time-travel
 - Younger project — some rough edges in docs
@@ -102,6 +106,7 @@ Herdbook needs automated testing to support confident iteration, CI/CD pipelines
 **What it is**: Purpose-built E2E testing framework with its own test runner and debugging UI.
 
 **Pros**:
+
 - Excellent time-travel debugger — see DOM state at each step
 - Large community, extensive plugin ecosystem
 - Cypress Cloud for CI parallelization and dashboards
@@ -109,6 +114,7 @@ Herdbook needs automated testing to support confident iteration, CI/CD pipelines
 - Mature and battle-tested
 
 **Cons**:
+
 - Slower: single-threaded by default, parallelization requires paid Cloud or workarounds
 - Quirky async model: command chaining, not real promises
 - WebKit support is experimental
@@ -121,10 +127,12 @@ Herdbook needs automated testing to support confident iteration, CI/CD pipelines
 **What it is**: The original browser automation protocol. Many language bindings available.
 
 **Pros**:
+
 - Extremely mature, wide language support
 - Works with any browser that implements WebDriver
 
 **Cons**:
+
 - Verbose, lower-level API
 - Slower than modern alternatives
 - More setup complexity
@@ -135,6 +143,7 @@ Herdbook needs automated testing to support confident iteration, CI/CD pipelines
 ### Recommendation: Playwright
 
 **Rationale**:
+
 - Speed is a stated priority; Playwright's parallelism wins here
 - Mobile-first app benefits from Playwright's device emulation
 - Travis is comfortable with async/await; Cypress chaining would be friction
@@ -162,12 +171,14 @@ Test run ends (container gone, nothing persists)
 ```
 
 **Pros**:
+
 - Perfect isolation: each run is a fresh universe
 - No cleanup logic needed: container death is cleanup
 - Works identically local and CI
 - No risk of state leakage between runs
 
 **Cons**:
+
 - Container startup adds ~5-10 seconds to each run
 - Requires Docker on all dev machines and CI
 - Slightly more complex setup
@@ -187,11 +198,13 @@ Test run ends
 ```
 
 **Pros**:
+
 - Faster startup (no container boot)
 - Works with existing local Postgres
 - Lighter resource usage
 
 **Cons**:
+
 - Requires a running Postgres somewhere (dev machine or shared server)
 - Orphaned databases if cleanup fails (need periodic garbage collection)
 - CI needs a Postgres instance (service container or external)
@@ -202,10 +215,12 @@ Test run ends
 **How it works**: One test database, each test runs in a transaction that rolls back. No data persists between tests.
 
 **Pros**:
+
 - Extremely fast (no setup/teardown)
 - Simple concept
 
 **Cons**:
+
 - Doesn't work for E2E: browser and API server can't share a transaction
 - Only viable for API-level integration tests
 - Not applicable here
@@ -215,10 +230,12 @@ Test run ends
 **How it works**: One test database, truncate all tables between tests (or test suites).
 
 **Pros**:
+
 - Faster than recreating DB each time
 - Simpler than Docker
 
 **Cons**:
+
 - Truncate order matters (foreign keys)
 - Risk of flakiness if truncation misses something
 - Still need isolation between concurrent runs (doesn't solve multi-branch problem)
@@ -226,6 +243,7 @@ Test run ends
 ### Recommendation: Docker Container Per Run (Option A)
 
 **Rationale**:
+
 - Multi-branch and multi-agent isolation is a stated requirement; Docker provides this cleanly
 - 5-10 second startup is acceptable given total test runtime will be 30-60 seconds
 - Docker is already in use for local Postgres dev environment
@@ -243,10 +261,12 @@ Test run ends
 **How it works**: Before each test, reset database to known state (truncate + seed).
 
 **Pros**:
+
 - Perfect isolation: tests cannot affect each other
 - Any test can run independently
 
 **Cons**:
+
 - Slow: migration + seed per test adds seconds each
 - With 20 tests, adds 40-100 seconds to suite
 
@@ -264,11 +284,13 @@ Suite ends (container dies)
 ```
 
 **Pros**:
+
 - Fast: one seed operation, ~1-2 seconds
 - Tests can build on each other's state (useful for stateful flows)
 - Simple mental model
 
 **Cons**:
+
 - Test order can matter (Test 3 sees Test 1 & 2's data)
 - Harder to run single test in isolation
 - Debugging failures requires understanding accumulated state
@@ -292,17 +314,20 @@ sessions.spec.ts:
 ```
 
 **Pros**:
+
 - Balance of isolation and speed
 - Related tests share appropriate state
 - Each file is debuggable in isolation
 
 **Cons**:
+
 - More complex setup (per-file hooks)
 - Need to decide how to group tests
 
 ### Recommendation: Seed Once Per Suite, with Escape Hatch (Option B, pragmatic)
 
 **Rationale**:
+
 - Test count will be small (~10-20 tests initially); full isolation overkill
 - Docker container per run already provides cross-run isolation
 - Simpler setup, faster iteration
@@ -322,29 +347,29 @@ Given that Herdbook's value is in integration (web → API → DB), tests should
 
 ### Critical Paths (Must Test)
 
-| Flow | Why Critical |
-|------|--------------|
-| Signup → lands on dashboard | Core onboarding; breaks = no new users |
-| Login → lands on dashboard | Core access; breaks = no one can use app |
-| Log session → appears in feed | Core value prop; breaks = app is useless |
+| Flow                            | Why Critical                               |
+| ------------------------------- | ------------------------------------------ |
+| Signup → lands on dashboard     | Core onboarding; breaks = no new users     |
+| Login → lands on dashboard      | Core access; breaks = no one can use app   |
+| Log session → appears in feed   | Core value prop; breaks = app is useless   |
 | View session with horse context | Handoff value; breaks = core mission fails |
 
 ### Secondary Paths (Should Test)
 
-| Flow | Why Important |
-|------|---------------|
-| Bad credentials → error message | Security + UX |
-| Duplicate email signup → error | Data integrity |
-| Log session with all work types | Enum coverage |
-| Empty state (no sessions) | Edge case UX |
+| Flow                            | Why Important  |
+| ------------------------------- | -------------- |
+| Bad credentials → error message | Security + UX  |
+| Duplicate email signup → error  | Data integrity |
+| Log session with all work types | Enum coverage  |
+| Empty state (no sessions)       | Edge case UX   |
 
 ### Not Worth E2E Testing (For Now)
 
-| Thing | Why Skip |
-|-------|----------|
+| Thing                 | Why Skip                                        |
+| --------------------- | ----------------------------------------------- |
 | Every form validation | Test one representative case; trust the pattern |
-| CSS/styling | Not testing visual regression yet |
-| Error boundaries | Would need to force errors; low ROI |
+| CSS/styling           | Not testing visual regression yet               |
+| Error boundaries      | Would need to force errors; low ROI             |
 
 ### Test File Organization
 
@@ -366,20 +391,22 @@ packages/e2e/
 
 ```yaml
 services:
-  postgres:
-    image: postgres:15
-    env:
-      POSTGRES_PASSWORD: test
-    ports:
-      - 5432:5432
+    postgres:
+        image: postgres:15
+        env:
+            POSTGRES_PASSWORD: test
+        ports:
+            - 5432:5432
 ```
 
 **Pros**:
+
 - Simple GitHub Actions config
 - Fast startup (service containers are cached)
 - No Docker-in-Docker complexity
 
 **Cons**:
+
 - Different setup than local (local uses docker-compose, CI uses service container)
 - Harder to replicate CI environment locally
 
@@ -389,23 +416,26 @@ services:
 
 ```yaml
 steps:
-  - run: docker-compose -f docker-compose.test.yml up -d
-  - run: pnpm test:e2e
-  - run: docker-compose -f docker-compose.test.yml down
+    - run: docker-compose -f docker-compose.test.yml up -d
+    - run: pnpm test:e2e
+    - run: docker-compose -f docker-compose.test.yml down
 ```
 
 **Pros**:
+
 - Identical setup local and CI
 - Easier to debug CI failures locally
 - One configuration to maintain
 
 **Cons**:
+
 - Docker-in-Docker can be finicky
 - Slightly slower than service containers
 
 ### Recommendation: Docker Compose in CI (Option B)
 
 **Rationale**:
+
 - CI/local parity is a stated goal
 - "Same command everywhere" reduces confusion
 - Docker-in-Docker issues are solvable and well-documented for GitHub Actions
@@ -460,17 +490,17 @@ steps:
 
 ## Appendix: Technology Comparison Matrix
 
-| Criterion | Playwright | Cypress |
-|-----------|------------|---------|
-| Execution speed | ★★★★★ | ★★★☆☆ |
-| Debugging experience | ★★★★☆ | ★★★★★ |
-| Learning curve | ★★★★☆ | ★★★★★ |
-| Mobile emulation | ★★★★★ | ★★★☆☆ |
-| Multi-browser | ★★★★★ | ★★★☆☆ |
-| Community/ecosystem | ★★★☆☆ | ★★★★★ |
-| WebSocket support | ★★★★★ | ★★★☆☆ |
-| API testing built-in | ★★★★★ | ★★★★☆ |
-| CI integration | ★★★★★ | ★★★★☆ |
+| Criterion            | Playwright | Cypress |
+| -------------------- | ---------- | ------- |
+| Execution speed      | ★★★★★      | ★★★☆☆   |
+| Debugging experience | ★★★★☆      | ★★★★★   |
+| Learning curve       | ★★★★☆      | ★★★★★   |
+| Mobile emulation     | ★★★★★      | ★★★☆☆   |
+| Multi-browser        | ★★★★★      | ★★★☆☆   |
+| Community/ecosystem  | ★★★☆☆      | ★★★★★   |
+| WebSocket support    | ★★★★★      | ★★★☆☆   |
+| API testing built-in | ★★★★★      | ★★★★☆   |
+| CI integration       | ★★★★★      | ★★★★☆   |
 
 ---
 
@@ -481,45 +511,51 @@ steps:
 import { test, expect } from '@playwright/test';
 
 test.describe('Session Management', () => {
-  test.beforeEach(async ({ page }) => {
-    // Login before each test
-    await page.goto('/login');
-    await page.fill('[name="email"]', 'test@example.com');
-    await page.fill('[name="password"]', 'password123');
-    await page.click('button[type="submit"]');
-    await page.waitForURL('/dashboard');
-  });
+    test.beforeEach(async ({ page }) => {
+        // Login before each test
+        await page.goto('/login');
+        await page.fill('[name="email"]', 'test@example.com');
+        await page.fill('[name="password"]', 'password123');
+        await page.click('button[type="submit"]');
+        await page.waitForURL('/dashboard');
+    });
 
-  test('can log a new session', async ({ page }) => {
-    await page.click('text=Log Session');
-    await page.waitForURL('/sessions/new');
-    
-    // Select horse
-    await page.selectOption('[name="horse"]', 'beau-123');
-    
-    // Fill form
-    await page.fill('[name="duration"]', '45');
-    await page.selectOption('[name="workType"]', 'FLATWORK');
-    await page.fill('[name="notes"]', 'Worked on canter transitions');
-    
-    // Submit
-    await page.click('button[type="submit"]');
-    
-    // Verify redirect and session appears
-    await page.waitForURL('/dashboard');
-    await expect(page.locator('text=Worked on canter transitions')).toBeVisible();
-  });
+    test('can log a new session', async ({ page }) => {
+        await page.click('text=Log Session');
+        await page.waitForURL('/sessions/new');
 
-  test('shows horse context when selecting horse', async ({ page }) => {
-    // Precondition: there's a previous session for this horse
-    // (created in seed or earlier test)
-    
-    await page.click('text=Log Session');
-    await page.selectOption('[name="horse"]', 'beau-123');
-    
-    // Should show last session context
-    await expect(page.locator('[data-testid="last-session-context"]')).toBeVisible();
-    await expect(page.locator('[data-testid="last-session-context"]')).toContainText('Last session');
-  });
+        // Select horse
+        await page.selectOption('[name="horse"]', 'beau-123');
+
+        // Fill form
+        await page.fill('[name="duration"]', '45');
+        await page.selectOption('[name="workType"]', 'FLATWORK');
+        await page.fill('[name="notes"]', 'Worked on canter transitions');
+
+        // Submit
+        await page.click('button[type="submit"]');
+
+        // Verify redirect and session appears
+        await page.waitForURL('/dashboard');
+        await expect(
+            page.locator('text=Worked on canter transitions')
+        ).toBeVisible();
+    });
+
+    test('shows horse context when selecting horse', async ({ page }) => {
+        // Precondition: there's a previous session for this horse
+        // (created in seed or earlier test)
+
+        await page.click('text=Log Session');
+        await page.selectOption('[name="horse"]', 'beau-123');
+
+        // Should show last session context
+        await expect(
+            page.locator('[data-testid="last-session-context"]')
+        ).toBeVisible();
+        await expect(
+            page.locator('[data-testid="last-session-context"]')
+        ).toContainText('Last session');
+    });
 });
 ```

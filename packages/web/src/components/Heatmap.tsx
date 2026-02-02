@@ -37,10 +37,7 @@ export function Heatmap({ activity }: HeatmapProps) {
                 return (
                     <div
                         key={i}
-                        className={cn(
-                            'flex-1 h-6 rounded-sm',
-                            bgClass
-                        )}
+                        className={cn('flex-1 h-6 rounded-sm', bgClass)}
                         title={`${count} session${count !== 1 ? 's' : ''} (${label})`}
                     />
                 );

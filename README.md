@@ -165,7 +165,7 @@ herdbook/
 # API tests
 pnpm --filter api test
 
-# Web tests  
+# Web tests
 pnpm --filter web test
 ```
 
@@ -182,6 +182,7 @@ pnpm --filter e2e test:ui
 ```
 
 **Prerequisites**: Docker must be running. The test suite automatically:
+
 1. Spins up a test Postgres container (port 5433)
 2. Runs migrations and seeds test data
 3. Starts API and web servers

@@ -37,7 +37,6 @@ export default defineConfig({
 
     /* Configure projects for major browsers */
     projects: [
-
         /* Test against mobile viewports. */
         {
             name: 'Mobile Chrome',

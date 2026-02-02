@@ -21,12 +21,12 @@ test.describe('Session Management', () => {
         await page.waitForSelector('text=Log Session', { state: 'visible' });
         await page.click('text=Log Session');
         await page.waitForURL('/sessions/new');
-        
-        await selectRadixOption(page, "Horse", TEST_HORSE_NAME);
+
+        await selectRadixOption(page, 'Horse', TEST_HORSE_NAME);
         await page.fill('input[id="durationMinutes"]', '45');
-        await selectRadixOption(page, "Work type", "Flatwork");
+        await selectRadixOption(page, 'Work type', 'Flatwork');
         await page.fill('textarea[id="notes"]', uniqueNote);
-        
+
         await page.click('button[type="submit"]:has-text("Log Session")');
 
         await page.waitForURL('/');
@@ -39,16 +39,20 @@ test.describe('Session Management', () => {
         await page.click('text=Log Session');
         await page.waitForURL('/sessions/new');
 
-        await page.waitForSelector('label:has-text("Horse")', { state: 'visible' });
+        await page.waitForSelector('label:has-text("Horse")', {
+            state: 'visible',
+        });
 
-        await selectRadixOption(page, "Horse", TEST_HORSE_NAME);
+        await selectRadixOption(page, 'Horse', TEST_HORSE_NAME);
 
         // Wait for last session context to load (if there is one)
         // The component shows a skeleton while loading, then the ActivityCard
         // We'll check that the previous session section is visible
-        const previousSessionLabel = page.locator('label:has-text("Previous session")');
+        const previousSessionLabel = page.locator(
+            'label:has-text("Previous session")'
+        );
         await expect(previousSessionLabel).toBeVisible();
-        
+
         // The section should either show a skeleton (loading) or content (loaded)
         // Both are valid states, we just verify the section exists
         const previousSessionSection = previousSessionLabel.locator('..');

@@ -1,6 +1,11 @@
 import bcrypt from 'bcrypt';
 import { prisma } from '../src/db';
-import { TEST_RIDER_EMAIL, TEST_RIDER_PASSWORD, TEST_RIDER_NAME, TEST_HORSE_NAME } from '../../e2e/tests/seedConstants';
+import {
+    TEST_RIDER_EMAIL,
+    TEST_RIDER_PASSWORD,
+    TEST_RIDER_NAME,
+    TEST_HORSE_NAME,
+} from '../../e2e/tests/seedConstants';
 
 async function seedE2E() {
     // Create a test rider with known credentials

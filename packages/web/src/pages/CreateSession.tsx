@@ -148,7 +148,7 @@ export default function CreateSession() {
                     cache.evict({ fieldName: 'sessions' });
                     cache.evict({ fieldName: 'lastSessionForHorse' });
                     cache.gc();
-                }
+                },
             });
 
             localStorage.setItem(
@@ -241,9 +241,7 @@ export default function CreateSession() {
                         </div>
 
                         <div className="space-y-1.5">
-                            <Label>
-                                Previous session
-                            </Label>
+                            <Label>Previous session</Label>
                             <div className="min-h-[126px]">
                                 {lastSessionForHorse && !lastSessionLoading ? (
                                     <ActivityCard

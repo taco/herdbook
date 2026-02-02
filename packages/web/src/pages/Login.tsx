@@ -30,7 +30,9 @@ export default function Login() {
     const [email, setEmail] = useState(DEV_EMAIL);
     const [password, setPassword] = useState(DEV_PASSWORD);
     const [formError, setFormError] = useState('');
-    const [loginMutation] = useMutation<LoginMutation, LoginMutationVariables>(LOGIN_MUTATION);
+    const [loginMutation] = useMutation<LoginMutation, LoginMutationVariables>(
+        LOGIN_MUTATION
+    );
     const navigate = useNavigate();
     const { login } = useAuth();
     const autoLoginAttempted = useRef(false);
@@ -45,7 +47,9 @@ export default function Login() {
             !autoLoginAttempted.current
         ) {
             autoLoginAttempted.current = true;
-            loginMutation({ variables: { email: DEV_EMAIL, password: DEV_PASSWORD } })
+            loginMutation({
+                variables: { email: DEV_EMAIL, password: DEV_PASSWORD },
+            })
                 .then((result) => {
                     if (result.data) {
                         const { token, rider } = result.data.login;
