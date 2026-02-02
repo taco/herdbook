@@ -16,20 +16,23 @@ test.describe('Session Management', () => {
     });
 
     test('can log a new session', async ({ page }) => {
+        const uniqueNote = `Worked on canter transitions ${Date.now()}`;
+
+        await page.waitForSelector('text=Log Session', { state: 'visible' });
         await page.click('text=Log Session');
         await page.waitForURL('/sessions/new');
         
         await selectRadixOption(page, "Horse", TEST_HORSE_NAME);
         await page.fill('input[id="durationMinutes"]', '45');
         await selectRadixOption(page, "Work type", "Flatwork");
-        await page.fill('textarea[id="notes"]', 'Worked on canter transitions');
+        await page.fill('textarea[id="notes"]', uniqueNote);
         
         await page.click('button[type="submit"]:has-text("Log Session")');
 
         await page.waitForURL('/');
         await expect(page).toHaveURL('/');
 
-        await expect(page.locator('text=Worked on canter transitions')).toBeVisible({ timeout: 30000 });
+        await expect(page.getByText(uniqueNote)).toBeVisible();
     });
 
     test('shows horse context when selecting horse', async ({ page }) => {
