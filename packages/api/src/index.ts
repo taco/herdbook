@@ -59,6 +59,10 @@ async function start() {
         credentials: true,
     });
 
+    fastify.get('/', async () => {
+        return { status: 'ok' };
+    });
+
     const apollo = new ApolloServer<Context>({
         schema,
     });
@@ -69,8 +73,9 @@ async function start() {
         context: (request: FastifyRequest) => buildContext(request),
     });
 
-    await fastify.listen({ port: 4000, host: '0.0.0.0' });
-    console.log('Server is running on http://0.0.0.0:4000/graphql');
+    const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 4000;
+    await fastify.listen({ port, host: '127.0.0.1' });
+    console.log(`Server is running on http://127.0.0.1:${port}/graphql`);
 }
 
 start();

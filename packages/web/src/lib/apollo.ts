@@ -3,7 +3,9 @@ import { SetContextLink } from '@apollo/client/link/context';
 import { ErrorLink } from '@apollo/client/link/error';
 
 const httpLink = new HttpLink({
-    uri: `http://${window.location.hostname}:4000/graphql`,
+    uri:
+        import.meta.env.VITE_API_URL ||
+        `http://${window.location.hostname}:4000/graphql`,
 });
 
 const authLink = new SetContextLink(({ headers }, _) => {
