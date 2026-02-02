@@ -68,6 +68,7 @@ export default defineConfig({
             reuseExistingServer: !process.env.CI,
             env: {
                 VITE_API_URL: 'http://127.0.0.1:4001/graphql',
+                VITE_DEV_AUTOLOGIN: 'false',
             },
             timeout: 30 * 1000,
         },
