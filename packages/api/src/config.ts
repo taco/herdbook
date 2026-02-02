@@ -9,5 +9,5 @@ export function getJwtSecretOrThrow(): string {
 }
 
 export function getJwtExpiration(): string {
-    return process.env.JWT_EXPIRATION ?? '1h';
+    return process.env.JWT_EXPIRATION ?? '30 days';
 }
