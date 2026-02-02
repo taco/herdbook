@@ -70,10 +70,10 @@
 **Status**: Defaults to insecure value  
 **Effort**: Small (30 min)
 
-- [ ] Remove default value from config
-- [ ] Fail fast on startup if `JWT_SECRET` not set in production
-- [ ] Document required env vars in README
-- [ ] Consider: token expiry strategy (currently 1h, no refresh)
+- [x] Remove default value from config
+- [x] Fail fast on startup if `JWT_SECRET` not set in production
+- [x] Document required env vars in README
+- [x] Consider: token expiry strategy (currently 1h, no refresh)
 
 **Done when**: API refuses to start without proper secret configured.
 
