@@ -12,7 +12,7 @@ import jwt from 'jsonwebtoken';
 import { prisma } from '@/db';
 import { createLoaders } from '@/loaders';
 import { resolvers, Context } from '@/resolvers';
-import { getJwtSecretOrThrow } from '@/config';
+import { getJwtSecretOrThrow, getCorsOrigin, getServerHost } from '@/config';
 import { secureByDefaultTransformer } from '@/directives';
 
 async function buildContext(request: FastifyRequest): Promise<Context> {
@@ -58,7 +58,7 @@ async function start() {
     const fastify = Fastify();
 
     await fastify.register(cors, {
-        origin: true, // Allow all origins in dev for easy iPhone access
+        origin: getCorsOrigin(),
         credentials: true,
     });
 
@@ -77,8 +77,9 @@ async function start() {
     });
 
     const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 4000;
-    await fastify.listen({ port, host: '127.0.0.1' });
-    console.log(`Server is running on http://127.0.0.1:${port}/graphql`);
+    const host = getServerHost();
+    await fastify.listen({ port, host });
+    console.log(`Server is running on http://${host}:${port}/graphql`);
 }
 
 start();
