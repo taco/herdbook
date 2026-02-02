@@ -53,15 +53,15 @@
 
 **Solution**: Introduce DataLoader pattern.
 
-- [ ] Add `dataloader` package to API
-- [ ] Create loaders for Horse and Rider (batch by ID)
-- [ ] Inject loaders into GraphQL context per-request
-- [ ] Update session field resolvers to use loaders
+- [x] Add `dataloader` package to API
+- [x] Create loaders for Horse and Rider (batch by ID)
+- [x] Inject loaders into GraphQL context per-request
+- [x] Update session field resolvers to use loaders
 - [ ] Add basic API tests to verify batching behavior
 
 **Done when**: Fetching 20 sessions with horse/rider data uses 3 queries (sessions + batch horses + batch riders), not 41.
 
-**Interview angle**: Classic "tell me about a performance issue you identified and fixed" story.
+**Interview angle**: Classic "tell me about a performance issue you identified 2and fixed" story.
 
 ---
 

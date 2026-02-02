@@ -5,6 +5,7 @@
 - **Build**: `pnpm build` | **Format**: `pnpm format`
 - **Test (api)**: `pnpm --filter api test` | Single: `pnpm --filter api test src/path/to/file.test.ts`
 - **Test (web)**: `pnpm --filter web test` | Single: `pnpm --filter web test src/path/to/file.test.tsx`
+- **Test (e2e)**: `pnpm test:e2e` | With UI: `pnpm --filter e2e test:ui`
 - **Prisma**: `pnpm --filter api prisma:migrate`, `prisma:generate`, `prisma:studio`
 
 ## Architecture

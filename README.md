@@ -110,12 +110,17 @@ herdbook/
 │   ├── api/              # GraphQL API server
 │   │   ├── prisma/       # Prisma schema and migrations
 │   │   └── src/
-│   │       ├── graphql/  # GraphQL schema and resolvers
+│   │       ├── schema.graphql
+│   │       ├── resolvers.ts
 │   │       └── index.ts  # Server entry point
-│   └── web/              # React frontend
-│       └── src/
-│           ├── App.tsx   # Main app component
-│           └── main.tsx # Entry point
+│   ├── web/              # React frontend
+│   │   └── src/
+│   │       ├── pages/    # Route components
+│   │       ├── components/
+│   │       └── main.tsx  # Entry point
+│   └── e2e/              # End-to-end tests (Playwright)
+│       └── tests/
+├── docs/                 # Design docs and roadmap
 ├── package.json          # Root package.json with workspace scripts
 └── pnpm-workspace.yaml   # pnpm workspace configuration
 ```
@@ -130,6 +135,7 @@ herdbook/
 - `pnpm build` - Build all packages
 - `pnpm build:api` - Build only the API
 - `pnpm build:web` - Build only the web app
+- `pnpm test:e2e` - Run E2E tests
 
 ### API package (`packages/api`):
 
@@ -146,12 +152,53 @@ herdbook/
 - `pnpm build` - Build for production
 - `pnpm preview` - Preview production build
 
+### E2E package (`packages/e2e`):
+
+- `pnpm test` - Run E2E tests (starts test DB automatically)
+- `pnpm test:ui` - Run tests with Playwright UI
+
+## Testing
+
+### Unit/Integration Tests
+
+```bash
+# API tests
+pnpm --filter api test
+
+# Web tests  
+pnpm --filter web test
+```
+
+### E2E Tests
+
+E2E tests use Playwright and run against an isolated Docker Postgres instance.
+
+```bash
+# From root - runs full E2E suite
+pnpm test:e2e
+
+# With Playwright UI for debugging
+pnpm --filter e2e test:ui
+```
+
+**Prerequisites**: Docker must be running. The test suite automatically:
+1. Spins up a test Postgres container (port 5433)
+2. Runs migrations and seeds test data
+3. Starts API and web servers
+4. Runs Playwright tests
+5. Tears down the container
+
 ## Environment Variables
 
 ### API (`packages/api/.env`)
 
 - `DATABASE_URL` - PostgreSQL connection string (required)
+- `JWT_SECRET` - Secret for signing JWTs (required in production)
 - `PORT` - Server port (default: 4000)
+
+### Web (`packages/web/.env`)
+
+- `VITE_API_URL` - GraphQL API URL (default: `http://localhost:4000/graphql`)
 
 ## License
 
