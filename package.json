@@ -10,7 +10,8 @@
         "build:api": "pnpm --filter api build",
         "build:web": "pnpm --filter web build",
         "format": "prettier --write \"**/*.{ts,tsx,json,md}\"",
-        "format:check": "prettier --check \"**/*.{ts,tsx,json,md}\""
+        "format:check": "prettier --check \"**/*.{ts,tsx,json,md}\"",
+        "test:e2e": "pnpm --filter e2e test"
     },
     "devDependencies": {
         "concurrently": "^9.2.1",
