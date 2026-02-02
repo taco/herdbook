@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { gql, CombinedGraphQLErrors } from '@apollo/client';
 import { useMutation } from '@apollo/client/react';
@@ -21,18 +21,44 @@ const LOGIN_MUTATION = gql`
     }
 `;
 
+// Dev convenience: prefill credentials from env vars (set in .env.local, not committed)
+const DEV_EMAIL = import.meta.env.VITE_DEV_EMAIL || '';
+const DEV_PASSWORD = import.meta.env.VITE_DEV_PASSWORD || '';
+const DEV_AUTOLOGIN = import.meta.env.VITE_DEV_AUTOLOGIN === 'true';
+
 export default function Login() {
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
+    const [email, setEmail] = useState(DEV_EMAIL);
+    const [password, setPassword] = useState(DEV_PASSWORD);
     const [formError, setFormError] = useState('');
     const [loginMutation] = useMutation<LoginMutation, LoginMutationVariables>(LOGIN_MUTATION);
     const navigate = useNavigate();
     const { login } = useAuth();
+    const autoLoginAttempted = useRef(false);
 
+    // Auto-login in dev mode if credentials are set and VITE_DEV_AUTOLOGIN=true
     useEffect(() => {
-        setEmail('travis@example.com');
-        setPassword('travis');
-    });
+        if (
+            import.meta.env.DEV &&
+            DEV_AUTOLOGIN &&
+            DEV_EMAIL &&
+            DEV_PASSWORD &&
+            !autoLoginAttempted.current
+        ) {
+            autoLoginAttempted.current = true;
+            loginMutation({ variables: { email: DEV_EMAIL, password: DEV_PASSWORD } })
+                .then((result) => {
+                    if (result.data) {
+                        const { token, rider } = result.data.login;
+                        login(token, rider.id, rider.name);
+                        navigate('/');
+                    }
+                })
+                .catch(() => {
+                    // Auto-login failed, user can manually log in
+                });
+        }
+    }, [loginMutation, login, navigate]);
+
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 

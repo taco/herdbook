@@ -61,7 +61,7 @@
 
 **Done when**: Fetching 20 sessions with horse/rider data uses 3 queries (sessions + batch horses + batch riders), not 41.
 
-**Interview angle**: Classic "tell me about a performance issue you identified 2and fixed" story.
+**Interview angle**: Classic "tell me about a performance issue you identified and fixed" story.
 
 ---
 
@@ -85,19 +85,22 @@
 
 ### 2.1 E2E Testing Foundation
 
+**Status**: Complete  
 **Effort**: Medium (3-4 hours)
 
 **Tool**: Playwright (good ecosystem, runs in CI, supports mobile viewports)
 
-- [ ] Playwright setup in monorepo
-- [ ] Test database seeding strategy (isolated per test run)
-- [ ] Critical path test: signup → login → view dashboard → log session → see session in feed
-- [ ] CI integration (GitHub Actions)
-- [ ] Document: how to run tests locally, how to add new tests
+- [x] Playwright setup in monorepo (`packages/e2e`)
+- [x] Test database seeding strategy (Docker container per run)
+- [x] Critical path tests: login, log session, view session in feed
+- [x] CI integration (GitHub Actions workflow)
+- [x] Document: how to run tests locally (see README)
 
 **Done when**: PRs run E2E tests automatically; one failing test blocks merge.
 
 **Interview angle**: "How do you approach testing?" — concrete answer with tradeoffs.
+
+**Reference**: See `docs/design-e2e-testing.md` for architecture decisions.
 
 ---
 
