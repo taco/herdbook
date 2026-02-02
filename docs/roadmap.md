@@ -5,130 +5,103 @@
 1. **Production thinking at small scale** — Make architecture decisions that would scale, but don't over-engineer for theoretical load. 4 riders, 3 horses.
 2. **E2E testing as a first-class concern** — Tests should be easy to write and run, covering critical user paths.
 3. **Demonstrable** — The end goal is a publicly accessible app that showcases full-stack depth for Principal/Staff IC interviews.
+4. **Real users first** — Deploy early to get feedback from actual riders. Polish comes after validation.
 
 ---
 
-## Phase 1: Core Functionality
+## Phase 1: Core Functionality ✓
 
 **Goal**: Herdbook can do its job — riders can sign up, log sessions, and see what others have done.
 
-### 1.1 Signup UX
+**Status**: Complete
 
-**Status**: API ready, web is stub  
-**Effort**: Small (1-2 hours)
+### 1.1 Signup UX ✓
 
 - [x] Build signup form mirroring Login structure
 - [x] Wire to existing `signup` mutation
 - [x] Auto-login on success (store token, redirect to dashboard)
 - [x] Handle errors (duplicate email, validation)
 
-**Done when**: A new user can create an account and land on the dashboard.
-
----
-
-### 1.2 Log Session Form
-
-**Status**: Button exists, no behavior  
-**Effort**: Medium (3-4 hours)
+### 1.2 Log Session Form ✓
 
 - [x] New route: `/sessions/new`
 - [x] Horse picker dropdown (fetch from `horses` query)
 - [x] Display `lastSessionForHorse` context when horse selected
-    - This is the core handoff value — "here's what happened last time"
-- [x] Form fields: date (default today), duration, work type, notes
+- [x] Form fields: date, duration, work type, notes
 - [x] Submit via `createSession` mutation
 - [x] Success: redirect to dashboard, session appears in feed
-- [x] Error handling: display validation/server errors
 
-**Done when**: A rider can log a session and see it appear in Recent Activity.
+### 1.3 N+1 Query Resolution ✓
 
----
+- [x] DataLoader pattern for Horse and Rider
+- [x] Batch loading in GraphQL context
+- [x] Verified: 3 queries instead of 41 for 20 sessions
 
-### 1.3 N+1 Query Resolution
+**Interview angle**: "Tell me about a performance issue you identified and fixed."
 
-**Status**: Known issue, not yet addressed  
-**Effort**: Medium (2-3 hours)
+### 1.4 JWT Secret Hardening ✓
 
-**Problem**: Session resolvers for `horse` and `rider` do per-row DB lookups. At 100 sessions, that's 200 extra queries.
-
-**Solution**: Introduce DataLoader pattern.
-
-- [x] Add `dataloader` package to API
-- [x] Create loaders for Horse and Rider (batch by ID)
-- [x] Inject loaders into GraphQL context per-request
-- [x] Update session field resolvers to use loaders
-- [x] Add basic API tests to verify batching behavior
-
-**Done when**: Fetching 20 sessions with horse/rider data uses 3 queries (sessions + batch horses + batch riders), not 41.
-
-**Interview angle**: Classic "tell me about a performance issue you identified and fixed" story.
+- [x] Fail fast if `JWT_SECRET` not set in production
+- [x] Documented required env vars
 
 ---
 
-### 1.4 JWT Secret Hardening
+## Phase 2: Deploy to Production
 
-**Status**: Defaults to insecure value  
-**Effort**: Small (30 min)
+**Goal**: Get Herdbook live so real riders can use it. Minimal security hardening, seeded accounts, no public signup.
 
-- [x] Remove default value from config
-- [x] Fail fast on startup if `JWT_SECRET` not set in production
-- [x] Document required env vars in README
-- [x] Consider: token expiry strategy (currently 1h, no refresh)
+### 2.1 E2E Testing Foundation ✓
 
-**Done when**: API refuses to start without proper secret configured.
-
----
-
-## Phase 2: Production Foundations
-
-**Goal**: Infrastructure and practices that demonstrate production-grade thinking.
-
-### 2.1 E2E Testing Foundation
-
-**Status**: Complete  
-**Effort**: Medium (3-4 hours)
-
-**Tool**: Playwright (good ecosystem, runs in CI, supports mobile viewports)
+**Status**: Complete
 
 - [x] Playwright setup in monorepo (`packages/e2e`)
 - [x] Test database seeding strategy (Docker container per run)
 - [x] Critical path tests: login, log session, view session in feed
 - [x] CI integration (GitHub Actions workflow)
-- [x] Document: how to run tests locally (see README)
-
-**Done when**: PRs run E2E tests automatically; one failing test blocks merge.
-
-**Interview angle**: "How do you approach testing?" — concrete answer with tradeoffs.
 
 **Reference**: See `docs/design-e2e-testing.md` for architecture decisions.
 
 ---
 
-### 2.2 Observability
+### 2.2 Security Hardening
 
-**Effort**: Medium (2-3 hours)
+**Status**: Not started  
+**Effort**: Small (1-2 hours)
 
-**Why now**: Essential for debugging AI agent behavior in Phase 3.
+- [ ] Rate limiting on auth mutations (prevent brute force)
+- [ ] CORS locked to production domain (not `origin: true`)
+- [ ] JWT expiry → 30 days in production
+- [ ] Disable or remove public signup endpoint
 
-- [ ] Structured logging (pino or similar) replacing console.log
-- [ ] Request ID generation and propagation
-- [ ] GraphQL operation logging (query name, duration, errors)
-- [ ] Consider: where logs go (stdout for now, discuss aggregation later)
-
-**Done when**: Every request has a traceable ID; you can see what happened from log output.
+**Done when**: Auth is rate-limited, CORS is environment-aware, tokens last 30 days.
 
 ---
 
-### 2.3 Security & Rate Limiting
+### 2.3 Deploy
 
+**Status**: Not started  
 **Effort**: Medium (2-3 hours)
 
-- [ ] Rate limiting on `/graphql` for auth mutations (prevent brute force)
-- [ ] CORS configuration for production (not `origin: true`)
-- [ ] Evaluate: token refresh vs. longer expiry vs. sliding window
-- [ ] Evaluate: move token from localStorage to httpOnly cookie (XSS mitigation)
+- [ ] Choose hosting platform (Fly.io or Railway)
+- [ ] Provision managed Postgres
+- [ ] Configure environment variables (JWT_SECRET, DATABASE_URL)
+- [ ] Domain setup + HTTPS
+- [ ] Verify production build runs correctly
 
-**Done when**: Auth endpoints are rate-limited; CORS is environment-aware.
+**Done when**: App is accessible at a public URL with HTTPS.
+
+---
+
+### 2.4 Seed Production Data
+
+**Status**: Not started  
+**Effort**: Small (30 min)
+
+- [ ] Create seed script for production (or run via Prisma Studio)
+- [ ] Seed 4 rider accounts with known passwords
+- [ ] Seed 3 horses
+
+**Done when**: All riders can log in and see the horses.
 
 ---
 
@@ -213,65 +186,81 @@
 
 ---
 
-## Phase 4: Public Deployment
+## Phase 4: Polish & Scale
 
-**Goal**: Herdbook is live on the internet, usable by real people, demonstrable in interviews.
+**Goal**: Production hardening after core features are validated with real users.
 
-### 4.1 Hosting & Infrastructure
+### 4.1 Google SSO
 
-- [ ] Choose hosting (Fly.io, Railway, or similar)
-- [ ] Database hosting (managed Postgres)
-- [ ] Environment configuration (secrets, env vars)
-- [ ] Domain and HTTPS
+**Effort**: Medium (3-4 hours)
 
-### 4.2 Security Hardening
+- [ ] Google OAuth integration
+- [ ] Email whitelist for authorized riders
+- [ ] Migration path for seeded password accounts
 
-- [ ] Security review of all endpoints
-- [ ] Input validation audit
-- [ ] Dependency vulnerability scan
-- [ ] Consider: WAF, DDoS protection
+**Why deferred**: Password auth works. SSO is a UX improvement, not a blocker.
+
+---
+
+### 4.2 Observability
+
+**Effort**: Medium (2-3 hours)
+
+- [ ] Structured logging (pino) replacing console.log
+- [ ] Request ID generation and propagation
+- [ ] GraphQL operation logging (query name, duration, errors)
+
+**Why deferred**: Console.log is sufficient for 4 users. Add when debugging becomes painful or before scaling.
+
+---
 
 ### 4.3 Operational Readiness
 
 - [ ] Error tracking (Sentry or similar)
 - [ ] Uptime monitoring
-- [ ] Log aggregation
 - [ ] Alerting for critical errors
+- [ ] Database connection pooling (if needed)
 
-### 4.4 User Management
+---
 
-- [ ] Terms of service, privacy policy
-- [ ] Account deletion capability
-- [ ] Data export
+### 4.4 Future Considerations
 
-### 4.5 Cost Management
+These are noted but not planned:
 
-- [ ] LLM usage monitoring and budgets
-- [ ] Database connection pooling
-- [ ] Caching strategy if needed
-
-**Done when**: You can share a URL in an interview and say "here's something I built and operate."
+- **Token refresh**: Currently 30-day expiry. Add refresh tokens if users complain about re-logging.
+- **httpOnly cookies**: Would mitigate XSS. localStorage is acceptable for this trust level.
+- **Multi-tenancy**: Not needed for single barn. Revisit if expanding to other barns.
+- **Offline support**: PWA/service worker exists but untested. Low priority.
+- **Demo mode**: Read-only demo account for interviews. Add when deploying publicly.
 
 ---
 
 ## Sequencing Rationale
 
-**Phase 1 first** because the app can't fulfill its purpose without signup and session logging. N+1 and JWT are good "while we're in the code" fixes.
+**Phase 1 first** because the app can't fulfill its purpose without signup and session logging.
 
-**Phase 2 before AI** because observability is essential for debugging agent behavior. E2E tests give confidence when refactoring. Security foundations are easier to add before complexity grows.
+**Phase 2 (deploy) before AI** because real users provide feedback and motivation. You'll find bugs faster with actual usage than local testing.
 
-**Phase 3 before deployment** because AI features are the most interesting interview material, and you want to iterate on them locally before dealing with production concerns.
+**Phase 3 (AI) next** because it's the most interesting interview material and benefits from production data.
 
-**Phase 4 last** because public deployment has a long tail of requirements (legal, operational, security) that shouldn't block learning and building.
+**Phase 4 (polish) last** because observability, SSO, and operational tooling are improvements, not blockers. Add them when the pain justifies the effort.
+
+---
+
+## Resolved Questions
+
+1. **Multi-tenancy**: Single barn, no tenant isolation needed. All authenticated riders see all data (this is intentional — shared context is the point).
+
+2. **Public signup**: Disabled. Accounts are seeded directly. Revisit if adding Google SSO with whitelist.
+
+3. **JWT expiry**: 30 days in production. No refresh token needed at this scale.
 
 ---
 
 ## Open Questions
 
-1. **Multi-tenancy**: Currently any authed rider sees all data. Is this intentional (small trusted barn) or should we add tenant isolation?
+1. **Notifications**: Phase 3.4 mentions proactive notifications. Push notifications? Email? In-app only?
 
-2. **Mobile app**: PWA is configured but not tested. Is a native-like mobile experience a goal?
+2. **Mobile PWA**: Configured but not tested. Worth validating the install experience?
 
-3. **Offline support**: Service worker is set up. Should session logging work offline and sync later?
-
-4. **Notifications**: Phase 3.4 mentions proactive notifications. Push notifications? Email? In-app only?
+3. **LLM costs**: At what usage level does cost management matter? Probably not for 4 users, but worth monitoring.
