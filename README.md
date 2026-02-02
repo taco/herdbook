@@ -57,6 +57,8 @@ pnpm install
 
     ```env
     DATABASE_URL="postgresql://user:password@localhost:5432/herdbook"
+    JWT_SECRET="change-me"
+    JWT_EXPIRATION="1h"
     ```
 
 4. Set up the database:
@@ -195,6 +197,7 @@ pnpm --filter e2e test:ui
 
 - `DATABASE_URL` - PostgreSQL connection string (required)
 - `JWT_SECRET` - Secret for signing JWTs (required in production)
+- `JWT_EXPIRATION` - JWT token expiration (default: `1h`)
 - `PORT` - Server port (default: 4000)
 
 ### Web (`packages/web/.env`)

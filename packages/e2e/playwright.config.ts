@@ -58,6 +58,7 @@ export default defineConfig({
                 PORT: '4001',
                 DATABASE_URL:
                     'postgresql://postgres:test@127.0.0.1:5433/herdbook_test',
+                JWT_SECRET: 'e2e-test-jwt-secret',
             },
             timeout: 30 * 1000,
         },

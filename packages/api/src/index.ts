@@ -12,7 +12,7 @@ import jwt from 'jsonwebtoken';
 import { prisma } from '@/db';
 import { createLoaders } from '@/loaders';
 import { resolvers, Context } from '@/resolvers';
-import { JWT_SECRET } from '@/config';
+import { getJwtSecretOrThrow } from '@/config';
 import { secureByDefaultTransformer } from '@/directives';
 
 async function buildContext(request: FastifyRequest): Promise<Context> {
@@ -27,7 +27,9 @@ async function buildContext(request: FastifyRequest): Promise<Context> {
 
     const token = auth.slice(7);
     try {
-        const payload = jwt.verify(token, JWT_SECRET) as { riderId: string };
+        const payload = jwt.verify(token, getJwtSecretOrThrow()) as {
+            riderId: string;
+        };
         const rider = await prisma.rider.findUnique({
             where: { id: payload.riderId },
             omit: { password: true },
@@ -52,6 +54,7 @@ const schema = secureByDefaultTransformer(
 );
 
 async function start() {
+    getJwtSecretOrThrow();
     const fastify = Fastify();
 
     await fastify.register(cors, {

@@ -4,10 +4,8 @@ import { WorkType, type Prisma } from '@prisma/client';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { prisma } from './db';
-import { JWT_SECRET } from './config';
+import { getJwtExpiration, getJwtSecretOrThrow } from './config';
 import type { Loaders } from './loaders';
-
-const JWT_EXPIRATION = '1h';
 
 export type RiderSafe = Prisma.RiderGetPayload<{ omit: { password: true } }>;
 
@@ -160,9 +158,11 @@ export const resolvers = {
                     password: hashedPassword,
                 },
             });
-            const token = jwt.sign({ riderId: rider.id }, JWT_SECRET, {
-                expiresIn: JWT_EXPIRATION,
-            });
+            const token = jwt.sign(
+                { riderId: rider.id },
+                getJwtSecretOrThrow(),
+                { expiresIn: getJwtExpiration() }
+            );
             const { password: _password, ...safeRider } = rider;
             context.rider = safeRider;
             return { token, rider: safeRider };
@@ -195,9 +195,11 @@ export const resolvers = {
                     },
                 });
             }
-            const token = jwt.sign({ riderId: rider.id }, JWT_SECRET, {
-                expiresIn: JWT_EXPIRATION,
-            });
+            const token = jwt.sign(
+                { riderId: rider.id },
+                getJwtSecretOrThrow(),
+                { expiresIn: getJwtExpiration() }
+            );
             const { password: _password, ...safeRider } = rider;
             context.rider = safeRider;
             return { token, rider: safeRider };

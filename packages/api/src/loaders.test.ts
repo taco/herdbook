@@ -13,7 +13,7 @@ import bcrypt from 'bcrypt';
 import { prisma } from '@/db';
 import { createLoaders } from '@/loaders';
 import { resolvers, Context } from '@/resolvers';
-import { JWT_SECRET } from '@/config';
+import { getJwtSecretOrThrow } from '@/config';
 import { secureByDefaultTransformer } from '@/directives';
 
 describe('DataLoader batching', () => {
@@ -23,6 +23,8 @@ describe('DataLoader batching', () => {
     let horseIds: string[];
 
     beforeAll(async () => {
+        process.env.JWT_SECRET ??= 'api-test-jwt-secret';
+
         // Build context function (same as production)
         async function buildContext(request: FastifyRequest): Promise<Context> {
             const auth = request.headers.authorization;
@@ -36,7 +38,7 @@ describe('DataLoader batching', () => {
 
             const token = auth.slice(7);
             try {
-                const payload = jwt.verify(token, JWT_SECRET) as {
+                const payload = jwt.verify(token, getJwtSecretOrThrow()) as {
                     riderId: string;
                 };
                 const rider = await prisma.rider.findUnique({
@@ -92,7 +94,7 @@ describe('DataLoader batching', () => {
         testRiderId = rider.id;
 
         // Create test token
-        testToken = jwt.sign({ riderId: testRiderId }, JWT_SECRET, {
+        testToken = jwt.sign({ riderId: testRiderId }, getJwtSecretOrThrow(), {
             expiresIn: '1h',
         });
 
