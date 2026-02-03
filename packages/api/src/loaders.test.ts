@@ -1,20 +1,11 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import Fastify, { FastifyInstance, FastifyRequest } from 'fastify';
-import cors from '@fastify/cors';
-import { ApolloServer } from '@apollo/server';
-import fastifyApollo from '@as-integrations/fastify';
-import { buildSubgraphSchema } from '@apollo/subgraph';
-import { parse } from 'graphql';
-import { readFileSync } from 'fs';
-import { resolve } from 'path';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 
 import { prisma } from '@/db';
-import { createLoaders } from '@/loaders';
-import { resolvers, Context } from '@/resolvers';
 import { getJwtSecretOrThrow } from '@/config';
-import { secureByDefaultTransformer } from '@/directives';
+import { createApiApp } from '@/server';
+import type { FastifyInstance } from 'fastify';
 
 describe('DataLoader batching', () => {
     let fastify: FastifyInstance;
@@ -23,64 +14,7 @@ describe('DataLoader batching', () => {
     let horseIds: string[];
 
     beforeAll(async () => {
-        process.env.JWT_SECRET ??= 'api-test-jwt-secret';
-
-        // Build context function (same as production)
-        async function buildContext(request: FastifyRequest): Promise<Context> {
-            const auth = request.headers.authorization;
-            const context: Context = {
-                rider: null,
-                loaders: createLoaders(),
-            };
-            if (!auth || !auth.startsWith('Bearer ')) {
-                return context;
-            }
-
-            const token = auth.slice(7);
-            try {
-                const payload = jwt.verify(token, getJwtSecretOrThrow()) as {
-                    riderId: string;
-                };
-                const rider = await prisma.rider.findUnique({
-                    where: { id: payload.riderId },
-                    omit: { password: true },
-                });
-                context.rider = rider;
-                return context;
-            } catch (error) {
-                return context;
-            }
-        }
-
-        // Build schema
-        const typeDefs = parse(
-            readFileSync(resolve(__dirname, 'schema.graphql'), 'utf-8')
-        );
-
-        const schema = secureByDefaultTransformer(
-            buildSubgraphSchema({
-                typeDefs,
-                resolvers: resolvers as any,
-            })
-        );
-
-        // Set up Fastify + Apollo
-        fastify = Fastify();
-
-        await fastify.register(cors, {
-            origin: true,
-            credentials: true,
-        });
-
-        const apollo = new ApolloServer<Context>({
-            schema,
-        });
-
-        await apollo.start();
-
-        await fastify.register(fastifyApollo(apollo), {
-            context: (request: FastifyRequest) => buildContext(request),
-        });
+        fastify = await createApiApp();
 
         // Seed test data
         const hashedPassword = await bcrypt.hash('testpassword', 10);
