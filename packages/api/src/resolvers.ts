@@ -150,6 +150,11 @@ export const resolvers = {
                     extensions: { code: 'EMAIL_IN_USE' },
                 });
             }
+            if (!process.env.ALLOWED_EMAILS?.split(',').includes(args.email)) {
+                throw new GraphQLError('Email not allowed', {
+                    extensions: { code: 'EMAIL_NOT_ALLOWED' },
+                });
+            }
             const hashedPassword = await bcrypt.hash(args.password, 10);
             const rider = await prisma.rider.create({
                 data: {
