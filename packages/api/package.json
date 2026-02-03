@@ -13,13 +13,8 @@
         "prisma:migrate:deploy": "prisma migrate deploy",
         "prisma:studio": "prisma studio",
         "prisma:seed:e2e": "tsx prisma/seedE2E.ts",
-        "test": "vitest",
-        "test:watch": "vitest watch",
-        "test:coverage": "vitest run --coverage",
-        "test:ui": "vitest --ui",
-        "test:coverage:html": "vitest run --coverage --html",
-        "test:coverage:lcov": "vitest run --coverage --coverage-reporter lcov",
-        "test:run": "vitest run"
+        "test": "vitest run",
+        "test:watch": "vitest"
     },
     "dependencies": {
         "@apollo/server": "^5.2.0",
