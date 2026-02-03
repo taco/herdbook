@@ -1,5 +1,10 @@
-import Fastify, { FastifyInstance, FastifyRequest } from 'fastify';
+import Fastify, {
+    FastifyInstance,
+    FastifyReply,
+    FastifyRequest,
+} from 'fastify';
 import cors from '@fastify/cors';
+import rateLimit from '@fastify/rate-limit';
 import { ApolloServer } from '@apollo/server';
 import fastifyApollo from '@as-integrations/fastify';
 import { buildSubgraphSchema } from '@apollo/subgraph';
@@ -10,14 +15,18 @@ import jwt from 'jsonwebtoken';
 
 import { prisma } from '@/db';
 import { createLoaders } from '@/loaders';
-import { resolvers, Context } from '@/resolvers';
-import { getJwtSecretOrThrow, getCorsOrigin, getServerHost } from '@/config';
+import { Context, createResolvers } from '@/resolvers';
+import { getJwtSecretOrThrow, getCorsOrigin } from '@/config';
 import { secureByDefaultTransformer } from '@/directives';
 
-export async function buildContext(request: FastifyRequest): Promise<Context> {
+export async function buildContext(
+    request: FastifyRequest,
+    reply: FastifyReply
+): Promise<Context> {
     const auth = request.headers.authorization;
     const context: Context = {
         rider: null,
+        reply,
         loaders: createLoaders(),
     };
     if (!auth || !auth.startsWith('Bearer ')) {
@@ -61,29 +70,31 @@ function readSchemaSDLOrThrow(): string {
     );
 }
 
-const typeDefs = parse(readSchemaSDLOrThrow());
-
-export const schema = secureByDefaultTransformer(
-    buildSubgraphSchema({
-        typeDefs,
-        resolvers: resolvers as any,
-    })
-);
-
 export async function createApiApp(): Promise<FastifyInstance> {
     // Ensure required env is present before accepting requests.
     getJwtSecretOrThrow();
 
-    const fastify = Fastify();
+    const app = Fastify();
 
-    await fastify.register(cors, {
+    await app.register(cors, {
         origin: getCorsOrigin(),
         credentials: true,
     });
 
-    fastify.get('/', async () => {
+    await app.register(rateLimit, {
+        global: false, // Don't apply globally, we'll use per-resolver limiters
+    });
+
+    app.get('/', async () => {
         return { status: 'ok' };
     });
+
+    const schema = secureByDefaultTransformer(
+        buildSubgraphSchema({
+            typeDefs: parse(readSchemaSDLOrThrow()),
+            resolvers: createResolvers(app),
+        })
+    );
 
     const apollo = new ApolloServer<Context>({
         schema,
@@ -91,9 +102,10 @@ export async function createApiApp(): Promise<FastifyInstance> {
 
     await apollo.start();
 
-    await fastify.register(fastifyApollo(apollo), {
-        context: (request: FastifyRequest) => buildContext(request),
+    await app.register(fastifyApollo(apollo), {
+        context: (request: FastifyRequest, reply: FastifyReply) =>
+            buildContext(request, reply),
     });
 
-    return fastify;
+    return app;
 }
