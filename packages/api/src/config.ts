@@ -123,3 +123,11 @@ export function getJwtSecretOrThrow(): string {
 export function getJwtExpiration(): string {
     return process.env.JWT_EXPIRATION ?? '30 days';
 }
+
+export function getRateLimits(): { read: number; write: number; auth: number } {
+    return {
+        read: Number(process.env.RATE_LIMIT_READ) || 120,
+        write: Number(process.env.RATE_LIMIT_WRITE) || 30,
+        auth: Number(process.env.RATE_LIMIT_AUTH) || 10,
+    };
+}

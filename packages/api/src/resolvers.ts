@@ -5,7 +5,7 @@ import type { FastifyInstance, FastifyReply } from 'fastify';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { prisma } from './db';
-import { getJwtExpiration, getJwtSecretOrThrow } from './config';
+import { getJwtExpiration, getJwtSecretOrThrow, getRateLimits } from './config';
 import type { Loaders } from './loaders';
 
 export type RiderSafe = Prisma.RiderGetPayload<{ omit: { password: true } }>;
@@ -55,10 +55,20 @@ type Limiter = (
 async function enforceRateLimit(
     limiter: Limiter,
     context: Context,
+    bucket: string,
+    resolverName: string,
     code = 'RATE_LIMITED'
 ) {
     const res = await limiter(context.reply.request);
     if (res.isExceeded) {
+        const riderId = context.rider?.id;
+        const key = riderId
+            ? `rider:${riderId}`
+            : `ip:${context.reply.request.ip}`;
+
+        console.warn(
+            `[gql:rate-limit] ${bucket} bucket exceeded for ${resolverName} — key=${key}, ttl=${res.ttl}s`
+        );
         throw new GraphQLError('Too many requests', {
             extensions: {
                 code,
@@ -78,24 +88,26 @@ export const createResolvers = (app: FastifyInstance): Record<string, any> => {
             return riderId ? `rider:${riderId}` : `ip:${req.ip}`;
         };
 
+        const rateLimits = getRateLimits();
+
         app.decorate('gqlRateLimiters', {
-            // “default” bucket for common reads
+            // "default" bucket for common reads
             read: app.createRateLimit({
-                max: 120,
+                max: rateLimits.read,
                 timeWindow: '1 minute',
                 keyGenerator: keyByUserOrIp,
             }),
 
             // Stricter bucket for writes
             write: app.createRateLimit({
-                max: 30,
+                max: rateLimits.write,
                 timeWindow: '1 minute',
                 keyGenerator: keyByUserOrIp,
             }),
 
             // Very strict bucket for auth endpoints (protect login/signup)
             auth: app.createRateLimit({
-                max: 10,
+                max: rateLimits.auth,
                 timeWindow: '1 minute',
                 keyGenerator: (req: any) => `ip:${req.ip}`, // usually IP-based is fine here
             }),
@@ -124,7 +136,12 @@ export const createResolvers = (app: FastifyInstance): Record<string, any> => {
             context: Context,
             info: GraphQLResolveInfo
         ) => {
-            await enforceRateLimit(limiters[bucket], context);
+            await enforceRateLimit(
+                limiters[bucket],
+                context,
+                bucket,
+                `${info.parentType.name}.${info.fieldName}`
+            );
             logResolverCall(info, args, context);
             return resolver(parent, args, context, info);
         };

@@ -6,21 +6,21 @@ import { createApiApp } from '@/server';
 describe('Rate limiting', () => {
     let fastify: FastifyInstance;
     const TEST_TIMEOUT_MS = 30_000;
+    const AUTH_LIMIT = 10;
 
     beforeAll(async () => {
+        process.env.RATE_LIMIT_AUTH = String(AUTH_LIMIT);
         fastify = await createApiApp();
     });
 
     afterAll(async () => {
         await fastify.close();
+        delete process.env.RATE_LIMIT_AUTH;
     });
 
     it(
         'returns RATE_LIMITED error when auth limit is exceeded',
         async () => {
-            // Auth bucket has lowest limit (10 requests per minute)
-            const AUTH_LIMIT = 10;
-
             const requests = [];
             for (let i = 0; i < AUTH_LIMIT + 3; i++) {
                 requests.push(
@@ -88,8 +88,6 @@ describe('Rate limiting', () => {
             const freshApp = await createApiApp();
 
             try {
-                const AUTH_LIMIT = 10;
-
                 // Send exactly AUTH_LIMIT requests
                 const requests = [];
                 for (let i = 0; i < AUTH_LIMIT; i++) {
