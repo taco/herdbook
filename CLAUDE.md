@@ -1,5 +1,22 @@
 # Herdbook Development Guidelines
 
+## Agent Workflow
+
+Use lead/builder/verifier pattern with cost-conscious model allocation:
+
+### Model Tiers
+
+- **Haiku**: Exploration, file searches, running commands, simple mechanical tasks
+- **Sonnet**: Most implementation, standard code reviews, test writing
+- **Opus**: Planning phase (Plan agent), security audits, complex architectural decisions
+
+### Workflow
+
+1. Explore with Haiku agents
+2. Plan with Opus (invest here)
+3. Build with Sonnet/Haiku
+4. Verify with Sonnet (Opus for security-critical)
+
 ## Commands
 
 - Always use `pnpm` (not npm)
@@ -43,8 +60,11 @@
 ## Git
 
 - Conventional commits: `type(scope): description`
-- Types: `feat`, `fix`, `refactor`, `chore`
+- Types: `feat`, `fix`, `refactor`, `chore`, `docs`
 - Prefer `git add <file>` over `git add .`
+- Do not add any co-author lines in commit messages
+- The top message should be short and easy to read without losing context
+- Seperate details should be order in terms for weight, most important at the top
 
 ## Testing Philosophy
 
