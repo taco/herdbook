@@ -26,7 +26,7 @@ export default function SelectWorkType({
     id: string;
 }) {
     return (
-        <Select value={value ?? undefined} onValueChange={onChange}>
+        <Select value={value ?? ''} onValueChange={onChange}>
             <SelectTrigger id={id}>
                 <SelectValue placeholder="Select a work type" />
             </SelectTrigger>
