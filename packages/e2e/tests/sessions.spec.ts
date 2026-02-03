@@ -1,16 +1,17 @@
 import { test, expect } from '@playwright/test';
 import { selectRadixOption } from '@/utils/radixHelpers';
-import { TEST_HORSE_NAME } from '@/seedConstants';
-
-const TEST_EMAIL = 'test@herdbook.test';
-const TEST_PASSWORD = 'testpassword123';
+import {
+    TEST_HORSE_NAME,
+    TEST_RIDER_EMAIL,
+    TEST_RIDER_PASSWORD,
+} from '@/seedConstants';
 
 test.describe('Session Management', () => {
     test.beforeEach(async ({ page }) => {
         // Login before each test
         await page.goto('/login');
-        await page.fill('input[id="email"]', TEST_EMAIL);
-        await page.fill('input[id="password"]', TEST_PASSWORD);
+        await page.fill('input[id="email"]', TEST_RIDER_EMAIL);
+        await page.fill('input[id="password"]', TEST_RIDER_PASSWORD);
         await page.click('button[type="submit"]');
         await page.waitForURL('/');
     });

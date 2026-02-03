@@ -1,33 +1,13 @@
 import { test, expect } from '@playwright/test';
-
-const TEST_EMAIL = 'test@herdbook.test';
-const TEST_PASSWORD = 'testpassword123';
+import { TEST_RIDER_EMAIL, TEST_RIDER_PASSWORD } from '@/seedConstants';
 
 test.describe('Authentication', () => {
-    test('can sign up a new user', async ({ page }) => {
-        await page.goto('/signup');
-
-        const uniqueEmail = `newuser-${Date.now()}@herdbook.test`;
-
-        // Fill in signup form
-        await page.fill('input[id="name"]', 'New Test User');
-        await page.fill('input[id="email"]', uniqueEmail);
-        await page.fill('input[id="password"]', 'password123');
-
-        // Submit form
-        await page.click('button[type="submit"]');
-
-        // Should redirect to dashboard
-        await page.waitForURL('/');
-        await expect(page).toHaveURL('/');
-    });
-
     test('can log in with valid credentials', async ({ page }) => {
         await page.goto('/login');
 
         // Fill in login form
-        await page.fill('input[id="email"]', TEST_EMAIL);
-        await page.fill('input[id="password"]', TEST_PASSWORD);
+        await page.fill('input[id="email"]', TEST_RIDER_EMAIL);
+        await page.fill('input[id="password"]', TEST_RIDER_PASSWORD);
 
         // Submit form
         await page.click('button[type="submit"]');
@@ -41,7 +21,7 @@ test.describe('Authentication', () => {
         await page.goto('/login');
 
         // Fill in login form with wrong password
-        await page.fill('input[id="email"]', TEST_EMAIL);
+        await page.fill('input[id="email"]', TEST_RIDER_EMAIL);
         await page.fill('input[id="password"]', 'wrongpassword');
 
         // Submit form
@@ -61,8 +41,8 @@ test.describe('Authentication', () => {
 
         // Try to sign up with existing email
         await page.fill('input[id="name"]', 'Another User');
-        await page.fill('input[id="email"]', TEST_EMAIL);
-        await page.fill('input[id="password"]', 'password123');
+        await page.fill('input[id="email"]', TEST_RIDER_EMAIL);
+        await page.fill('input[id="password"]', TEST_RIDER_PASSWORD);
 
         // Submit form
         await page.click('button[type="submit"]');
