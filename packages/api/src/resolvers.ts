@@ -134,7 +134,7 @@ export const createResolvers = (app: FastifyInstance): Record<string, any> => {
 
         Query: {
             horses: wrapResolver('read', async () => {
-                return prisma.horse.findMany();
+                return prisma.horse.findMany({ where: { isActive: true } });
             }),
             riders: wrapResolver('read', async () => {
                 return prisma.rider.findMany({ omit: { password: true } });
@@ -168,6 +168,40 @@ export const createResolvers = (app: FastifyInstance): Record<string, any> => {
                 'write',
                 async (_, args: { name: string; notes?: string }) => {
                     return prisma.horse.create({ data: args });
+                }
+            ),
+            updateHorse: wrapResolver(
+                'write',
+                async (
+                    _,
+                    args: {
+                        id: string;
+                        name?: string;
+                        notes?: string;
+                        isActive?: boolean;
+                    }
+                ) => {
+                    const existing = await prisma.horse.findUnique({
+                        where: { id: args.id },
+                    });
+                    if (!existing) {
+                        throw new GraphQLError('Horse not found', {
+                            extensions: { code: 'NOT_FOUND' },
+                        });
+                    }
+                    const updateData: {
+                        name?: string;
+                        notes?: string;
+                        isActive?: boolean;
+                    } = {};
+                    if (args.name !== undefined) updateData.name = args.name;
+                    if (args.notes !== undefined) updateData.notes = args.notes;
+                    if (args.isActive !== undefined)
+                        updateData.isActive = args.isActive;
+                    return prisma.horse.update({
+                        where: { id: args.id },
+                        data: updateData,
+                    });
                 }
             ),
             createSession: wrapResolver(

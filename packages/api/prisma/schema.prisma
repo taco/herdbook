@@ -16,6 +16,7 @@ model Horse {
   id        String    @id @default(cuid())
   name      String
   notes     String?
+  isActive  Boolean   @default(true)
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   sessions  Session[]

@@ -28,6 +28,7 @@ type Horse {
     id: ID!
     name: String!
     notes: String
+    isActive: Boolean!
     createdAt: DateTime!
     updatedAt: DateTime!
     sessions: [Session!]!
@@ -61,6 +62,7 @@ type Query {
 
 type Mutation {
     createHorse(name: String!, notes: String): Horse!
+    updateHorse(id: ID!, name: String, notes: String, isActive: Boolean): Horse!
     createSession(
         horseId: ID!
         date: DateTime!

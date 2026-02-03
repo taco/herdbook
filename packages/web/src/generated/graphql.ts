@@ -41,6 +41,7 @@ export type Horse = {
     activity: Array<WeeklyActivity>;
     createdAt: Scalars['DateTime']['output'];
     id: Scalars['ID']['output'];
+    isActive: Scalars['Boolean']['output'];
     name: Scalars['String']['output'];
     notes: Maybe<Scalars['String']['output']>;
     sessions: Array<Session>;
@@ -57,6 +58,7 @@ export type Mutation = {
     createSession: Session;
     login: AuthPayload;
     signup: AuthPayload;
+    updateHorse: Horse;
 };
 
 export type MutationCreateHorseArgs = {
@@ -81,6 +83,13 @@ export type MutationSignupArgs = {
     email: Scalars['String']['input'];
     name: Scalars['String']['input'];
     password: Scalars['String']['input'];
+};
+
+export type MutationUpdateHorseArgs = {
+    id: Scalars['ID']['input'];
+    isActive: InputMaybe<Scalars['Boolean']['input']>;
+    name: InputMaybe<Scalars['String']['input']>;
+    notes: InputMaybe<Scalars['String']['input']>;
 };
 
 export type Query = {
@@ -211,6 +220,53 @@ export type GetDashboardDataQuery = {
         horse: { __typename?: 'Horse'; name: string };
         rider: { __typename?: 'Rider'; name: string };
     }>;
+};
+
+export type GetHorseForEditQueryVariables = Exact<{
+    id: Scalars['ID']['input'];
+}>;
+
+export type GetHorseForEditQuery = {
+    __typename?: 'Query';
+    horse: {
+        __typename?: 'Horse';
+        id: string;
+        name: string;
+        notes: string | null;
+        isActive: boolean;
+        sessions: Array<{
+            __typename?: 'Session';
+            id: string;
+            date: any;
+            durationMinutes: number;
+            workType: WorkType;
+            notes: string;
+            horse: { __typename?: 'Horse'; name: string };
+            rider: { __typename?: 'Rider'; name: string };
+        }>;
+    } | null;
+};
+
+export type CreateHorseMutationVariables = Exact<{
+    name: Scalars['String']['input'];
+    notes: InputMaybe<Scalars['String']['input']>;
+}>;
+
+export type CreateHorseMutation = {
+    __typename?: 'Mutation';
+    createHorse: { __typename?: 'Horse'; id: string };
+};
+
+export type UpdateHorseMutationVariables = Exact<{
+    id: Scalars['ID']['input'];
+    name: InputMaybe<Scalars['String']['input']>;
+    notes: InputMaybe<Scalars['String']['input']>;
+    isActive: InputMaybe<Scalars['Boolean']['input']>;
+}>;
+
+export type UpdateHorseMutation = {
+    __typename?: 'Mutation';
+    updateHorse: { __typename?: 'Horse'; id: string };
 };
 
 export type LoginMutationVariables = Exact<{
