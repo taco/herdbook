@@ -12,6 +12,19 @@ jobs:
     container:
       image: mcr.microsoft.com/playwright:v1.57.0-jammy
 
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: herdbook_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -36,30 +49,23 @@ jobs:
       - name: Build Web
         run: pnpm --filter web build
 
-      - name: Start test database
-        run: docker compose -f docker-compose.test.yml up -d
-
-      - name: Wait for Postgres
-        run: |
-          timeout 30 bash -c 'until docker compose -f docker-compose.test.yml exec -T postgres pg_isready -U postgres; do sleep 1; done'
-
       - name: Run migrations
         run: |
-          DATABASE_URL=postgresql://postgres:test@localhost:5433/herdbook_test pnpm --filter api prisma:migrate:deploy
+          DATABASE_URL=postgresql://postgres:test@postgres:5432/herdbook_test pnpm --filter api prisma:migrate:deploy
 
       - name: Generate Prisma client
         run: pnpm --filter api prisma:generate
         env:
-          DATABASE_URL: postgresql://postgres:test@localhost:5433/herdbook_test
+          DATABASE_URL: postgresql://postgres:test@postgres:5432/herdbook_test
 
       - name: Seed test data
         run: |
-          DATABASE_URL=postgresql://postgres:test@localhost:5433/herdbook_test pnpm --filter api prisma:seed:e2e
+          DATABASE_URL=postgresql://postgres:test@postgres:5432/herdbook_test pnpm --filter api prisma:seed:e2e
 
       - name: Run E2E tests
         run: pnpm test:e2e
         env:
-          DATABASE_URL: postgresql://postgres:test@localhost:5433/herdbook_test
+          DATABASE_URL: postgresql://postgres:test@postgres:5432/herdbook_test
           CI: true
 
       - name: Upload Playwright report
@@ -69,7 +75,3 @@ jobs:
           name: playwright-report
           path: packages/e2e/playwright-report/
           retention-days: 30
-
-      - name: Stop test database
-        if: always()
-        run: docker compose -f docker-compose.test.yml down -v
