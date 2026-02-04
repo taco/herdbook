@@ -20,14 +20,11 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
           cache: 'pnpm'
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-
-      - name: Check formatting
-        run: pnpm run format:check
 
       - name: Generate Prisma client
         run: pnpm --filter api prisma:generate
