@@ -8,11 +8,34 @@ const __dirname = dirname(__filename);
 const ROOT_DIR = resolve(__dirname, '../..');
 const DOCKER_COMPOSE_FILE = resolve(ROOT_DIR, 'docker-compose.test.yml');
 
+function getDockerComposeCommand(): string {
+    try {
+        execSync('docker compose version', { stdio: 'pipe' });
+        return 'docker compose';
+    } catch {
+        // ignore
+    }
+
+    try {
+        execSync('docker-compose version', { stdio: 'pipe' });
+        return 'docker-compose';
+    } catch {
+        // ignore
+    }
+
+    throw new Error(
+        'Neither `docker compose` nor `docker-compose` is available on PATH'
+    );
+}
+
 async function globalTeardown() {
     console.log('Stopping E2E test database...');
 
     try {
-        execSync(`docker-compose -f ${DOCKER_COMPOSE_FILE} down -v`, {
+        const dockerCompose = getDockerComposeCommand();
+        const dockerComposeFileArg = `-f "${DOCKER_COMPOSE_FILE}"`;
+
+        execSync(`${dockerCompose} ${dockerComposeFileArg} down -v`, {
             stdio: 'inherit',
             cwd: ROOT_DIR,
         });

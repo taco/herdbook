@@ -8,23 +8,46 @@ const __dirname = dirname(__filename);
 const ROOT_DIR = resolve(__dirname, '../..');
 const DOCKER_COMPOSE_FILE = resolve(ROOT_DIR, 'docker-compose.test.yml');
 
+function getDockerComposeCommand(): string {
+    try {
+        execSync('docker compose version', { stdio: 'pipe' });
+        return 'docker compose';
+    } catch {
+        // ignore
+    }
+
+    try {
+        execSync('docker-compose version', { stdio: 'pipe' });
+        return 'docker-compose';
+    } catch {
+        // ignore
+    }
+
+    throw new Error(
+        'Neither `docker compose` nor `docker-compose` is available on PATH'
+    );
+}
+
 async function globalSetup() {
     try {
         console.log('Starting E2E test database...');
 
-        // Start Docker container
-        try {
-            execSync(`docker compose -f ${DOCKER_COMPOSE_FILE} up -d`, {
-                stdio: 'inherit',
-                cwd: ROOT_DIR,
-            });
-        } catch (e) {
-            console.log('docker compose failed, trying docker-compose...');
-            execSync(`docker-compose -f ${DOCKER_COMPOSE_FILE} up -d`, {
+        const dockerCompose = getDockerComposeCommand();
+        const dockerComposeFileArg = `-f "${DOCKER_COMPOSE_FILE}"`;
+
+        // Optional: pull newest image tags before starting containers (slower, but "latest").
+        if (process.env.E2E_DOCKER_PULL === '1') {
+            execSync(`${dockerCompose} ${dockerComposeFileArg} pull postgres`, {
                 stdio: 'inherit',
                 cwd: ROOT_DIR,
             });
         }
+
+        // Start Docker container
+        execSync(`${dockerCompose} ${dockerComposeFileArg} up -d`, {
+            stdio: 'inherit',
+            cwd: ROOT_DIR,
+        });
 
         // Wait for Postgres to be ready
         console.log('Waiting for Postgres to be ready...');
@@ -32,7 +55,7 @@ async function globalSetup() {
         while (retries > 0) {
             try {
                 execSync(
-                    `docker-compose -f ${DOCKER_COMPOSE_FILE} exec -T postgres pg_isready -U postgres`,
+                    `${dockerCompose} ${dockerComposeFileArg} exec -T postgres pg_isready -U postgres`,
                     { stdio: 'pipe', cwd: ROOT_DIR }
                 );
                 break;
