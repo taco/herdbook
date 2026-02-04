@@ -77,31 +77,89 @@
 
 ---
 
-### 2.3 Deploy
+### 2.3 Database Setup (Neon)
 
-**Status**: Not started  
-**Effort**: Medium (2-3 hours)
+**Status**: In progress
+**Platform**: Neon Serverless Postgres
 
-- [ ] Choose hosting platform (Fly.io or Railway)
-- [ ] Provision managed Postgres
-- [ ] Configure environment variables (JWT_SECRET, DATABASE_URL)
-- [ ] Domain setup + HTTPS
-- [ ] Verify production build runs correctly
+- [ ] Connect local environment to Neon dev database
+- [ ] Run `pnpm prisma:migrate:deploy` against Neon dev
+- [ ] Verify schema matches local (tables: Horse, Rider, Session)
+- [ ] Test API locally with Neon dev database
 
-**Done when**: App is accessible at a public URL with HTTPS.
+**Done when**: Local API connects to Neon dev and all queries work.
 
 ---
 
-### 2.4 Seed Production Data
+### 2.4 Deploy API (Railway)
 
-**Status**: Not started  
-**Effort**: Small (30 min)
+**Status**: Not started
+**Platform**: Railway (connected to GitHub)
 
-- [ ] Create seed script for production (or run via Prisma Studio)
+Environment variables to set in Railway:
+
+- `DATABASE_URL` — Neon dev connection string (secret)
+- `JWT_SECRET` — Generate new 32+ char random string (secret)
+- `ALLOWED_EMAILS` — Comma-separated whitelist
+- `CORS_ALLOWED_ORIGINS` — Railway web app URL (set after 2.5)
+- `NODE_ENV` — `production`
+
+Steps:
+
+- [ ] Create Railway service for API (from `packages/api`)
+- [ ] Set environment variables in Railway dashboard
+- [ ] Deploy and verify health endpoint responds
+- [ ] Note the Railway API URL for web config
+
+**Done when**: API is live at Railway URL, responds to GraphQL queries.
+
+---
+
+### 2.5 Deploy Web (Railway)
+
+**Status**: Not started
+**Platform**: Railway (connected to GitHub)
+
+Environment variables to set in Railway:
+
+- `VITE_API_URL` — Railway API URL from 2.4
+
+Steps:
+
+- [ ] Create Railway service for Web (from `packages/web`)
+- [ ] Set `VITE_API_URL` to API's Railway URL
+- [ ] Deploy and verify app loads
+- [ ] Update API's `CORS_ALLOWED_ORIGINS` with Web URL
+
+**Done when**: Web app loads, can reach API, login form appears.
+
+---
+
+### 2.6 Seed Production Data
+
+**Status**: Not started
+
+- [ ] Create seed script for production (or use Prisma Studio against Neon)
 - [ ] Seed 4 rider accounts with known passwords
 - [ ] Seed 3 horses
+- [ ] Verify login works end-to-end
 
 **Done when**: All riders can log in and see the horses.
+
+---
+
+### 2.7 Production Cutover (Later)
+
+**Status**: Not started
+
+When ready to go live with real users:
+
+- [ ] Update Railway API's `DATABASE_URL` to Neon production database
+- [ ] Run migrations against Neon production
+- [ ] Re-seed production data
+- [ ] Custom domain setup (optional)
+
+**Done when**: App runs against production database with real users.
 
 ---
 
