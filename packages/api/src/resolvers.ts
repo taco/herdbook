@@ -178,6 +178,9 @@ export const createResolvers = (app: FastifyInstance): Record<string, any> => {
                     });
                 }
             ),
+            session: wrapResolver('read', async (_, args: { id: string }) => {
+                return prisma.session.findUnique({ where: { id: args.id } });
+            }),
         },
 
         Mutation: {
@@ -240,6 +243,71 @@ export const createResolvers = (app: FastifyInstance): Record<string, any> => {
                     return prisma.session.create({
                         data: { ...args, riderId: context.rider.id },
                     });
+                }
+            ),
+            updateSession: wrapResolver(
+                'write',
+                async (
+                    _,
+                    args: {
+                        id: string;
+                        horseId?: string;
+                        riderId?: string;
+                        date?: Date;
+                        durationMinutes?: number;
+                        workType?: WorkType;
+                        notes?: string;
+                    },
+                    context
+                ) => {
+                    if (!context.rider) {
+                        throw new GraphQLError('Not authenticated', {
+                            extensions: { code: 'UNAUTHENTICATED' },
+                        });
+                    }
+                    const existing = await prisma.session.findUnique({
+                        where: { id: args.id },
+                    });
+                    if (!existing) {
+                        throw new GraphQLError('Session not found', {
+                            extensions: { code: 'NOT_FOUND' },
+                        });
+                    }
+                    const updateData: Prisma.SessionUpdateInput = {};
+                    if (args.horseId !== undefined)
+                        updateData.horse = { connect: { id: args.horseId } };
+                    if (args.riderId !== undefined)
+                        updateData.rider = { connect: { id: args.riderId } };
+                    if (args.date !== undefined) updateData.date = args.date;
+                    if (args.durationMinutes !== undefined)
+                        updateData.durationMinutes = args.durationMinutes;
+                    if (args.workType !== undefined)
+                        updateData.workType = args.workType;
+                    if (args.notes !== undefined) updateData.notes = args.notes;
+                    return prisma.session.update({
+                        where: { id: args.id },
+                        data: updateData,
+                    });
+                }
+            ),
+            deleteSession: wrapResolver(
+                'write',
+                async (_, args: { id: string }, context) => {
+                    if (!context.rider) {
+                        throw new GraphQLError('Not authenticated', {
+                            extensions: { code: 'UNAUTHENTICATED' },
+                        });
+                    }
+                    const existing = await prisma.session.findUnique({
+                        where: { id: args.id },
+                    });
+                    if (!existing) {
+                        throw new GraphQLError('Session not found', {
+                            extensions: { code: 'NOT_FOUND' },
+                        });
+                    }
+                    await prisma.session.delete({ where: { id: args.id } });
+                    return true;
                 }
             ),
             signup: wrapResolver(

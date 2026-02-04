@@ -32,13 +32,23 @@ export default function SelectHorse({
         GET_HORSES_QUERY
     );
 
+    const horses = data?.horses ?? [];
+    const selectedHorse = horses.find((h) => h.id === value) ?? null;
+
     return (
-        <Select value={value} onValueChange={onChange} disabled={loading}>
+        <Select
+            key={`${loading ? 'loading' : 'loaded'}-${horses.length}-${value}`}
+            value={value}
+            onValueChange={onChange}
+            disabled={loading}
+        >
             <SelectTrigger id={id}>
-                <SelectValue placeholder="Select a horse" />
+                <SelectValue placeholder="Select a horse">
+                    {selectedHorse?.name}
+                </SelectValue>
             </SelectTrigger>
             <SelectContent>
-                {data?.horses.map((horse) => (
+                {horses.map((horse) => (
                     <SelectItem key={horse.id} value={horse.id}>
                         {horse.name}
                     </SelectItem>

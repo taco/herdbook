@@ -12,7 +12,7 @@ import Login from '@/pages/Login';
 import Signup from '@/pages/Signup';
 import Dashboard from '@/pages/Dashboard';
 import Logout from '@/pages/Logout';
-import CreateSession from '@/pages/CreateSession';
+import EditSession from '@/pages/EditSession';
 import EditHorse from '@/pages/EditHorse';
 import PrivateLayout from '@/layouts/PrivateLayout';
 
@@ -40,7 +40,11 @@ function App() {
                 <Route element={<PrivateLayout />}>
                     <Route path="/" element={<Dashboard />} />
                     <Route path="/logout" element={<Logout />} />
-                    <Route path="/sessions/new" element={<CreateSession />} />
+                    <Route path="/sessions/new" element={<EditSession />} />
+                    <Route
+                        path="/sessions/:id/edit"
+                        element={<EditSession />}
+                    />
                     <Route path="/horses/new" element={<EditHorse />} />
                     <Route path="/horses/:id/edit" element={<EditHorse />} />
                 </Route>

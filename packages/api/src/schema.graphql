@@ -57,6 +57,7 @@ type Query {
     riders: [Rider!]!
     sessions(limit: Int, offset: Int): [Session!]!
     horse(id: ID!): Horse
+    session(id: ID!): Session
     lastSessionForHorse(horseId: ID!): Session
 }
 
@@ -70,6 +71,16 @@ type Mutation {
         workType: WorkType!
         notes: String!
     ): Session!
+    updateSession(
+        id: ID!
+        horseId: ID
+        riderId: ID
+        date: DateTime
+        durationMinutes: Int
+        workType: WorkType
+        notes: String
+    ): Session!
+    deleteSession(id: ID!): Boolean!
     login(email: String!, password: String!): AuthPayload! @public
     signup(name: String!, email: String!, password: String!): AuthPayload!
         @public

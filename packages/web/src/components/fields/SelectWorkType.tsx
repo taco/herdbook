@@ -25,10 +25,18 @@ export default function SelectWorkType({
     onChange: (value: WorkType) => void;
     id: string;
 }) {
+    const selectedOption = WORK_TYPE_OPTIONS.find((o) => o.value === value);
+
     return (
-        <Select value={value ?? ''} onValueChange={onChange}>
+        <Select
+            key={`${WORK_TYPE_OPTIONS.length}-${value ?? ''}`}
+            value={value ?? ''}
+            onValueChange={onChange}
+        >
             <SelectTrigger id={id}>
-                <SelectValue placeholder="Select a work type" />
+                <SelectValue placeholder="Select a work type">
+                    {selectedOption?.label}
+                </SelectValue>
             </SelectTrigger>
             <SelectContent>
                 {WORK_TYPE_OPTIONS.map((option) => (

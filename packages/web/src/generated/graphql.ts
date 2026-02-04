@@ -56,9 +56,11 @@ export type Mutation = {
     __typename?: 'Mutation';
     createHorse: Horse;
     createSession: Session;
+    deleteSession: Scalars['Boolean']['output'];
     login: AuthPayload;
     signup: AuthPayload;
     updateHorse: Horse;
+    updateSession: Session;
 };
 
 export type MutationCreateHorseArgs = {
@@ -72,6 +74,10 @@ export type MutationCreateSessionArgs = {
     horseId: Scalars['ID']['input'];
     notes: Scalars['String']['input'];
     workType: WorkType;
+};
+
+export type MutationDeleteSessionArgs = {
+    id: Scalars['ID']['input'];
 };
 
 export type MutationLoginArgs = {
@@ -92,12 +98,23 @@ export type MutationUpdateHorseArgs = {
     notes: InputMaybe<Scalars['String']['input']>;
 };
 
+export type MutationUpdateSessionArgs = {
+    date: InputMaybe<Scalars['DateTime']['input']>;
+    durationMinutes: InputMaybe<Scalars['Int']['input']>;
+    horseId: InputMaybe<Scalars['ID']['input']>;
+    id: Scalars['ID']['input'];
+    notes: InputMaybe<Scalars['String']['input']>;
+    riderId: InputMaybe<Scalars['ID']['input']>;
+    workType: InputMaybe<WorkType>;
+};
+
 export type Query = {
     __typename?: 'Query';
     horse: Maybe<Horse>;
     horses: Array<Horse>;
     lastSessionForHorse: Maybe<Session>;
     riders: Array<Rider>;
+    session: Maybe<Session>;
     sessions: Array<Session>;
 };
 
@@ -107,6 +124,10 @@ export type QueryHorseArgs = {
 
 export type QueryLastSessionForHorseArgs = {
     horseId: Scalars['ID']['input'];
+};
+
+export type QuerySessionArgs = {
+    id: Scalars['ID']['input'];
 };
 
 export type QuerySessionsArgs = {
@@ -163,37 +184,6 @@ export type GetRidersQueryVariables = Exact<{ [key: string]: never }>;
 export type GetRidersQuery = {
     __typename?: 'Query';
     riders: Array<{ __typename?: 'Rider'; id: string; name: string }>;
-};
-
-export type CreateSessionMutationVariables = Exact<{
-    horseId: Scalars['ID']['input'];
-    date: Scalars['DateTime']['input'];
-    durationMinutes: Scalars['Int']['input'];
-    workType: WorkType;
-    notes: Scalars['String']['input'];
-}>;
-
-export type CreateSessionMutation = {
-    __typename?: 'Mutation';
-    createSession: { __typename?: 'Session'; id: string };
-};
-
-export type GetLastSessionForHorseQueryVariables = Exact<{
-    horseId: Scalars['ID']['input'];
-}>;
-
-export type GetLastSessionForHorseQuery = {
-    __typename?: 'Query';
-    lastSessionForHorse: {
-        __typename?: 'Session';
-        id: string;
-        date: any;
-        durationMinutes: number;
-        workType: WorkType;
-        notes: string;
-        horse: { __typename?: 'Horse'; name: string };
-        rider: { __typename?: 'Rider'; name: string };
-    } | null;
 };
 
 export type GetDashboardDataQueryVariables = Exact<{ [key: string]: never }>;
@@ -267,6 +257,79 @@ export type UpdateHorseMutationVariables = Exact<{
 export type UpdateHorseMutation = {
     __typename?: 'Mutation';
     updateHorse: { __typename?: 'Horse'; id: string };
+};
+
+export type GetSessionForEditQueryVariables = Exact<{
+    id: Scalars['ID']['input'];
+}>;
+
+export type GetSessionForEditQuery = {
+    __typename?: 'Query';
+    session: {
+        __typename?: 'Session';
+        id: string;
+        date: any;
+        durationMinutes: number;
+        workType: WorkType;
+        notes: string;
+        horse: { __typename?: 'Horse'; id: string; name: string };
+        rider: { __typename?: 'Rider'; id: string; name: string };
+    } | null;
+};
+
+export type CreateSessionMutationVariables = Exact<{
+    horseId: Scalars['ID']['input'];
+    date: Scalars['DateTime']['input'];
+    durationMinutes: Scalars['Int']['input'];
+    workType: WorkType;
+    notes: Scalars['String']['input'];
+}>;
+
+export type CreateSessionMutation = {
+    __typename?: 'Mutation';
+    createSession: { __typename?: 'Session'; id: string };
+};
+
+export type UpdateSessionMutationVariables = Exact<{
+    id: Scalars['ID']['input'];
+    horseId: InputMaybe<Scalars['ID']['input']>;
+    riderId: InputMaybe<Scalars['ID']['input']>;
+    date: InputMaybe<Scalars['DateTime']['input']>;
+    durationMinutes: InputMaybe<Scalars['Int']['input']>;
+    workType: InputMaybe<WorkType>;
+    notes: InputMaybe<Scalars['String']['input']>;
+}>;
+
+export type UpdateSessionMutation = {
+    __typename?: 'Mutation';
+    updateSession: { __typename?: 'Session'; id: string };
+};
+
+export type DeleteSessionMutationVariables = Exact<{
+    id: Scalars['ID']['input'];
+}>;
+
+export type DeleteSessionMutation = {
+    __typename?: 'Mutation';
+    deleteSession: boolean;
+};
+
+export type GetLastSessionForHorseQueryVariables = Exact<{
+    horseId: Scalars['ID']['input'];
+}>;
+
+export type GetLastSessionForHorseQuery = {
+    __typename?: 'Query';
+    lastSessionForHorse: {
+        __typename?: 'Session';
+        id: string;
+        date: any;
+        durationMinutes: number;
+        workType: WorkType;
+        notes: string;
+        horse: { __typename?: 'Horse'; name: string };
+        rider: { __typename?: 'Rider'; name: string };
+    } | null;
 };
 
 export type LoginMutationVariables = Exact<{

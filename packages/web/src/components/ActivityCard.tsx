@@ -17,9 +17,10 @@ interface ActivityCardProps {
             name: string;
         };
     };
+    onClick?: () => void;
 }
 
-export default function ActivityCard({ session }: ActivityCardProps) {
+export default function ActivityCard({ session, onClick }: ActivityCardProps) {
     const dateValue = Number(session.date);
     const dateObj = isNaN(dateValue)
         ? new Date(session.date)
@@ -27,7 +28,14 @@ export default function ActivityCard({ session }: ActivityCardProps) {
     const formattedDate = formatTimeAgo(dateObj);
 
     return (
-        <Card>
+        <Card
+            className={
+                onClick
+                    ? 'cursor-pointer active:scale-[0.98] transition-transform'
+                    : ''
+            }
+            onClick={onClick}
+        >
             <CardHeader>
                 <div className="flex justify-between items-start gap-2">
                     <div className="space-y-1">
