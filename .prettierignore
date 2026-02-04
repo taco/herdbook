@@ -4,4 +4,8 @@ dist
 build
 coverage
 .cursor
+.github
+.agents
+.vscode
 packages/api/src/generated/prisma
+docs
