@@ -89,6 +89,83 @@ export async function createApiApp(): Promise<FastifyInstance> {
         return { status: 'ok' };
     });
 
+    // Whisper transcription endpoint (POC)
+    app.post('/api/transcribe', async (request, reply) => {
+        // Authenticate user
+        const auth = request.headers.authorization;
+        if (!auth || !auth.startsWith('Bearer ')) {
+            return reply.status(401).send({ error: 'Unauthorized' });
+        }
+
+        const token = auth.slice(7);
+        try {
+            jwt.verify(token, getJwtSecretOrThrow());
+        } catch {
+            return reply.status(401).send({ error: 'Invalid token' });
+        }
+
+        const openaiApiKey = process.env.OPENAI_API_KEY;
+        if (!openaiApiKey) {
+            return reply
+                .status(500)
+                .send({ error: 'OpenAI API key not configured' });
+        }
+
+        const body = request.body as { audio: string; mimeType?: string };
+        if (!body.audio) {
+            return reply.status(400).send({ error: 'No audio data provided' });
+        }
+
+        try {
+            // Convert base64 to buffer
+            const audioBuffer = Buffer.from(body.audio, 'base64');
+            const mimeType = body.mimeType || 'audio/webm';
+            const extension = mimeType.includes('mp4')
+                ? 'mp4'
+                : mimeType.includes('wav')
+                  ? 'wav'
+                  : 'webm';
+
+            // Create FormData for OpenAI API
+            const formData = new FormData();
+            const blob = new Blob([audioBuffer], { type: mimeType });
+            formData.append('file', blob, `audio.${extension}`);
+            formData.append('model', 'whisper-1');
+            formData.append('language', 'en');
+
+            // Call OpenAI Whisper API
+            const response = await fetch(
+                'https://api.openai.com/v1/audio/transcriptions',
+                {
+                    method: 'POST',
+                    headers: {
+                        Authorization: `Bearer ${openaiApiKey}`,
+                    },
+                    body: formData,
+                }
+            );
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('OpenAI API error:', errorText);
+                return reply.status(response.status).send({
+                    error: 'Transcription failed',
+                    details: errorText,
+                });
+            }
+
+            const result = (await response.json()) as { text: string };
+            return { transcription: result.text };
+        } catch (error) {
+            console.error('Transcription error:', error);
+            return reply.status(500).send({
+                error: 'Transcription failed',
+                details:
+                    error instanceof Error ? error.message : 'Unknown error',
+            });
+        }
+    });
+
     const schema = secureByDefaultTransformer(
         buildSubgraphSchema({
             typeDefs: parse(readSchemaSDLOrThrow()),

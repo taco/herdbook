@@ -31,6 +31,7 @@ import SelectHorse from '@/components/fields/SelectHorse';
 import SelectRider from '@/components/fields/SelectRider';
 import SelectWorkType from '@/components/fields/SelectWorkType';
 import ActivityCard from '@/components/ActivityCard';
+import VoiceRecordButton from '@/components/VoiceRecordButton';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/context/AuthContext';
 import {
@@ -436,15 +437,27 @@ export default function EditSession() {
 
                         <div className="space-y-1.5">
                             <Label htmlFor="notes">Notes</Label>
-                            <textarea
-                                id="notes"
-                                value={notes}
-                                onChange={(e) => setNotes(e.target.value)}
-                                placeholder="e.g. 'Good session, worked on lateral movement'"
-                                required
-                                rows={9}
-                                className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-base shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
-                            />
+                            <div className="flex gap-2 items-start">
+                                <textarea
+                                    id="notes"
+                                    value={notes}
+                                    onChange={(e) => setNotes(e.target.value)}
+                                    placeholder="e.g. 'Good session, worked on lateral movement'"
+                                    required
+                                    rows={9}
+                                    className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-base shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+                                />
+                                <VoiceRecordButton
+                                    onTranscription={(text) => {
+                                        // Append to existing notes with a space if not empty
+                                        setNotes((prev) =>
+                                            prev.trim()
+                                                ? `${prev.trim()} ${text}`
+                                                : text
+                                        );
+                                    }}
+                                />
+                            </div>
                         </div>
 
                         {formError && (
