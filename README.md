@@ -52,13 +52,12 @@ cd herdbook
 pnpm install
 ```
 
-3. Set up environment variables:
-    - Create a `.env` file in `packages/api/` with your database connection:
+3. Set up environment variables (see [Environment Management](#environment-management) for details):
 
-    ```env
-    DATABASE_URL="postgresql://user:password@localhost:5432/herdbook"
-    JWT_SECRET="change-me"
-    JWT_EXPIRATION="1h"
+    ```bash
+    # Copy the example env files
+    cp .env.example .env.local
+    # Edit .env.local with your local database credentials
     ```
 
 4. Set up the database:
@@ -191,18 +190,68 @@ pnpm --filter e2e test:ui
 4. Runs Playwright tests
 5. Tears down the container
 
-## Environment Variables
+## Environment Management
 
-### API (`packages/api/.env`)
+Environment configuration is managed at the **root level** with symlinks to packages. This allows easy switching between local development, Neon dev, and production databases.
 
-- `DATABASE_URL` - PostgreSQL connection string (required)
-- `JWT_SECRET` - Secret for signing JWTs (required in production)
-- `JWT_EXPIRATION` - JWT token expiration (default: `1h`)
-- `PORT` - Server port (default: 4000)
+### Environment Files
 
-### Web (`packages/web/.env`)
+```
+herdbook/
+├── .env.local        # Local development (localhost PostgreSQL)
+├── .env.neon-dev     # Neon dev database
+├── .env.neon-prod    # Neon production database (created later)
+├── .env.example      # Template for new developers
+└── packages/
+    └── api/.env      # Symlink → one of the root env files
+```
 
-- `VITE_API_URL` - GraphQL API URL (default: `http://localhost:4000/graphql`)
+All root `.env.*` files are gitignored. The `packages/api/.env` symlink points to whichever environment is active.
+
+### Switching Environments
+
+```bash
+# Switch to local PostgreSQL (default)
+pnpm env:local
+
+# Switch to Neon dev database
+pnpm env:neon-dev
+
+# Check which environment is active
+pnpm env:status
+```
+
+### Required Variables
+
+| Variable         | Description                                       | Example                                          |
+| ---------------- | ------------------------------------------------- | ------------------------------------------------ |
+| `DATABASE_URL`   | PostgreSQL connection string                      | `postgresql://user:pass@localhost:5432/herdbook` |
+| `JWT_SECRET`     | Secret for signing JWTs (32+ chars in production) | `your-secret-key`                                |
+| `ALLOWED_EMAILS` | Comma-separated email whitelist                   | `user@example.com,other@example.com`             |
+
+### Optional Variables
+
+| Variable               | Description                       | Default    |
+| ---------------------- | --------------------------------- | ---------- |
+| `RATE_LIMIT_READ`      | Read requests per minute          | `120`      |
+| `RATE_LIMIT_WRITE`     | Write requests per minute         | `30`       |
+| `RATE_LIMIT_AUTH`      | Auth requests per minute          | `10`       |
+| `CORS_ALLOWED_ORIGINS` | Allowed CORS origins (production) | `*` in dev |
+
+### Web Package
+
+The web package has its own `.env.local` for dev conveniences (auto-login, etc.). This doesn't need environment switching since `VITE_API_URL` only changes at deploy time.
+
+```
+packages/web/.env.local   # Dev conveniences (VITE_DEV_EMAIL, etc.)
+```
+
+| Variable             | Description                       | Default                         |
+| -------------------- | --------------------------------- | ------------------------------- |
+| `VITE_API_URL`       | GraphQL API URL                   | `http://localhost:4000/graphql` |
+| `VITE_DEV_EMAIL`     | Prefill login email (dev only)    | -                               |
+| `VITE_DEV_PASSWORD`  | Prefill login password (dev only) | -                               |
+| `VITE_DEV_AUTOLOGIN` | Auto-submit login form (dev only) | `false`                         |
 
 ## License
 
