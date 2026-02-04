@@ -30,6 +30,13 @@ function getDockerComposeCommand(): string {
 
 async function globalSetup() {
     try {
+        // In CI, the database is already running via GitHub Actions services
+        // and migrations/seed are handled by workflow steps
+        if (process.env.CI) {
+            console.log('CI environment detected - skipping database setup');
+            return;
+        }
+
         console.log('Starting E2E test database...');
 
         const dockerCompose = getDockerComposeCommand();

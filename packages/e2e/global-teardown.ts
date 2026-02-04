@@ -29,6 +29,12 @@ function getDockerComposeCommand(): string {
 }
 
 async function globalTeardown() {
+    // In CI, the database is managed by GitHub Actions services
+    if (process.env.CI) {
+        console.log('CI environment detected - skipping database teardown');
+        return;
+    }
+
     console.log('Stopping E2E test database...');
 
     try {
