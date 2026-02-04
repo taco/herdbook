@@ -31,6 +31,8 @@ jobs:
 
       - name: Build API
         run: pnpm --filter api build
+        env:
+          DATABASE_URL: postgresql://dummy:dummy@localhost:5432/dummy
 
       - name: Build Web
         run: pnpm --filter web build
@@ -48,6 +50,8 @@ jobs:
 
       - name: Generate Prisma client
         run: pnpm --filter api prisma:generate
+        env:
+          DATABASE_URL: postgresql://postgres:test@localhost:5433/herdbook_test
 
       - name: Seed test data
         run: |
