@@ -28,8 +28,10 @@ function isPrivateIP(ip: string): boolean {
 }
 
 export function getServerHost(): string {
-    if (isDevelopment()) return '0.0.0.0';
-    return process.env.HOST ?? '127.0.0.1';
+    // Always bind to 0.0.0.0 to accept external connections.
+    // In containerized environments (Railway, Docker), 127.0.0.1 only accepts
+    // connections from within the container itself.
+    return process.env.HOST ?? '0.0.0.0';
 }
 
 type CorsCallback = (err: Error | null, allow: boolean) => void;
