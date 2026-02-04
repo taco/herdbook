@@ -68,10 +68,10 @@
 **Status**: Not started  
 **Effort**: Small (1-2 hours)
 
-- [ ] Rate limiting on auth mutations (prevent brute force)
-- [ ] CORS locked to production domain (not `origin: true`)
-- [ ] JWT expiry → 30 days in production
-- [ ] Disable or remove public signup endpoint
+- [x] Rate limiting on auth mutations (prevent brute force)
+- [x] CORS locked to production domain (not `origin: true`)
+- [x] JWT expiry → 30 days in production
+- [x] Disable or remove public signup endpoint
 
 **Done when**: Auth is rate-limited, CORS is environment-aware, tokens last 30 days.
 
