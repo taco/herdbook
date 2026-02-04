@@ -6,6 +6,7 @@
     "scripts": {
         "dev": "vite --host",
         "build": "tsc && vite build",
+        "start": "serve dist -l ${PORT:-3000} -s",
         "preview": "vite preview",
         "test": "vitest run",
         "test:watch": "vitest",
@@ -26,6 +27,7 @@
         "react": "^19.2.1",
         "react-dom": "^19.2.1",
         "react-router-dom": "^7.10.1",
+        "serve": "^14.2.5",
         "tailwind-merge": "^3.4.0",
         "tailwindcss-animate": "^1.0.7"
     },

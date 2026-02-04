@@ -1,4 +1,5 @@
 import { networkInterfaces } from 'os';
+import type { SignOptions } from 'jsonwebtoken';
 
 export function isDevelopment(): boolean {
     return process.env.NODE_ENV !== 'production';
@@ -122,8 +123,9 @@ export function getJwtSecretOrThrow(): string {
     return secret;
 }
 
-export function getJwtExpiration(): string {
-    return process.env.JWT_EXPIRATION ?? '30 days';
+export function getJwtExpiration(): SignOptions['expiresIn'] {
+    return (process.env.JWT_EXPIRATION ??
+        '30 days') as SignOptions['expiresIn'];
 }
 
 export function getRateLimits(): { read: number; write: number; auth: number } {
