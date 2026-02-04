@@ -15,6 +15,7 @@
         "test:e2e": "pnpm --filter e2e test",
         "env:local": "ln -sf ../../.env.local packages/api/.env && echo 'Switched to local database'",
         "env:neon-dev": "ln -sf ../../.env.neon-dev packages/api/.env && echo 'Switched to Neon dev database'",
+        "env:neon-prod": "ln -sf ../../.env.neon-prod packages/api/.env && echo 'Switched to Neon production database'",
         "env:status": "readlink packages/api/.env || echo 'Not a symlink'",
         "prisma:migrate:deploy": "pnpm --filter api prisma:migrate:deploy",
         "prisma:studio": "pnpm --filter api prisma:studio"

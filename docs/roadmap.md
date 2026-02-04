@@ -106,6 +106,7 @@ Environment variables to set in Railway:
 
 Steps:
 
+- [ ] Add `pnpm start` command to run product version of `packages/api`
 - [ ] Create Railway service for API (from `packages/api`)
 - [ ] Set environment variables in Railway dashboard
 - [ ] Deploy and verify health endpoint responds
@@ -126,6 +127,7 @@ Environment variables to set in Railway:
 
 Steps:
 
+- [ ] Add `pnpm start` command to run product version of `packages/web`
 - [ ] Create Railway service for Web (from `packages/web`)
 - [ ] Set `VITE_API_URL` to API's Railway URL
 - [ ] Deploy and verify app loads

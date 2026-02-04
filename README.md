@@ -199,12 +199,14 @@ Environment configuration is managed at the **root level** with symlinks to pack
 ```
 herdbook/
 ├── .env.local        # Local development (localhost PostgreSQL)
-├── .env.neon-dev     # Neon dev database
-├── .env.neon-prod    # Neon production database (created later)
+├── .env.neon-dev     # Neon dev branch
+├── .env.neon-prod    # Neon production branch
 ├── .env.example      # Template for new developers
 └── packages/
     └── api/.env      # Symlink → one of the root env files
 ```
+
+**Note**: Neon uses database branches. The dev branch is a child of production, allowing you to test schema changes safely before applying to production.
 
 All root `.env.*` files are gitignored. The `packages/api/.env` symlink points to whichever environment is active.
 
@@ -214,8 +216,11 @@ All root `.env.*` files are gitignored. The `packages/api/.env` symlink points t
 # Switch to local PostgreSQL (default)
 pnpm env:local
 
-# Switch to Neon dev database
+# Switch to Neon dev branch
 pnpm env:neon-dev
+
+# Switch to Neon production branch
+pnpm env:neon-prod
 
 # Check which environment is active
 pnpm env:status
