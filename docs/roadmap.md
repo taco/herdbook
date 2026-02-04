@@ -77,15 +77,15 @@
 
 ---
 
-### 2.3 Database Setup (Neon)
+### 2.3 Database Setup (Neon) ✓
 
-**Status**: In progress
+**Status**: Complete
 **Platform**: Neon Serverless Postgres
 
-- [ ] Connect local environment to Neon dev database
-- [ ] Run `pnpm prisma:migrate:deploy` against Neon dev
-- [ ] Verify schema matches local (tables: Horse, Rider, Session)
-- [ ] Test API locally with Neon dev database
+- [x] Connect local environment to Neon dev database
+- [x] Run `pnpm prisma:migrate:deploy` against Neon dev
+- [x] Verify schema matches local (tables: Horse, Rider, Session)
+- [x] Test API locally with Neon dev database
 
 **Done when**: Local API connects to Neon dev and all queries work.
 
