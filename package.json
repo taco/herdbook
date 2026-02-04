@@ -13,6 +13,7 @@
         "format:check": "prettier --check \"**/*.{ts,tsx,json,md}\"",
         "test": "pnpm --filter api test && pnpm --filter web test",
         "test:e2e": "pnpm --filter e2e test",
+        "test:e2e:ui": "pnpm --filter e2e test:ui",
         "env:local": "ln -sf ../../.env.local packages/api/.env && echo 'Switched to local database'",
         "env:neon-dev": "ln -sf ../../.env.neon-dev packages/api/.env && echo 'Switched to Neon dev database'",
         "env:neon-prod": "ln -sf ../../.env.neon-prod packages/api/.env && echo 'Switched to Neon production database'",
