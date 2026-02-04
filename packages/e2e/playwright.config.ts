@@ -18,7 +18,7 @@ export default defineConfig({
     /* Fail the build on CI if you accidentally left test.only in the source code. */
     forbidOnly: !!process.env.CI,
     /* Retry on CI only */
-    retries: process.env.CI ? 2 : 0,
+    retries: 0,
     /* Opt out of parallel tests on CI. */
     workers: 1,
     /* Reporter to use. See https://playwright.dev/docs/test-reporters */
@@ -59,6 +59,9 @@ export default defineConfig({
                 DATABASE_URL:
                     'postgresql://postgres:test@127.0.0.1:5433/herdbook_test',
                 JWT_SECRET: 'e2e-test-jwt-secret',
+                RATE_LIMIT_AUTH: '1000',
+                RATE_LIMIT_WRITE: '1000',
+                RATE_LIMIT_READ: '1000',
             },
             timeout: 30 * 1000,
         },
