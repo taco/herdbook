@@ -251,12 +251,12 @@ The web package has its own `.env.local` for dev conveniences (auto-login, etc.)
 packages/web/.env.local   # Dev conveniences (VITE_DEV_EMAIL, etc.)
 ```
 
-| Variable             | Description                       | Default                         |
-| -------------------- | --------------------------------- | ------------------------------- |
-| `VITE_API_URL`       | GraphQL API URL                   | `http://localhost:4000/graphql` |
-| `VITE_DEV_EMAIL`     | Prefill login email (dev only)    | -                               |
-| `VITE_DEV_PASSWORD`  | Prefill login password (dev only) | -                               |
-| `VITE_DEV_AUTOLOGIN` | Auto-submit login form (dev only) | `false`                         |
+| Variable             | Description                       | Default |
+| -------------------- | --------------------------------- | ------- |
+| `VITE_API_URL`       | API base URL (required)           | -       |
+| `VITE_DEV_EMAIL`     | Prefill login email (dev only)    | -       |
+| `VITE_DEV_PASSWORD`  | Prefill login password (dev only) | -       |
+| `VITE_DEV_AUTOLOGIN` | Auto-submit login form (dev only) | `false` |
 
 ## License
 

@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback } from 'react';
 import { useAuth } from '@/context/AuthContext';
+import { apiEndpoint } from '@/lib/api';
 
 type RecordingState = 'idle' | 'recording' | 'processing';
 
@@ -24,13 +25,6 @@ export function useVoiceRecording({
     const [error, setError] = useState<string | null>(null);
     const mediaRecorderRef = useRef<MediaRecorder | null>(null);
     const chunksRef = useRef<Blob[]>([]);
-
-    const getApiBaseUrl = (): string => {
-        const graphqlUrl =
-            import.meta.env.VITE_API_URL || 'http://localhost:4000/graphql';
-        // Remove /graphql to get base URL
-        return graphqlUrl.replace('/graphql', '');
-    };
 
     const startRecording = useCallback(async () => {
         setError(null);
@@ -74,7 +68,7 @@ export function useVoiceRecording({
 
                     try {
                         const response = await fetch(
-                            `${getApiBaseUrl()}/api/transcribe`,
+                            apiEndpoint('/api/transcribe'),
                             {
                                 method: 'POST',
                                 headers: {

@@ -209,12 +209,9 @@ const [state, setState] = useState<RecordingState>('idle');
 
 **API Calls to REST Endpoints:**
 ```tsx
-const getApiBaseUrl = (): string => {
-    const graphqlUrl = import.meta.env.VITE_API_URL || 'http://localhost:4000/graphql';
-    return graphqlUrl.replace('/graphql', '');
-};
+import { apiEndpoint } from '@/lib/api';
 
-const response = await fetch(`${getApiBaseUrl()}/api/parse-session`, {
+const response = await fetch(apiEndpoint('/api/parse-session'), {
     method: 'POST',
     headers: {
         'Content-Type': 'application/json',
