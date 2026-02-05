@@ -13,8 +13,8 @@ Use lead/builder/verifier pattern with cost-conscious model allocation:
 ### Workflow
 
 1. Explore with Sonnet agents
-2. Plan with Opus (invest here)
-3. Build with Sonnet
+2. Plan with Opus
+3. Build with Opus
 4. Verify with Sonnet (Opus for security-critical)
 
 ## Commands
