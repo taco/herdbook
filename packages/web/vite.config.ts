@@ -3,6 +3,26 @@ import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import { VitePWA } from 'vite-plugin-pwa';
 import path from 'path';
+import fs from 'fs';
+
+function getHttpsConfig():
+    | { key: string; cert: string }
+    | false {
+    if (process.env.USE_HTTPS === 'false') {
+        return false;
+    }
+    const key = path.resolve(__dirname, '../../localhost+3-key.pem');
+    const cert = path.resolve(__dirname, '../../localhost+3.pem');
+    if (fs.existsSync(key) && fs.existsSync(cert)) {
+        return { key, cert };
+    }
+    return false;
+}
+
+const httpsConfig = getHttpsConfig();
+const apiTarget =
+    process.env.VITE_API_URL ??
+    (httpsConfig ? 'https://localhost:4000' : 'http://localhost:4000');
 
 export default defineConfig({
     plugins: [
@@ -37,18 +57,15 @@ export default defineConfig({
     },
     server: {
         port: 3000,
-        https: {
-            key: '../../localhost+3-key.pem',
-            cert: '../../localhost+3.pem',
-        },
+        https: httpsConfig || undefined,
         host: true,
         proxy: {
             '/graphql': {
-                target: 'https://localhost:4000',
+                target: apiTarget,
                 secure: false,
             },
             '/api': {
-                target: 'https://localhost:4000',
+                target: apiTarget,
                 secure: false,
             },
         },

@@ -5,6 +5,10 @@ import { createApiApp } from '@/server';
 import { getServerHost } from '@/config';
 
 function getHttpsOptions(): { key: Buffer; cert: Buffer } | undefined {
+    if (process.env.USE_HTTPS === 'false') {
+        return undefined;
+    }
+
     // Look for certs in repo root (two levels up from packages/api/src)
     const certPath = resolve(__dirname, '../../../localhost+3.pem');
     const keyPath = resolve(__dirname, '../../../localhost+3-key.pem');

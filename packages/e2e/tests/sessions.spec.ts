@@ -20,9 +20,8 @@ test.describe('Session Management', () => {
     test('can log a new session', async ({ page }) => {
         const uniqueNote = `Worked on canter transitions ${Date.now()}`;
 
-        await page.waitForSelector('text=Log Session', { state: 'visible' });
-        await page.click('text=Log Session');
-        await page.waitForURL('/sessions/new');
+        // Navigate directly to the manual session form
+        await page.goto('/sessions/new');
 
         await selectRadixOption(page, 'Horse', TEST_HORSE_NAME);
         await page.fill('input[id="durationMinutes"]', '45');
@@ -38,8 +37,7 @@ test.describe('Session Management', () => {
     });
 
     test('shows horse context when selecting horse', async ({ page }) => {
-        await page.click('text=Log Session');
-        await page.waitForURL('/sessions/new');
+        await page.goto('/sessions/new');
 
         await page.waitForSelector('label:has-text("Horse")', {
             state: 'visible',
@@ -66,8 +64,7 @@ test.describe('Session Management', () => {
     }) => {
         // First create a session
         const uniqueNote = `Session for detail view test ${Date.now()}`;
-        await page.click('text=Log Session');
-        await page.waitForURL('/sessions/new');
+        await page.goto('/sessions/new');
         await selectRadixOption(page, 'Horse', TEST_HORSE_NAME);
         await page.fill('input[id="durationMinutes"]', '30');
         await selectRadixOption(page, 'Work type', 'Groundwork');
@@ -98,8 +95,7 @@ test.describe('Session Management', () => {
     test('can edit a session', async ({ page }) => {
         // First create a session
         const originalNote = `Original note ${Date.now()}`;
-        await page.click('text=Log Session');
-        await page.waitForURL('/sessions/new');
+        await page.goto('/sessions/new');
         await selectRadixOption(page, 'Horse', TEST_HORSE_NAME);
         await page.fill('input[id="durationMinutes"]', '45');
         await selectRadixOption(page, 'Work type', 'Flatwork');
@@ -147,8 +143,7 @@ test.describe('Session Management', () => {
     test('can delete a session', async ({ page }) => {
         // First create a session
         const uniqueNote = `Session to delete ${Date.now()}`;
-        await page.click('text=Log Session');
-        await page.waitForURL('/sessions/new');
+        await page.goto('/sessions/new');
         await selectRadixOption(page, 'Horse', TEST_HORSE_NAME);
         await page.fill('input[id="durationMinutes"]', '20');
         await selectRadixOption(page, 'Work type', 'Trail');

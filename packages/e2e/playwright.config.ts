@@ -22,7 +22,9 @@ export default defineConfig({
     /* Opt out of parallel tests on CI. */
     workers: 1,
     /* Reporter to use. See https://playwright.dev/docs/test-reporters */
-    reporter: 'html',
+    reporter: [['list'], ['html', { open: 'never' }]],
+    /* Per-test timeout */
+    timeout: 5 * 1000,
     /* Global setup and teardown */
     globalSetup: './global-setup.ts',
     globalTeardown: './global-teardown.ts',
@@ -62,6 +64,7 @@ export default defineConfig({
                 RATE_LIMIT_AUTH: '1000',
                 RATE_LIMIT_WRITE: '1000',
                 RATE_LIMIT_READ: '1000',
+                USE_HTTPS: 'false',
             },
             timeout: 30 * 1000,
         },
@@ -72,6 +75,7 @@ export default defineConfig({
             env: {
                 VITE_API_URL: 'http://127.0.0.1:4001',
                 VITE_DEV_AUTOLOGIN: 'false',
+                USE_HTTPS: 'false',
             },
             timeout: 30 * 1000,
         },
