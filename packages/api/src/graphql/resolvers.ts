@@ -4,8 +4,8 @@ import { WorkType, type Prisma } from '@prisma/client';
 import type { FastifyInstance, FastifyReply } from 'fastify';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import { prisma } from './db';
-import { getJwtExpiration, getJwtSecretOrThrow, getRateLimits } from './config';
+import { prisma } from '@/db';
+import { getJwtExpiration, getJwtSecretOrThrow, getRateLimits } from '@/config';
 import type { Loaders } from './loaders';
 
 export type RiderSafe = Prisma.RiderGetPayload<{ omit: { password: true } }>;
@@ -83,7 +83,7 @@ export const createResolvers = (app: FastifyInstance): Record<string, any> => {
     if (!app.hasDecorator('gqlRateLimiters')) {
         const keyByUserOrIp = (req: any) => {
             // If you attach rider to req somewhere, prefer that; otherwise IP.
-            // You can also key off auth header or API key if that’s how you identify callers.
+            // You can also key off auth header or API key if that's how you identify callers.
             const riderId = (req as any).rider?.id;
             return riderId ? `rider:${riderId}` : `ip:${req.ip}`;
         };

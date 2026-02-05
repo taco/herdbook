@@ -1,5 +1,4 @@
 import { defaultFieldResolver, GraphQLError, GraphQLSchema } from 'graphql';
-import { Kind } from 'graphql/language';
 import { getDirective, MapperKind, mapSchema } from '@graphql-tools/utils';
 
 export const secureByDefaultTransformer = (schema: GraphQLSchema) => {

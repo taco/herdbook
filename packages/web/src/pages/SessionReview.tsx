@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useLocation, useNavigate, Navigate } from 'react-router-dom';
 import { gql } from '@apollo/client';
 import { useMutation, useQuery } from '@apollo/client/react';
-import { Save, PenLine, ChevronLeft } from 'lucide-react';
+import { Save, ChevronLeft } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -260,21 +260,6 @@ export default function SessionReview() {
         }
     };
 
-    const handleManualEntry = () => {
-        navigate('/sessions/new', {
-            state: {
-                prefill: {
-                    horseId,
-                    riderId,
-                    date: dateTime,
-                    durationMinutes,
-                    workType,
-                    notes,
-                },
-            },
-        });
-    };
-
     const handleBack = () => {
         navigate('/sessions/voice');
     };
@@ -351,14 +336,6 @@ export default function SessionReview() {
                             >
                                 <Save className="mr-2 h-5 w-5" />
                                 {saving ? 'Saving...' : 'Save Session'}
-                            </Button>
-                            <Button
-                                variant="outline"
-                                onClick={handleManualEntry}
-                                className="w-full"
-                            >
-                                <PenLine className="mr-2 h-4 w-4" />
-                                Edit Manually
                             </Button>
                         </div>
                     </CardContent>

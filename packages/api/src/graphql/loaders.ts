@@ -1,5 +1,5 @@
 import DataLoader from 'dataloader';
-import { prisma } from './db';
+import { prisma } from '@/db';
 import type { Horse, Prisma } from '@prisma/client';
 
 export const createLoaders = () => ({
