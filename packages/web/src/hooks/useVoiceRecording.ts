@@ -61,59 +61,44 @@ export function useVoiceRecording({
                     type: mimeType,
                 });
 
-                // Convert to base64
-                const reader = new FileReader();
-                reader.onloadend = async () => {
-                    const base64 = (reader.result as string).split(',')[1];
+                const formData = new FormData();
+                formData.append('audio', audioBlob, 'audio.webm');
 
-                    try {
-                        const response = await fetch(
-                            apiEndpoint('/api/transcribe'),
-                            {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    Authorization: `Bearer ${token}`,
-                                },
-                                body: JSON.stringify({
-                                    audio: base64,
-                                    mimeType,
-                                }),
-                            }
-                        );
-
-                        if (!response.ok) {
-                            const errorData = (await response.json()) as {
-                                error: string;
-                            };
-                            throw new Error(
-                                errorData.error || 'Transcription failed'
-                            );
+                try {
+                    const response = await fetch(
+                        apiEndpoint('/api/transcribe'),
+                        {
+                            method: 'POST',
+                            headers: {
+                                Authorization: `Bearer ${token}`,
+                            },
+                            body: formData,
                         }
+                    );
 
-                        const data = (await response.json()) as {
-                            transcription: string;
+                    if (!response.ok) {
+                        const errorData = (await response.json()) as {
+                            error: string;
                         };
-                        onTranscription(data.transcription);
-                    } catch (err) {
-                        const errorMessage =
-                            err instanceof Error
-                                ? err.message
-                                : 'Failed to transcribe';
-                        setError(errorMessage);
-                        onError?.(errorMessage);
-                    } finally {
-                        setState('idle');
+                        throw new Error(
+                            errorData.error || 'Transcription failed'
+                        );
                     }
-                };
 
-                reader.onerror = () => {
-                    setError('Failed to read audio data');
-                    onError?.('Failed to read audio data');
+                    const data = (await response.json()) as {
+                        transcription: string;
+                    };
+                    onTranscription(data.transcription);
+                } catch (err) {
+                    const errorMessage =
+                        err instanceof Error
+                            ? err.message
+                            : 'Failed to transcribe';
+                    setError(errorMessage);
+                    onError?.(errorMessage);
+                } finally {
                     setState('idle');
-                };
-
-                reader.readAsDataURL(audioBlob);
+                }
             };
 
             mediaRecorder.start();

@@ -5,12 +5,48 @@ import jwt from 'jsonwebtoken';
 import { prisma } from '@/db';
 import { createApiApp } from '@/server';
 
+function buildMultipartPayload(
+    fields: Record<string, string>,
+    files: Record<string, { content: Buffer; filename: string; type: string }>
+): { body: Buffer; boundary: string } {
+    const boundary = '----TestBoundary' + Date.now();
+    const parts: Buffer[] = [];
+
+    for (const [name, value] of Object.entries(fields)) {
+        parts.push(
+            Buffer.from(
+                `--${boundary}\r\nContent-Disposition: form-data; name="${name}"\r\n\r\n${value}\r\n`
+            )
+        );
+    }
+
+    for (const [name, file] of Object.entries(files)) {
+        parts.push(
+            Buffer.from(
+                `--${boundary}\r\nContent-Disposition: form-data; name="${name}"; filename="${file.filename}"\r\nContent-Type: ${file.type}\r\n\r\n`
+            )
+        );
+        parts.push(file.content);
+        parts.push(Buffer.from('\r\n'));
+    }
+
+    parts.push(Buffer.from(`--${boundary}--\r\n`));
+
+    return { body: Buffer.concat(parts), boundary };
+}
+
 describe('/api/parse-session', () => {
     let fastify: FastifyInstance;
     let validToken: string;
     let testRiderId: string;
     let prevOpenApiKey: string | undefined;
     const TEST_TIMEOUT_MS = 20_000;
+
+    const testContext = JSON.stringify({
+        horses: [],
+        riders: [],
+        currentDateTime: new Date().toISOString(),
+    });
 
     beforeAll(async () => {
         prevOpenApiKey = process.env.OPENAI_API_KEY;
@@ -104,20 +140,20 @@ describe('/api/parse-session', () => {
     it(
         'returns 400 when audio data is missing',
         async () => {
+            // Multipart with context field but no audio file
+            const { body: multipartBody, boundary } = buildMultipartPayload(
+                { context: testContext },
+                {}
+            );
+
             const response = await fastify.inject({
                 method: 'POST',
                 url: '/api/parse-session',
                 headers: {
-                    'content-type': 'application/json',
+                    'content-type': `multipart/form-data; boundary=${boundary}`,
                     authorization: `Bearer ${validToken}`,
                 },
-                payload: {
-                    context: {
-                        horses: [],
-                        riders: [],
-                        currentDateTime: new Date().toISOString(),
-                    },
-                },
+                payload: multipartBody,
             });
 
             expect(response.statusCode).toBe(400);
@@ -130,16 +166,26 @@ describe('/api/parse-session', () => {
     it(
         'returns 400 when context is missing',
         async () => {
+            // Multipart with audio file but no context field
+            const { body: multipartBody, boundary } = buildMultipartPayload(
+                {},
+                {
+                    audio: {
+                        content: Buffer.from('fake-audio-data'),
+                        filename: 'audio.webm',
+                        type: 'audio/webm',
+                    },
+                }
+            );
+
             const response = await fastify.inject({
                 method: 'POST',
                 url: '/api/parse-session',
                 headers: {
-                    'content-type': 'application/json',
+                    'content-type': `multipart/form-data; boundary=${boundary}`,
                     authorization: `Bearer ${validToken}`,
                 },
-                payload: {
-                    audio: 'base64audiodata',
-                },
+                payload: multipartBody,
             });
 
             expect(response.statusCode).toBe(400);
@@ -155,21 +201,25 @@ describe('/api/parse-session', () => {
             delete process.env.OPENAI_API_KEY;
             const appWithoutKey = await createApiApp();
 
+            const { body: multipartBody, boundary } = buildMultipartPayload(
+                { context: testContext },
+                {
+                    audio: {
+                        content: Buffer.from('fake-audio-data'),
+                        filename: 'audio.webm',
+                        type: 'audio/webm',
+                    },
+                }
+            );
+
             const response = await appWithoutKey.inject({
                 method: 'POST',
                 url: '/api/parse-session',
                 headers: {
-                    'content-type': 'application/json',
+                    'content-type': `multipart/form-data; boundary=${boundary}`,
                     authorization: `Bearer ${validToken}`,
                 },
-                payload: {
-                    audio: 'base64audiodata',
-                    context: {
-                        horses: [],
-                        riders: [],
-                        currentDateTime: new Date().toISOString(),
-                    },
-                },
+                payload: multipartBody,
             });
 
             expect(response.statusCode).toBe(500);

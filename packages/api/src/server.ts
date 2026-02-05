@@ -4,6 +4,7 @@ import Fastify, {
     FastifyRequest,
 } from 'fastify';
 import cors from '@fastify/cors';
+import multipart from '@fastify/multipart';
 import rateLimit from '@fastify/rate-limit';
 import { ApolloServer } from '@apollo/server';
 import fastifyApollo from '@as-integrations/fastify';
@@ -29,12 +30,6 @@ interface ParseSessionContext {
     currentDateTime: string;
 }
 
-interface ParseSessionRequest {
-    audio: string;
-    mimeType?: string;
-    context: ParseSessionContext;
-}
-
 const WorkTypeEnum = z.enum([
     'FLATWORK',
     'JUMPING',
@@ -57,7 +52,7 @@ type ParsedSession = z.infer<typeof ParsedSessionSchema>;
 
 // Helper to transcribe audio using OpenAI Whisper
 export async function transcribeAudio(
-    audioBase64: string,
+    audioBuffer: Buffer,
     mimeType: string = 'audio/webm'
 ): Promise<string> {
     const openaiApiKey = process.env.OPENAI_API_KEY;
@@ -65,7 +60,6 @@ export async function transcribeAudio(
         throw new Error('OpenAI API key not configured');
     }
 
-    const audioBuffer = Buffer.from(audioBase64, 'base64');
     const extension = mimeType.includes('mp4')
         ? 'mp4'
         : mimeType.includes('wav')
@@ -219,6 +213,10 @@ export async function createApiApp(httpsOptions?: {
         credentials: true,
     });
 
+    await app.register(multipart, {
+        limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB
+    });
+
     await app.register(rateLimit, {
         global: false, // Don't apply globally, we'll use per-resolver limiters
     });
@@ -242,15 +240,17 @@ export async function createApiApp(httpsOptions?: {
             return reply.status(401).send({ error: 'Invalid token' });
         }
 
-        const body = request.body as { audio: string; mimeType?: string };
-        if (!body.audio) {
+        const file = await request.file();
+        if (!file || file.fieldname !== 'audio') {
             return reply.status(400).send({ error: 'No audio data provided' });
         }
 
+        const audioBuffer = await file.toBuffer();
+
         try {
             const transcription = await transcribeAudio(
-                body.audio,
-                body.mimeType
+                audioBuffer,
+                file.mimetype
             );
             return { transcription };
         } catch (error) {
@@ -278,20 +278,38 @@ export async function createApiApp(httpsOptions?: {
             return reply.status(401).send({ error: 'Invalid token' });
         }
 
-        const body = request.body as ParseSessionRequest;
-        if (!body.audio) {
+        const parts = request.parts();
+        let audioBuffer: Buffer | null = null;
+        let audioMimeType = 'audio/webm';
+        let context: ParseSessionContext | null = null;
+
+        for await (const part of parts) {
+            if (part.type === 'file' && part.fieldname === 'audio') {
+                audioBuffer = await part.toBuffer();
+                audioMimeType = part.mimetype;
+            } else if (part.type === 'field' && part.fieldname === 'context') {
+                context = JSON.parse(
+                    part.value as string
+                ) as ParseSessionContext;
+            }
+        }
+
+        if (!audioBuffer) {
             return reply.status(400).send({ error: 'No audio data provided' });
         }
-        if (!body.context) {
+        if (!context) {
             return reply.status(400).send({ error: 'No context provided' });
         }
 
         try {
             // Step 1: Transcribe audio
-            const transcript = await transcribeAudio(body.audio, body.mimeType);
+            const transcript = await transcribeAudio(
+                audioBuffer,
+                audioMimeType
+            );
 
             // Step 2: Parse transcript into structured fields
-            const parsed = await parseTranscript(transcript, body.context);
+            const parsed = await parseTranscript(transcript, context);
 
             return {
                 transcript,

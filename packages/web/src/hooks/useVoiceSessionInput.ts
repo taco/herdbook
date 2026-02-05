@@ -84,69 +84,56 @@ export function useVoiceSessionInput({
                     type: mimeType,
                 });
 
-                const reader = new FileReader();
-                reader.onloadend = async () => {
-                    const base64 = (reader.result as string).split(',')[1];
+                const formData = new FormData();
+                formData.append('audio', audioBlob, 'audio.webm');
+                formData.append(
+                    'context',
+                    JSON.stringify({
+                        horses: horses.map((h) => ({
+                            id: h.id,
+                            name: h.name,
+                        })),
+                        riders: riders.map((r) => ({
+                            id: r.id,
+                            name: r.name,
+                        })),
+                        currentDateTime: new Date().toISOString(),
+                    })
+                );
 
-                    try {
-                        const response = await fetch(
-                            apiEndpoint('/api/parse-session'),
-                            {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    Authorization: `Bearer ${token}`,
-                                },
-                                body: JSON.stringify({
-                                    audio: base64,
-                                    mimeType,
-                                    context: {
-                                        horses: horses.map((h) => ({
-                                            id: h.id,
-                                            name: h.name,
-                                        })),
-                                        riders: riders.map((r) => ({
-                                            id: r.id,
-                                            name: r.name,
-                                        })),
-                                        currentDateTime:
-                                            new Date().toISOString(),
-                                    },
-                                }),
-                            }
-                        );
-
-                        if (!response.ok) {
-                            const errorData = (await response.json()) as {
-                                error: string;
-                            };
-                            throw new Error(
-                                errorData.error || 'Failed to parse session'
-                            );
+                try {
+                    const response = await fetch(
+                        apiEndpoint('/api/parse-session'),
+                        {
+                            method: 'POST',
+                            headers: {
+                                Authorization: `Bearer ${token}`,
+                            },
+                            body: formData,
                         }
+                    );
 
-                        const data =
-                            (await response.json()) as ParsedSessionFields;
-                        onParsed(data);
-                    } catch (err) {
-                        const errorMessage =
-                            err instanceof Error
-                                ? err.message
-                                : 'Failed to parse session';
-                        setError(errorMessage);
-                        onError?.(errorMessage);
-                    } finally {
-                        setState('idle');
+                    if (!response.ok) {
+                        const errorData = (await response.json()) as {
+                            error: string;
+                        };
+                        throw new Error(
+                            errorData.error || 'Failed to parse session'
+                        );
                     }
-                };
 
-                reader.onerror = () => {
-                    setError('Failed to read audio data');
-                    onError?.('Failed to read audio data');
+                    const data = (await response.json()) as ParsedSessionFields;
+                    onParsed(data);
+                } catch (err) {
+                    const errorMessage =
+                        err instanceof Error
+                            ? err.message
+                            : 'Failed to parse session';
+                    setError(errorMessage);
+                    onError?.(errorMessage);
+                } finally {
                     setState('idle');
-                };
-
-                reader.readAsDataURL(audioBlob);
+                }
             };
 
             mediaRecorder.start();
