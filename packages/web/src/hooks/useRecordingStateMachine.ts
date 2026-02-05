@@ -68,6 +68,7 @@ export function useRecordingStateMachine({
     const streamRef = useRef<MediaStream | null>(null);
     const timerRef = useRef<number | null>(null);
     const startTimeRef = useRef<number | null>(null);
+    const cancelledRef = useRef<boolean>(false);
 
     // Clamp max duration to hard cap
     const effectiveMaxDuration = Math.min(
@@ -150,6 +151,7 @@ export function useRecordingStateMachine({
         setError(null);
         setParsedFields(null);
         setElapsedSeconds(0);
+        cancelledRef.current = false;
 
         try {
             // Check if mediaDevices API is available (may not be on iOS in non-HTTPS or WebView)
@@ -188,8 +190,8 @@ export function useRecordingStateMachine({
 
                 stream.getTracks().forEach((track) => track.stop());
 
-                // Only process if we have chunks (not cancelled)
-                if (chunksRef.current.length > 0) {
+                // Only process if we have chunks and recording wasn't cancelled
+                if (chunksRef.current.length > 0 && !cancelledRef.current) {
                     const audioBlob = new Blob(chunksRef.current, {
                         type: mimeType,
                     });
@@ -240,7 +242,8 @@ export function useRecordingStateMachine({
     }, []);
 
     const cancelRecording = useCallback(() => {
-        // Clear chunks before stopping so onstop doesn't process
+        // Set cancelled flag so onstop doesn't process audio
+        cancelledRef.current = true;
         chunksRef.current = [];
 
         if (
