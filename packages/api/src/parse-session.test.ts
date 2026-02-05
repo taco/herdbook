@@ -5,7 +5,7 @@ import jwt from 'jsonwebtoken';
 import { prisma } from '@/db';
 import { createApiApp } from '@/server';
 
-describe('/api/transcribe', () => {
+describe('/api/parse-session', () => {
     let fastify: FastifyInstance;
     let validToken: string;
     let testRiderId: string;
@@ -13,22 +13,18 @@ describe('/api/transcribe', () => {
     const TEST_TIMEOUT_MS = 20_000;
 
     beforeAll(async () => {
-        // Save original env
         prevOpenApiKey = process.env.OPENAI_API_KEY;
-
         fastify = await createApiApp();
 
-        // Create a test rider for authenticated requests
         const testRider = await prisma.rider.create({
             data: {
-                name: 'Transcribe Test Rider',
-                email: `transcribe-test-${Date.now()}@example.com`,
+                name: 'Parse Session Test Rider',
+                email: `parse-session-test-${Date.now()}@example.com`,
                 password: 'hashedpassword',
             },
         });
         testRiderId = testRider.id;
 
-        // Generate a valid token
         validToken = jwt.sign(
             { riderId: testRiderId },
             process.env.JWT_SECRET || 'api-test-jwt-secret'
@@ -36,10 +32,8 @@ describe('/api/transcribe', () => {
     });
 
     afterAll(async () => {
-        // Clean up test rider
         await prisma.rider.delete({ where: { id: testRiderId } });
 
-        // Restore env
         if (prevOpenApiKey === undefined) {
             delete process.env.OPENAI_API_KEY;
         } else {
@@ -51,7 +45,6 @@ describe('/api/transcribe', () => {
     });
 
     beforeEach(() => {
-        // Set a fake API key for most tests
         process.env.OPENAI_API_KEY = 'test-openai-key';
     });
 
@@ -60,34 +53,17 @@ describe('/api/transcribe', () => {
         async () => {
             const response = await fastify.inject({
                 method: 'POST',
-                url: '/api/transcribe',
+                url: '/api/parse-session',
                 headers: {
                     'content-type': 'application/json',
                 },
                 payload: {
                     audio: 'base64audiodata',
-                },
-            });
-
-            expect(response.statusCode).toBe(401);
-            const body = JSON.parse(response.body) as { error: string };
-            expect(body.error).toBe('Unauthorized');
-        },
-        TEST_TIMEOUT_MS
-    );
-
-    it(
-        'returns 401 with malformed authorization header',
-        async () => {
-            const response = await fastify.inject({
-                method: 'POST',
-                url: '/api/transcribe',
-                headers: {
-                    'content-type': 'application/json',
-                    authorization: 'Basic sometoken',
-                },
-                payload: {
-                    audio: 'base64audiodata',
+                    context: {
+                        horses: [],
+                        riders: [],
+                        currentDateTime: new Date().toISOString(),
+                    },
                 },
             });
 
@@ -103,13 +79,18 @@ describe('/api/transcribe', () => {
         async () => {
             const response = await fastify.inject({
                 method: 'POST',
-                url: '/api/transcribe',
+                url: '/api/parse-session',
                 headers: {
                     'content-type': 'application/json',
                     authorization: 'Bearer invalidtoken',
                 },
                 payload: {
                     audio: 'base64audiodata',
+                    context: {
+                        horses: [],
+                        riders: [],
+                        currentDateTime: new Date().toISOString(),
+                    },
                 },
             });
 
@@ -125,12 +106,18 @@ describe('/api/transcribe', () => {
         async () => {
             const response = await fastify.inject({
                 method: 'POST',
-                url: '/api/transcribe',
+                url: '/api/parse-session',
                 headers: {
                     'content-type': 'application/json',
                     authorization: `Bearer ${validToken}`,
                 },
-                payload: {},
+                payload: {
+                    context: {
+                        horses: [],
+                        riders: [],
+                        currentDateTime: new Date().toISOString(),
+                    },
+                },
             });
 
             expect(response.statusCode).toBe(400);
@@ -141,17 +128,11 @@ describe('/api/transcribe', () => {
     );
 
     it(
-        'returns 500 when OPENAI_API_KEY is not configured',
+        'returns 400 when context is missing',
         async () => {
-            // Remove the API key
-            delete process.env.OPENAI_API_KEY;
-
-            // Need to recreate the app to pick up the missing env var
-            const appWithoutKey = await createApiApp();
-
-            const response = await appWithoutKey.inject({
+            const response = await fastify.inject({
                 method: 'POST',
-                url: '/api/transcribe',
+                url: '/api/parse-session',
                 headers: {
                     'content-type': 'application/json',
                     authorization: `Bearer ${validToken}`,
@@ -161,12 +142,42 @@ describe('/api/transcribe', () => {
                 },
             });
 
+            expect(response.statusCode).toBe(400);
+            const body = JSON.parse(response.body) as { error: string };
+            expect(body.error).toBe('No context provided');
+        },
+        TEST_TIMEOUT_MS
+    );
+
+    it(
+        'returns 500 when OPENAI_API_KEY is not configured',
+        async () => {
+            delete process.env.OPENAI_API_KEY;
+            const appWithoutKey = await createApiApp();
+
+            const response = await appWithoutKey.inject({
+                method: 'POST',
+                url: '/api/parse-session',
+                headers: {
+                    'content-type': 'application/json',
+                    authorization: `Bearer ${validToken}`,
+                },
+                payload: {
+                    audio: 'base64audiodata',
+                    context: {
+                        horses: [],
+                        riders: [],
+                        currentDateTime: new Date().toISOString(),
+                    },
+                },
+            });
+
             expect(response.statusCode).toBe(500);
             const body = JSON.parse(response.body) as {
                 error: string;
                 details: string;
             };
-            expect(body.error).toBe('Transcription failed');
+            expect(body.error).toBe('Failed to parse session');
             expect(body.details).toBe('OpenAI API key not configured');
 
             await appWithoutKey.close();

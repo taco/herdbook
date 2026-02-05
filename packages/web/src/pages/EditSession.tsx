@@ -32,6 +32,7 @@ import SelectRider from '@/components/fields/SelectRider';
 import SelectWorkType from '@/components/fields/SelectWorkType';
 import ActivityCard from '@/components/ActivityCard';
 import VoiceRecordButton from '@/components/VoiceRecordButton';
+import VoiceSessionButton from '@/components/VoiceSessionButton';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/context/AuthContext';
 import {
@@ -46,6 +47,10 @@ import {
     UpdateSessionMutationVariables,
     DeleteSessionMutation,
     DeleteSessionMutationVariables,
+    GetHorsesQuery,
+    GetHorsesQueryVariables,
+    GetRidersQuery,
+    GetRidersQueryVariables,
 } from '@/generated/graphql';
 
 const REQUIRED_FIELDS_ERROR_MESSAGE = 'Please fill in all required fields.';
@@ -143,6 +148,24 @@ const GET_LAST_SESSION_FOR_HORSE_QUERY = gql`
     }
 `;
 
+const GET_HORSES_QUERY = gql`
+    query GetHorses {
+        horses {
+            id
+            name
+        }
+    }
+`;
+
+const GET_RIDERS_QUERY = gql`
+    query GetRiders {
+        riders {
+            id
+            name
+        }
+    }
+`;
+
 export default function EditSession() {
     const { id } = useParams<{ id: string }>();
     const isEditMode = id !== undefined && id !== 'new';
@@ -177,6 +200,19 @@ export default function EditSession() {
         variables: { horseId },
         skip: !horseId || isEditMode,
     });
+
+    const { data: horsesData } = useQuery<
+        GetHorsesQuery,
+        GetHorsesQueryVariables
+    >(GET_HORSES_QUERY);
+
+    const { data: ridersData } = useQuery<
+        GetRidersQuery,
+        GetRidersQueryVariables
+    >(GET_RIDERS_QUERY);
+
+    const horses = horsesData?.horses ?? [];
+    const riders = ridersData?.riders ?? [];
 
     useEffect(() => {
         if (isEditMode && data?.session) {
@@ -353,6 +389,38 @@ export default function EditSession() {
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
+                    {!isEditMode && (
+                        <div className="mb-6 flex flex-col items-center gap-2 p-4 border border-dashed rounded-lg">
+                            <VoiceSessionButton
+                                horses={horses}
+                                riders={riders}
+                                onParsed={(fields) => {
+                                    if (fields.horseId)
+                                        setHorseId(fields.horseId);
+                                    if (fields.riderId)
+                                        setRiderId(fields.riderId);
+                                    if (fields.date) {
+                                        setDate(
+                                            formatAsDateTimeLocalValue(
+                                                new Date(fields.date)
+                                            )
+                                        );
+                                    }
+                                    if (fields.durationMinutes !== null) {
+                                        setDurationMinutes(
+                                            fields.durationMinutes
+                                        );
+                                    }
+                                    if (fields.workType)
+                                        setWorkType(fields.workType);
+                                    if (fields.notes) setNotes(fields.notes);
+                                }}
+                            />
+                            <span className="text-sm text-muted-foreground">
+                                Describe your session with voice
+                            </span>
+                        </div>
+                    )}
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div className="space-y-1.5">
                             <Label htmlFor="horseId">Horse</Label>
