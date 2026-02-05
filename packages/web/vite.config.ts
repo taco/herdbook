@@ -42,5 +42,15 @@ export default defineConfig({
             cert: '../../localhost+3.pem',
         },
         host: true,
+        proxy: {
+            '/graphql': {
+                target: 'https://localhost:4000',
+                secure: false,
+            },
+            '/api': {
+                target: 'https://localhost:4000',
+                secure: false,
+            },
+        },
     },
 });
