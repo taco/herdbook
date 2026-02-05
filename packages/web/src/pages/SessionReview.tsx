@@ -1,9 +1,92 @@
+import { useState, useEffect } from 'react';
 import { useLocation, useNavigate, Navigate } from 'react-router-dom';
-import { CheckCircle, PenLine, Mic, ChevronLeft } from 'lucide-react';
+import { gql } from '@apollo/client';
+import { useMutation, useQuery } from '@apollo/client/react';
+import { Save, PenLine, ChevronLeft } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { ParsedSessionFields } from '@/hooks/useRecordingStateMachine';
+import SummaryRow from '@/components/review/SummaryRow';
+import NotesSection from '@/components/review/NotesSection';
+import FieldEditSheet, { FieldType } from '@/components/review/FieldEditSheet';
+import { useAuth } from '@/context/AuthContext';
+import {
+    WorkType,
+    CreateSessionMutation,
+    CreateSessionMutationVariables,
+    GetHorsesQuery,
+    GetHorsesQueryVariables,
+    GetRidersQuery,
+    GetRidersQueryVariables,
+} from '@/generated/graphql';
+
+function formatAsDateTimeLocalValue(date: Date): string {
+    const tzOffsetMs = date.getTimezoneOffset() * 60_000;
+    return new Date(date.getTime() - tzOffsetMs).toISOString().slice(0, 16);
+}
+
+function formatDisplayDate(dateStr: string | null): string | null {
+    if (!dateStr) return null;
+    try {
+        const date = new Date(dateStr);
+        return date.toLocaleString(undefined, {
+            month: 'short',
+            day: 'numeric',
+            hour: 'numeric',
+            minute: '2-digit',
+        });
+    } catch {
+        return null;
+    }
+}
+
+const WORK_TYPE_LABELS: Record<WorkType, string> = {
+    [WorkType.Flatwork]: 'Flatwork',
+    [WorkType.Groundwork]: 'Groundwork',
+    [WorkType.InHand]: 'In-hand',
+    [WorkType.Jumping]: 'Jumping',
+    [WorkType.Trail]: 'Trail',
+    [WorkType.Other]: 'Other',
+};
+
+const CREATE_SESSION_MUTATION = gql`
+    mutation CreateSession(
+        $horseId: ID!
+        $date: DateTime!
+        $durationMinutes: Int!
+        $workType: WorkType!
+        $notes: String!
+    ) {
+        createSession(
+            horseId: $horseId
+            date: $date
+            durationMinutes: $durationMinutes
+            workType: $workType
+            notes: $notes
+        ) {
+            id
+        }
+    }
+`;
+
+const GET_HORSES_QUERY = gql`
+    query GetHorses {
+        horses {
+            id
+            name
+        }
+    }
+`;
+
+const GET_RIDERS_QUERY = gql`
+    query GetRiders {
+        riders {
+            id
+            name
+        }
+    }
+`;
 
 interface LocationState {
     parsedFields: ParsedSessionFields;
@@ -12,33 +95,184 @@ interface LocationState {
 export default function SessionReview() {
     const location = useLocation();
     const navigate = useNavigate();
+    const { riderId: currentRiderId } = useAuth();
     const state = location.state as LocationState | null;
+
+    // Field state
+    const [horseId, setHorseId] = useState<string | null>(null);
+    const [riderId, setRiderId] = useState<string | null>(null);
+    const [dateTime, setDateTime] = useState<string>('');
+    const [durationMinutes, setDurationMinutes] = useState<number | null>(null);
+    const [workType, setWorkType] = useState<WorkType | null>(null);
+    const [notes, setNotes] = useState<string>('');
+
+    // Sheet state
+    const [sheetOpen, setSheetOpen] = useState(false);
+    const [editingField, setEditingField] = useState<FieldType | null>(null);
+    const [formError, setFormError] = useState<string | null>(null);
+
+    const { data: horsesData } = useQuery<
+        GetHorsesQuery,
+        GetHorsesQueryVariables
+    >(GET_HORSES_QUERY);
+
+    const { data: ridersData } = useQuery<
+        GetRidersQuery,
+        GetRidersQueryVariables
+    >(GET_RIDERS_QUERY);
+
+    const horses = horsesData?.horses ?? [];
+    const riders = ridersData?.riders ?? [];
+
+    const [createSession, { loading: saving }] = useMutation<
+        CreateSessionMutation,
+        CreateSessionMutationVariables
+    >(CREATE_SESSION_MUTATION);
+
+    // Initialize from parsed fields
+    useEffect(() => {
+        if (state?.parsedFields) {
+            const pf = state.parsedFields;
+            setHorseId(pf.horseId);
+            setRiderId(pf.riderId ?? currentRiderId ?? null);
+            setDurationMinutes(pf.durationMinutes);
+            setWorkType(pf.workType);
+            setNotes(pf.notes ?? '');
+
+            if (pf.date) {
+                try {
+                    const date = new Date(pf.date);
+                    setDateTime(formatAsDateTimeLocalValue(date));
+                } catch {
+                    setDateTime(formatAsDateTimeLocalValue(new Date()));
+                }
+            } else {
+                setDateTime(formatAsDateTimeLocalValue(new Date()));
+            }
+        }
+    }, [state, currentRiderId]);
 
     // Redirect if no parsed data
     if (!state?.parsedFields) {
         return <Navigate to="/sessions/voice" replace />;
     }
 
-    const { parsedFields } = state;
+    const horseName = horses.find((h) => h.id === horseId)?.name ?? null;
+    const riderName = riders.find((r) => r.id === riderId)?.name ?? null;
+    const workTypeLabel = workType ? WORK_TYPE_LABELS[workType] : null;
+    const durationDisplay =
+        durationMinutes !== null ? `${durationMinutes} min` : null;
+    const dateDisplay = formatDisplayDate(dateTime);
+
+    const openSheet = (field: FieldType) => {
+        setEditingField(field);
+        setSheetOpen(true);
+    };
+
+    const getFieldValue = (): string | number | WorkType | null => {
+        switch (editingField) {
+            case 'horse':
+                return horseId;
+            case 'rider':
+                return riderId;
+            case 'workType':
+                return workType;
+            case 'duration':
+                return durationMinutes;
+            case 'dateTime':
+                return dateTime;
+            case 'notes':
+                return notes;
+            default:
+                return null;
+        }
+    };
+
+    const handleFieldSave = (value: string | number | WorkType | null) => {
+        switch (editingField) {
+            case 'horse':
+                setHorseId(value as string | null);
+                break;
+            case 'rider':
+                setRiderId(value as string | null);
+                break;
+            case 'workType':
+                setWorkType(value as WorkType | null);
+                break;
+            case 'duration':
+                setDurationMinutes(value as number | null);
+                break;
+            case 'dateTime':
+                setDateTime((value as string) ?? '');
+                break;
+            case 'notes':
+                setNotes((value as string) ?? '');
+                break;
+        }
+    };
+
+    const canSave =
+        horseId !== null &&
+        dateTime.length > 0 &&
+        durationMinutes !== null &&
+        workType !== null &&
+        notes.trim().length > 0;
+
+    const handleSave = async () => {
+        if (!canSave) {
+            setFormError('Please fill in all required fields.');
+            return;
+        }
+
+        setFormError(null);
+
+        try {
+            await createSession({
+                variables: {
+                    horseId: horseId!,
+                    date: new Date(dateTime).toISOString(),
+                    durationMinutes: durationMinutes!,
+                    workType: workType!,
+                    notes: notes.trim(),
+                },
+                update(cache) {
+                    cache.evict({ fieldName: 'sessions' });
+                    cache.evict({ fieldName: 'lastSessionForHorse' });
+                    cache.gc();
+                },
+            });
+
+            // Persist preferences for next time
+            localStorage.setItem(
+                'createSession',
+                JSON.stringify({
+                    horseId,
+                    durationMinutes,
+                    workType,
+                })
+            );
+
+            navigate('/');
+        } catch (err) {
+            setFormError(
+                err instanceof Error ? err.message : 'An error occurred'
+            );
+        }
+    };
 
     const handleManualEntry = () => {
-        // Navigate to manual entry with prefilled data
         navigate('/sessions/new', {
             state: {
                 prefill: {
-                    horseId: parsedFields.horseId,
-                    riderId: parsedFields.riderId,
-                    date: parsedFields.date,
-                    durationMinutes: parsedFields.durationMinutes,
-                    workType: parsedFields.workType,
-                    notes: parsedFields.notes,
+                    horseId,
+                    riderId,
+                    date: dateTime,
+                    durationMinutes,
+                    workType,
+                    notes,
                 },
             },
         });
-    };
-
-    const handleRecordAgain = () => {
-        navigate('/sessions/voice');
     };
 
     const handleBack = () => {
@@ -62,99 +296,83 @@ export default function SessionReview() {
             </div>
 
             {/* Main content */}
-            <div className="flex-1 flex flex-col items-center justify-center p-4">
-                <Card className="w-full max-w-md">
+            <div className="flex-1 p-4">
+                <Card className="w-full max-w-md mx-auto">
                     <CardContent className="pt-6">
-                        <div className="flex flex-col items-center gap-4">
-                            <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center">
-                                <CheckCircle className="w-8 h-8 text-green-600" />
-                            </div>
-                            <div className="text-center">
-                                <h2 className="font-semibold text-xl mb-1">
-                                    Recording Processed
-                                </h2>
-                                <p className="text-base text-muted-foreground">
-                                    Review screen coming in Phase 2
-                                </p>
-                            </div>
+                        {/* Summary rows */}
+                        <div className="space-y-0">
+                            <SummaryRow
+                                label="Horse"
+                                value={horseName}
+                                onClick={() => openSheet('horse')}
+                            />
+                            <SummaryRow
+                                label="Rider"
+                                value={riderName}
+                                onClick={() => openSheet('rider')}
+                            />
+                            <SummaryRow
+                                label="Work Type"
+                                value={workTypeLabel}
+                                onClick={() => openSheet('workType')}
+                            />
+                            <SummaryRow
+                                label="Duration"
+                                value={durationDisplay}
+                                onClick={() => openSheet('duration')}
+                            />
+                            <SummaryRow
+                                label="Date & Time"
+                                value={dateDisplay}
+                                onClick={() => openSheet('dateTime')}
+                            />
+                        </div>
 
-                            {/* Show extracted data for testing */}
-                            <div className="w-full mt-4 p-4 bg-muted rounded-lg text-base">
-                                <h3 className="font-medium mb-2">
-                                    Extracted Data:
-                                </h3>
-                                <ul className="space-y-1 text-muted-foreground">
-                                    <li>
-                                        <span className="font-medium">
-                                            Horse:
-                                        </span>{' '}
-                                        {parsedFields.horseId || 'Not detected'}
-                                    </li>
-                                    <li>
-                                        <span className="font-medium">
-                                            Rider:
-                                        </span>{' '}
-                                        {parsedFields.riderId || 'Not detected'}
-                                    </li>
-                                    <li>
-                                        <span className="font-medium">
-                                            Duration:
-                                        </span>{' '}
-                                        {parsedFields.durationMinutes
-                                            ? `${parsedFields.durationMinutes} min`
-                                            : 'Not detected'}
-                                    </li>
-                                    <li>
-                                        <span className="font-medium">
-                                            Work Type:
-                                        </span>{' '}
-                                        {parsedFields.workType ||
-                                            'Not detected'}
-                                    </li>
-                                    <li>
-                                        <span className="font-medium">
-                                            Date:
-                                        </span>{' '}
-                                        {parsedFields.date
-                                            ? new Date(
-                                                  parsedFields.date
-                                              ).toLocaleString()
-                                            : 'Not detected'}
-                                    </li>
-                                    {parsedFields.notes && (
-                                        <li className="pt-2">
-                                            <span className="font-medium">
-                                                Notes:
-                                            </span>
-                                            <p className="mt-1 whitespace-pre-wrap">
-                                                {parsedFields.notes}
-                                            </p>
-                                        </li>
-                                    )}
-                                </ul>
-                            </div>
+                        {/* Notes section */}
+                        <NotesSection
+                            notes={notes}
+                            onEdit={() => openSheet('notes')}
+                        />
 
-                            <div className="flex flex-col gap-2 w-full mt-2">
-                                <Button
-                                    onClick={handleManualEntry}
-                                    className="w-full"
-                                >
-                                    <PenLine className="mr-2 h-4 w-4" />
-                                    Continue to Edit
-                                </Button>
-                                <Button
-                                    variant="outline"
-                                    onClick={handleRecordAgain}
-                                    className="w-full"
-                                >
-                                    <Mic className="mr-2 h-4 w-4" />
-                                    Record Again
-                                </Button>
-                            </div>
+                        {/* Error message */}
+                        {formError && (
+                            <p className="text-sm text-red-500 mt-4">
+                                {formError}
+                            </p>
+                        )}
+
+                        {/* Action buttons */}
+                        <div className="mt-6 space-y-3">
+                            <Button
+                                onClick={handleSave}
+                                disabled={!canSave || saving}
+                                className="w-full rounded-full shadow-lg text-base font-medium"
+                                size="lg"
+                            >
+                                <Save className="mr-2 h-5 w-5" />
+                                {saving ? 'Saving...' : 'Save Session'}
+                            </Button>
+                            <Button
+                                variant="outline"
+                                onClick={handleManualEntry}
+                                className="w-full"
+                            >
+                                <PenLine className="mr-2 h-4 w-4" />
+                                Edit Manually
+                            </Button>
                         </div>
                     </CardContent>
                 </Card>
             </div>
+
+            {/* Edit sheet */}
+            <FieldEditSheet
+                open={sheetOpen}
+                onOpenChange={setSheetOpen}
+                fieldType={editingField}
+                value={getFieldValue()}
+                onSave={handleFieldSave}
+            />
         </div>
     );
 }

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { gql } from '@apollo/client';
 import { useMutation, useQuery } from '@apollo/client/react';
 
@@ -54,6 +54,19 @@ import {
 } from '@/generated/graphql';
 
 const REQUIRED_FIELDS_ERROR_MESSAGE = 'Please fill in all required fields.';
+
+interface PrefillData {
+    horseId?: string | null;
+    riderId?: string | null;
+    date?: string | null;
+    durationMinutes?: number | null;
+    workType?: WorkType | null;
+    notes?: string | null;
+}
+
+interface LocationState {
+    prefill?: PrefillData;
+}
 
 function formatAsDateTimeLocalValue(date: Date): string {
     const tzOffsetMs = date.getTimezoneOffset() * 60_000;
@@ -170,7 +183,10 @@ export default function EditSession() {
     const { id } = useParams<{ id: string }>();
     const isEditMode = id !== undefined && id !== 'new';
     const navigate = useNavigate();
+    const location = useLocation();
     const { riderId: currentRiderId } = useAuth();
+    const locationState = location.state as LocationState | null;
+    const prefill = locationState?.prefill;
 
     const [horseId, setHorseId] = useState('');
     const [riderId, setRiderId] = useState('');
@@ -229,19 +245,35 @@ export default function EditSession() {
         }
     }, [data, isEditMode]);
 
-    // Initialize create mode from localStorage and auth context
+    // Initialize create mode from prefill, localStorage, and auth context
     useEffect(() => {
         if (!isEditMode) {
-            const persisted = JSON.parse(
-                localStorage.getItem('createSession') || '{}'
-            );
-            if (persisted.horseId) setHorseId(persisted.horseId);
-            if (persisted.durationMinutes)
-                setDurationMinutes(persisted.durationMinutes);
-            if (persisted.workType) setWorkType(persisted.workType);
-            if (currentRiderId) setRiderId(currentRiderId);
+            // Prefill from voice review takes priority
+            if (prefill) {
+                if (prefill.horseId) setHorseId(prefill.horseId);
+                if (prefill.riderId) setRiderId(prefill.riderId);
+                if (prefill.date) setDate(prefill.date);
+                if (
+                    prefill.durationMinutes !== null &&
+                    prefill.durationMinutes !== undefined
+                )
+                    setDurationMinutes(prefill.durationMinutes);
+                if (prefill.workType) setWorkType(prefill.workType);
+                if (prefill.notes) setNotes(prefill.notes);
+            } else {
+                // Fall back to localStorage
+                const persisted = JSON.parse(
+                    localStorage.getItem('createSession') || '{}'
+                );
+                if (persisted.horseId) setHorseId(persisted.horseId);
+                if (persisted.durationMinutes)
+                    setDurationMinutes(persisted.durationMinutes);
+                if (persisted.workType) setWorkType(persisted.workType);
+            }
+            // Always set rider from auth context if not prefilled
+            if (!prefill?.riderId && currentRiderId) setRiderId(currentRiderId);
         }
-    }, [isEditMode, currentRiderId]);
+    }, [isEditMode, currentRiderId, prefill]);
 
     const [createSession, { loading: createLoading }] = useMutation<
         CreateSessionMutation,

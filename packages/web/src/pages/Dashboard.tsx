@@ -110,7 +110,7 @@ export default function Dashboard() {
                     <Button
                         className="w-full shadow-lg rounded-full text-base font-medium"
                         size="lg"
-                        onClick={() => navigate('/sessions/new')}
+                        onClick={() => navigate('/sessions/voice')}
                     >
                         <Plus className="mr-2 h-5 w-5" />
                         Log Session
