@@ -203,11 +203,16 @@ function readSchemaSDLOrThrow(): string {
     );
 }
 
-export async function createApiApp(): Promise<FastifyInstance> {
+export async function createApiApp(httpsOptions?: {
+    key: Buffer;
+    cert: Buffer;
+}): Promise<FastifyInstance> {
     // Ensure required env is present before accepting requests.
     getJwtSecretOrThrow();
 
-    const app = Fastify();
+    const app: FastifyInstance = httpsOptions
+        ? Fastify({ https: httpsOptions })
+        : Fastify();
 
     await app.register(cors, {
         origin: getCorsOrigin(),

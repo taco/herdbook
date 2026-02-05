@@ -14,7 +14,10 @@ import Dashboard from '@/pages/Dashboard';
 import Logout from '@/pages/Logout';
 import EditSession from '@/pages/EditSession';
 import EditHorse from '@/pages/EditHorse';
+import VoiceSessionCapture from '@/pages/VoiceSessionCapture';
+import SessionReview from '@/pages/SessionReview';
 import PrivateLayout from '@/layouts/PrivateLayout';
+import MinimalPrivateLayout from '@/layouts/MinimalPrivateLayout';
 
 const PublicRoute: React.FC<{ element: React.ReactElement }> = ({
     element,
@@ -47,6 +50,18 @@ function App() {
                     />
                     <Route path="/horses/new" element={<EditHorse />} />
                     <Route path="/horses/:id/edit" element={<EditHorse />} />
+                </Route>
+
+                {/* Full-screen authenticated routes (no sidebar header) */}
+                <Route element={<MinimalPrivateLayout />}>
+                    <Route
+                        path="/sessions/voice"
+                        element={<VoiceSessionCapture />}
+                    />
+                    <Route
+                        path="/sessions/review"
+                        element={<SessionReview />}
+                    />
                 </Route>
 
                 <Route path="*" element={<Navigate to="/" />} />
