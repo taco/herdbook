@@ -5,9 +5,7 @@ import { VitePWA } from 'vite-plugin-pwa';
 import path from 'path';
 import fs from 'fs';
 
-function getHttpsConfig():
-    | { key: string; cert: string }
-    | false {
+function getHttpsConfig(): { key: string; cert: string } | false {
     if (process.env.USE_HTTPS === 'false') {
         return false;
     }
