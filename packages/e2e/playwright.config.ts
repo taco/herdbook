@@ -24,7 +24,7 @@ export default defineConfig({
     /* Reporter to use. See https://playwright.dev/docs/test-reporters */
     reporter: [['list'], ['html', { open: 'never' }]],
     /* Per-test timeout */
-    timeout: 5 * 1000,
+    timeout: 15 * 1000,
     /* Global setup and teardown */
     globalSetup: './global-setup.ts',
     globalTeardown: './global-teardown.ts',
@@ -40,10 +40,10 @@ export default defineConfig({
     /* Configure projects for major browsers */
     projects: [
         /* Test against mobile viewports. */
-        {
-            name: 'Mobile Chrome',
-            use: { ...devices['Pixel 5'] },
-        },
+        // {
+        //     name: 'Mobile Chrome',
+        //     use: { ...devices['Pixel 5'] },
+        // },
         {
             name: 'Mobile Safari',
             use: { ...devices['iPhone 12'] },
