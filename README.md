@@ -46,26 +46,26 @@ git clone <repository-url>
 cd herdbook
 ```
 
-2. Install dependencies:
+2. Set up environment variables (see [Environment Management](#environment-management) for details):
 
 ```bash
-pnpm install
+cp .env.example .env.local
+# Edit .env.local with your local database credentials
+pnpm env:local
 ```
 
-3. Set up environment variables (see [Environment Management](#environment-management) for details):
+3. Initialize the project:
 
-    ```bash
-    # Copy the example env files
-    cp .env.example .env.local
-    # Edit .env.local with your local database credentials
-    ```
+```bash
+pnpm init
+```
+
+This installs dependencies and generates the Prisma client.
 
 4. Set up the database:
 
 ```bash
-cd packages/api
-pnpm prisma:generate
-pnpm prisma:migrate
+pnpm --filter api prisma:migrate
 ```
 
 ## Development
@@ -130,12 +130,17 @@ herdbook/
 
 ### Root level:
 
+- `pnpm init` - Install dependencies and generate Prisma client
 - `pnpm dev` - Run both API and Web in development mode
 - `pnpm dev:api` - Run only the API server
 - `pnpm dev:web` - Run only the web app
 - `pnpm build` - Build all packages
 - `pnpm build:api` - Build only the API
 - `pnpm build:web` - Build only the web app
+- `pnpm check` - Run format check and typecheck across all packages
+- `pnpm typecheck` - Run TypeScript type checking across all packages
+- `pnpm format` - Auto-fix formatting with Prettier
+- `pnpm format:check` - Check formatting without modifying files
 - `pnpm test:e2e` - Run E2E tests
 
 ### API package (`packages/api`):
