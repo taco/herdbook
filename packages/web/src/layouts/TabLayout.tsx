@@ -11,7 +11,7 @@ export default function TabLayout() {
 
     return (
         <>
-            <main className="flex-1 pb-20">
+            <main className="flex-1 pb-20 pb-[calc(5rem+env(safe-area-inset-bottom)+var(--hb-bottom-tab-extra))]">
                 <Outlet />
             </main>
             <BottomTabBar />
