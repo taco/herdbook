@@ -46,6 +46,7 @@ describe('/api/parse-session', () => {
         horses: [],
         riders: [],
         currentDateTime: new Date().toISOString(),
+        timezone: 'America/New_York',
     });
 
     beforeAll(async () => {

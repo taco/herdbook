@@ -2,6 +2,7 @@ import { Calendar, Clock, User, Activity } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { getWorkTypeLabel } from '@/lib/constants';
 import { formatTimeAgo } from '@/lib/utils';
+import { parseSessionDate } from '@/lib/dateUtils';
 
 interface ActivityCardProps {
     session: {
@@ -21,11 +22,7 @@ interface ActivityCardProps {
 }
 
 export default function ActivityCard({ session, onClick }: ActivityCardProps) {
-    const dateValue = Number(session.date);
-    const dateObj = isNaN(dateValue)
-        ? new Date(session.date)
-        : new Date(dateValue);
-    const formattedDate = formatTimeAgo(dateObj);
+    const formattedDate = formatTimeAgo(parseSessionDate(session.date));
 
     return (
         <Card

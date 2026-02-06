@@ -1,5 +1,6 @@
 import { Calendar, Clock, User, Activity, Edit } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { parseSessionDate, formatSessionTime } from '@/lib/dateUtils';
 import {
     Sheet,
     SheetContent,
@@ -38,20 +39,14 @@ export default function SessionDetailSheet({
 
     if (!session) return null;
 
-    const dateValue = Number(session.date);
-    const dateObj = isNaN(dateValue)
-        ? new Date(session.date)
-        : new Date(dateValue);
+    const dateObj = parseSessionDate(session.date);
     const formattedDate = dateObj.toLocaleDateString('en-US', {
         weekday: 'long',
         year: 'numeric',
         month: 'long',
         day: 'numeric',
     });
-    const formattedTime = dateObj.toLocaleTimeString('en-US', {
-        hour: 'numeric',
-        minute: '2-digit',
-    });
+    const formattedTime = formatSessionTime(dateObj);
 
     const handleEdit = () => {
         onOpenChange(false);
