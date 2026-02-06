@@ -13,6 +13,7 @@ This document outlines the implementation plan for a voice-first session logging
 ## Problem Statement
 
 Logging a riding session immediately after a ride is high-friction on mobile:
+
 - Form-heavy UI requires multiple field selections
 - Small touch targets, often one-handed use
 - Mental overhead of structured data entry when user just wants to "dump" thoughts
@@ -38,14 +39,14 @@ Logging a riding session immediately after a ride is high-friction on mobile:
 
 The codebase already has voice infrastructure:
 
-| Component | Location | Purpose |
-|-----------|----------|---------|
-| `VoiceRecordButton` | `packages/web/src/components/` | Transcribe speech → append to notes |
-| `VoiceSessionButton` | `packages/web/src/components/` | Full session parsing from voice |
-| `useVoiceRecording` | `packages/web/src/hooks/` | Mic access, recording state, transcription |
-| `useVoiceSessionInput` | `packages/web/src/hooks/` | Session parsing with horse/rider context |
-| `/api/transcribe` | `packages/api/src/server.ts` | Whisper transcription endpoint |
-| `/api/parse-session` | `packages/api/src/server.ts` | GPT-4o-mini extraction endpoint |
+| Component              | Location                       | Purpose                                    |
+| ---------------------- | ------------------------------ | ------------------------------------------ |
+| `VoiceRecordButton`    | `packages/web/src/components/` | Transcribe speech → append to notes        |
+| `VoiceSessionButton`   | `packages/web/src/components/` | Full session parsing from voice            |
+| `useVoiceRecording`    | `packages/web/src/hooks/`      | Mic access, recording state, transcription |
+| `useVoiceSessionInput` | `packages/web/src/hooks/`      | Session parsing with horse/rider context   |
+| `/api/transcribe`      | `packages/api/src/server.ts`   | Whisper transcription endpoint             |
+| `/api/parse-session`   | `packages/api/src/server.ts`   | GPT-4o-mini extraction endpoint            |
 
 **Current flow:** User opens form → optionally clicks voice button → fills/corrects fields → saves
 
@@ -172,6 +173,7 @@ packages/
 ### Key Patterns to Follow
 
 **Routing (App.tsx):**
+
 ```tsx
 // All authenticated routes go inside PrivateLayout
 <Route element={<PrivateLayout />}>
@@ -181,6 +183,7 @@ packages/
 ```
 
 **Page Component Structure:**
+
 ```tsx
 // See EditSession.tsx as reference
 import { useState } from 'react';
@@ -202,12 +205,14 @@ export default function MyPage() {
 ```
 
 **State Machine Pattern (from useVoiceSessionInput.ts):**
+
 ```tsx
 type RecordingState = 'idle' | 'recording' | 'processing';
 const [state, setState] = useState<RecordingState>('idle');
 ```
 
 **API Calls to REST Endpoints:**
+
 ```tsx
 import { apiEndpoint } from '@/lib/api';
 
@@ -225,38 +230,39 @@ const response = await fetch(apiEndpoint('/api/parse-session'), {
 
 Located in `packages/web/src/components/ui/`:
 
-| Component | Use Case |
-|-----------|----------|
-| `Button` | Primary/secondary actions |
-| `Card` | Content containers |
-| `Sheet` | Bottom sheets for editing |
-| `Input` | Text/number inputs |
-| `Label` | Form labels |
-| `Select` | Dropdowns (see SelectHorse.tsx for pattern) |
-| `Separator` | Visual dividers |
-| `AlertDialog` | Confirmations |
-| `Skeleton` | Loading states |
+| Component     | Use Case                                    |
+| ------------- | ------------------------------------------- |
+| `Button`      | Primary/secondary actions                   |
+| `Card`        | Content containers                          |
+| `Sheet`       | Bottom sheets for editing                   |
+| `Input`       | Text/number inputs                          |
+| `Label`       | Form labels                                 |
+| `Select`      | Dropdowns (see SelectHorse.tsx for pattern) |
+| `Separator`   | Visual dividers                             |
+| `AlertDialog` | Confirmations                               |
+| `Skeleton`    | Loading states                              |
 
 ### Existing Components to Reuse
 
-| Component | Location | Reuse For |
-|-----------|----------|-----------|
-| `SelectHorse` | `components/fields/` | Horse picker in sheets |
-| `SelectRider` | `components/fields/` | Rider picker in sheets |
+| Component        | Location             | Reuse For                  |
+| ---------------- | -------------------- | -------------------------- |
+| `SelectHorse`    | `components/fields/` | Horse picker in sheets     |
+| `SelectRider`    | `components/fields/` | Rider picker in sheets     |
 | `SelectWorkType` | `components/fields/` | Work type picker in sheets |
-| `ActivityCard` | `components/` | Previous session display |
+| `ActivityCard`   | `components/`        | Previous session display   |
 
 ### Existing Hooks to Reference
 
-| Hook | Location | Key Exports |
-|------|----------|-------------|
-| `useVoiceSessionInput` | `hooks/` | `state`, `startRecording`, `stopRecording`, `error` |
-| `useVoiceRecording` | `hooks/` | Similar, for notes-only transcription |
-| `useAuth` | `context/AuthContext` | `token`, `rider`, `isAuthenticated` |
+| Hook                   | Location              | Key Exports                                         |
+| ---------------------- | --------------------- | --------------------------------------------------- |
+| `useVoiceSessionInput` | `hooks/`              | `state`, `startRecording`, `stopRecording`, `error` |
+| `useVoiceRecording`    | `hooks/`              | Similar, for notes-only transcription               |
+| `useAuth`              | `context/AuthContext` | `token`, `rider`, `isAuthenticated`                 |
 
 ### GraphQL Patterns
 
 **Queries/Mutations are defined inline:**
+
 ```tsx
 const CREATE_SESSION = gql`
     mutation CreateSession(...) { ... }
@@ -269,27 +275,30 @@ const [createSession, { loading }] = useMutation<
 ```
 
 **After codegen, types are in `@/generated/graphql`:**
+
 ```tsx
 import { WorkType, CreateSessionMutation } from '@/generated/graphql';
 ```
 
 **Run codegen after schema changes:**
+
 ```bash
 cd packages/web && pnpm codegen
 ```
 
 ### Backend Endpoints
 
-| Endpoint | Method | Purpose | Request Body |
-|----------|--------|---------|--------------|
-| `/api/transcribe` | POST | Whisper transcription | `{ audio: base64, mimeType }` |
-| `/api/parse-session` | POST | Full session extraction | `{ audio, mimeType, context: { horses, riders, currentDateTime } }` |
+| Endpoint             | Method | Purpose                 | Request Body                                                        |
+| -------------------- | ------ | ----------------------- | ------------------------------------------------------------------- |
+| `/api/transcribe`    | POST   | Whisper transcription   | `{ audio: base64, mimeType }`                                       |
+| `/api/parse-session` | POST   | Full session extraction | `{ audio, mimeType, context: { horses, riders, currentDateTime } }` |
 
 Both require `Authorization: Bearer <token>` header.
 
 ### Testing Expectations
 
 Per CLAUDE.md:
+
 - **Don't test**: UI structure, trivial code
 - **Do test**: Complex logic in hooks (if any)
 - **Integration over unit**: Use `fastify.inject()` for API, `getByRole`/`getByText` for UI
@@ -307,27 +316,33 @@ pnpm test            # Run tests
 ### Key Files for Each Phase
 
 **Phase 1 (Capture Screen):**
+
 - Create: `pages/VoiceSessionCapture.tsx`, `hooks/useRecordingStateMachine.ts`
 - Modify: `App.tsx` (add route)
 - Reference: `hooks/useVoiceSessionInput.ts` (recording logic)
 
 **Phase 2 (Review Screen):**
+
 - Create: `pages/SessionReview.tsx`, `components/review/*`
 - Reference: `EditSession.tsx` (mutation pattern), `components/fields/*` (pickers)
 
 **Phase 3 (Quick Picks):**
+
 - Create: `components/voice/QuickPicks.tsx`
 - Modify: `VoiceSessionCapture.tsx`, `api/src/server.ts` (prompt update)
 
 **Phase 4 (Transcript):**
+
 - Modify: `prisma/schema.prisma`, `schema.graphql`, `resolvers.ts`
 - Run: `pnpm prisma migrate dev` after schema change
 
 **Phase 5 (Polish):**
+
 - Create: `components/voice/AudioWaveform.tsx`, `hooks/useAudioAnalyser.ts`
 - Uses: Web Audio API (`AnalyserNode`)
 
 **Phase 6 (Addendum):**
+
 - Modify: `SessionReview.tsx`, `components/review/NotesSection.tsx`
 - Reference: `useVoiceRecording.ts` (transcribe-only)
 
@@ -340,6 +355,7 @@ pnpm test            # Run tests
 **Goal:** New dedicated route with recording UI and state machine
 
 **Scope:**
+
 - New page: `VoiceSessionCapture.tsx` at `/session/voice`
 - Recording state machine: IDLE → RECORDING → PROCESSING → (success/error)
 - Timer display with 3-minute default cap (hard limit: 5 minutes)
@@ -350,11 +366,13 @@ pnpm test            # Run tests
 - On error: "Try Again" and "Manual Entry" buttons
 
 **Technical Notes:**
+
 - Extract recording logic from `useVoiceSessionInput` into reusable state machine
 - Timer implemented with `useEffect` interval
 - Max duration enforced client-side (auto-stop at limit)
 
 **Files to Create:**
+
 ```
 packages/web/src/pages/VoiceSessionCapture.tsx
 packages/web/src/components/voice/RecordingPanel.tsx
@@ -363,6 +381,7 @@ packages/web/src/hooks/useRecordingStateMachine.ts
 ```
 
 **Files to Modify:**
+
 ```
 packages/web/src/App.tsx  # Add route
 ```
@@ -376,25 +395,28 @@ packages/web/src/App.tsx  # Add route
 **Goal:** Post-processing review UI with tappable field rows
 
 **Scope:**
+
 - New page: `SessionReview.tsx` at `/session/review`
 - Settings-style rows for: Horse, Rider, Work Type, Duration, Date/Time
 - Each row shows label + value + chevron (tap to edit)
 - Bottom sheet pickers for each field type:
-  - Horse/Rider: list with checkmark
-  - Work Type: list with checkmark
-  - Duration: number input
-  - Date/Time: native datetime picker
+    - Horse/Rider: list with checkmark
+    - Work Type: list with checkmark
+    - Duration: number input
+    - Date/Time: native datetime picker
 - Notes section with expand/collapse (default: 4-line preview)
 - "Save Session" primary button → calls `createSession` mutation
 - "Edit Manually" secondary button → navigates to `/session/new` with prefilled data
 - Validation: disable Save if any required field is missing
 
 **Technical Notes:**
+
 - Pass parsed data via React Router state or URL params
 - Reuse existing picker components from EditSession where possible
 - Use Shadcn Sheet component for bottom sheets
 
 **Files to Create:**
+
 ```
 packages/web/src/pages/SessionReview.tsx
 packages/web/src/components/review/SummaryRow.tsx
@@ -411,6 +433,7 @@ packages/web/src/components/review/FieldEditSheet.tsx
 **Goal:** Reduce corrections by capturing known values before recording
 
 **Scope:**
+
 - Chip selectors on capture screen: Horse, Rider, Work Type
 - Default to last-used values (from localStorage or `lastSessionForHorse` query)
 - Chips show: pill shape, label + selected value, chevron
@@ -419,17 +442,20 @@ packages/web/src/components/review/FieldEditSheet.tsx
 - Update LLM prompt: "User has pre-selected [Horse: Bella]. Do not override this value."
 
 **Technical Notes:**
+
 - Store last-used values in localStorage
 - Fetch horse/rider lists on mount (already done in EditSession)
 - Authoritative values skip AI extraction for those fields
 
 **Files to Create:**
+
 ```
 packages/web/src/components/voice/QuickPicks.tsx
 packages/web/src/components/voice/QuickPickChip.tsx
 ```
 
 **Files to Modify:**
+
 ```
 packages/web/src/pages/VoiceSessionCapture.tsx  # Add QuickPicks
 packages/api/src/server.ts  # Update parse-session prompt
@@ -444,6 +470,7 @@ packages/api/src/server.ts  # Update parse-session prompt
 **Goal:** Store transcripts for transparency and future AI features
 
 **Scope:**
+
 - Schema change: add optional `transcript` field to Session model
 - Update `createSession` mutation to accept `transcript` parameter
 - Update `updateSession` mutation to allow transcript edits
@@ -451,6 +478,7 @@ packages/api/src/server.ts  # Update parse-session prompt
 - Show transcript in session detail view (read-only)
 
 **Schema Change:**
+
 ```prisma
 model Session {
   // ... existing fields
@@ -459,19 +487,21 @@ model Session {
 ```
 
 **GraphQL Change:**
+
 ```graphql
 type Session {
-  # ... existing fields
-  transcript: String
+    # ... existing fields
+    transcript: String
 }
 
 input CreateSessionInput {
-  # ... existing fields
-  transcript: String
+    # ... existing fields
+    transcript: String
 }
 ```
 
 **Files to Modify:**
+
 ```
 packages/api/prisma/schema.prisma
 packages/api/src/schema.graphql
@@ -489,22 +519,25 @@ packages/web/src/components/SessionDetailSheet.tsx  # Show transcript
 **Goal:** Production-quality recording experience
 
 **Scope:**
+
 - Audio waveform visualization (amplitude bars via Web Audio API)
 - Silence detection with subtle warning (not auto-stop in v1)
 - "Extend +1:00" button appearing at T-30s from limit
 - Mic permission handling:
-  - Check permission on mount
-  - Show explanation if denied
-  - "Open Settings" button for re-enabling
+    - Check permission on mount
+    - Show explanation if denied
+    - "Open Settings" button for re-enabling
 - Haptic feedback on iOS (via Capacitor if available)
 - VoiceOver labels for all interactive elements
 
 **Technical Notes:**
+
 - Waveform: use `AnalyserNode` from Web Audio API
 - Silence detection: monitor audio levels, show warning after 10s of silence
 - Permission check: `navigator.permissions.query({ name: 'microphone' })`
 
 **Files to Create:**
+
 ```
 packages/web/src/components/voice/AudioWaveform.tsx
 packages/web/src/hooks/useAudioAnalyser.ts
@@ -520,17 +553,20 @@ packages/web/src/hooks/useMicPermission.ts
 **Goal:** Append additional voice notes during review
 
 **Scope:**
+
 - Mic button in notes section of SessionReview
 - Tap → start recording (mini recording UI)
 - Stop → transcribe → append to notes
 - Confirmation: "Add to notes?" before appending
 
 **Technical Notes:**
+
 - Reuse recording state machine from Phase 1
 - Only call `/api/transcribe` (not parse-session)
 - Append with separator: `\n\n---\n\n[Addendum]\n{transcribed text}`
 
 **Files to Modify:**
+
 ```
 packages/web/src/pages/SessionReview.tsx
 packages/web/src/components/review/NotesSection.tsx  # Add mic button
@@ -544,13 +580,13 @@ packages/web/src/components/review/NotesSection.tsx  # Add mic button
 
 These are noted but not planned for initial implementation:
 
-| Enhancement | Description | Why Deferred |
-|-------------|-------------|--------------|
-| Offline Queue | Record now, transcribe when connected | Complexity; validate online flow first |
-| Structured Notes | Warm-up / Went Well / Improve / Focus sections | Schema change; validate single notes field first |
-| Auto-start Setting | User preference to start recording on open | Privacy concerns; explicit start builds trust |
-| Live Waveform | Real-time word display | Whisper is batch-only |
-| AI Suggestions | "You mentioned Beau was stiff — add to horse notes?" | Post-MVP intelligence |
+| Enhancement        | Description                                          | Why Deferred                                     |
+| ------------------ | ---------------------------------------------------- | ------------------------------------------------ |
+| Offline Queue      | Record now, transcribe when connected                | Complexity; validate online flow first           |
+| Structured Notes   | Warm-up / Went Well / Improve / Focus sections       | Schema change; validate single notes field first |
+| Auto-start Setting | User preference to start recording on open           | Privacy concerns; explicit start builds trust    |
+| Live Waveform      | Real-time word display                               | Whisper is batch-only                            |
+| AI Suggestions     | "You mentioned Beau was stiff — add to horse notes?" | Post-MVP intelligence                            |
 
 ---
 
@@ -561,6 +597,7 @@ These are noted but not planned for initial implementation:
 **Decision:** Separate route (`/session/voice`)
 
 **Rationale:**
+
 - Full-screen recording experience feels more intentional
 - Cleaner state management (route-level, not modal-level)
 - Easy to A/B test vs. existing form
@@ -571,6 +608,7 @@ These are noted but not planned for initial implementation:
 **Decision:** User-selected values override AI extraction
 
 **Rationale:**
+
 - Constrained fields (horse, rider, work type) are easy to select manually
 - AI errors on constrained fields are frustrating to correct
 - Builds trust: "the app does what I told it"
@@ -580,6 +618,7 @@ These are noted but not planned for initial implementation:
 **Decision:** Keep `notes` as single String field
 
 **Rationale:**
+
 - Users don't naturally speak in categories (warm-up, went well, etc.)
 - LLM can organize/clean notes without forcing structure
 - Simpler schema, faster to ship
@@ -590,6 +629,7 @@ These are noted but not planned for initial implementation:
 **Decision:** Default 3 minutes, hard cap 5 minutes
 
 **Rationale:**
+
 - Most sessions are 30-120 seconds of speech
 - Longer recordings = more Whisper cost/latency
 - Prevents runaway recordings
@@ -600,6 +640,7 @@ These are noted but not planned for initial implementation:
 **Decision:** Simple pulsing indicator, add waveform in Phase 5
 
 **Rationale:**
+
 - Web Audio API adds complexity
 - Pulsing animation provides sufficient confidence
 - Users understand "recording" without amplitude visualization
@@ -609,13 +650,13 @@ These are noted but not planned for initial implementation:
 
 ## Success Metrics
 
-| Metric | Target | How to Measure |
-|--------|--------|----------------|
-| Time to save (voice flow) | < 60s for typical session | Timestamp: route open → save complete |
-| Completion rate | > 80% start recording → save | Events: recording_started, session_saved |
-| Field correction rate | < 20% of sessions need edits | Events: field_edited_before_save |
-| Error rate | < 5% transcription/parsing failures | API error logs |
-| Adoption | > 50% of new sessions via voice | Compare voice vs. form session counts |
+| Metric                    | Target                              | How to Measure                           |
+| ------------------------- | ----------------------------------- | ---------------------------------------- |
+| Time to save (voice flow) | < 60s for typical session           | Timestamp: route open → save complete    |
+| Completion rate           | > 80% start recording → save        | Events: recording_started, session_saved |
+| Field correction rate     | < 20% of sessions need edits        | Events: field_edited_before_save         |
+| Error rate                | < 5% transcription/parsing failures | API error logs                           |
+| Adoption                  | > 50% of new sessions via voice     | Compare voice vs. form session counts    |
 
 ---
 
@@ -646,13 +687,13 @@ These are noted but not planned for initial implementation:
 
 ## Appendix: Comparison with Original Design Doc
 
-| Original Proposal | This Plan | Rationale |
-|-------------------|-----------|-----------|
-| 2-min default, extend at T-30s | 3-min default, hard cap 5-min | Simpler for Phase 1 |
-| Structured notes (warm-up, etc.) | Single notes field | Validate core flow first |
-| Waveform visualization | Pulsing indicator (Phase 1) | Reduce complexity |
-| Silence auto-stop | Warning only (Phase 5) | Avoid unexpected behavior |
-| "View transcript" read-only | Read-only (Phase 4) | Start simple |
-| Quick picks optional | Quick picks in Phase 3 | Get core flow working first |
+| Original Proposal                | This Plan                     | Rationale                   |
+| -------------------------------- | ----------------------------- | --------------------------- |
+| 2-min default, extend at T-30s   | 3-min default, hard cap 5-min | Simpler for Phase 1         |
+| Structured notes (warm-up, etc.) | Single notes field            | Validate core flow first    |
+| Waveform visualization           | Pulsing indicator (Phase 1)   | Reduce complexity           |
+| Silence auto-stop                | Warning only (Phase 5)        | Avoid unexpected behavior   |
+| "View transcript" read-only      | Read-only (Phase 4)           | Start simple                |
+| Quick picks optional             | Quick picks in Phase 3        | Get core flow working first |
 
 The original design doc is comprehensive. This plan sequences the work into shippable increments while deferring complexity that isn't essential for validating the core voice-first hypothesis.

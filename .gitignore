@@ -48,3 +48,11 @@ packages/api/src/generated/prisma
 
 # Local SSL certs
 *.pem
+
+#playwright
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+playwright/.auth/
+
