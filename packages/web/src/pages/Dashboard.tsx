@@ -4,11 +4,10 @@ import { gql } from '@apollo/client';
 import ActivityCard from '@/components/ActivityCard';
 import SessionDetailSheet from '@/components/SessionDetailSheet';
 import { HorseCard } from '@/components/HorseCard';
-import {
+import type {
     GetDashboardDataQuery,
     GetDashboardDataQueryVariables,
 } from '@/generated/graphql';
-import { useNavigate } from 'react-router-dom';
 
 const DASHBOARD_QUERY = gql`
     query GetDashboardData {
@@ -43,7 +42,6 @@ export default function Dashboard() {
         GetDashboardDataQuery,
         GetDashboardDataQueryVariables
     >(DASHBOARD_QUERY);
-    const navigate = useNavigate();
     const [selectedSession, setSelectedSession] = useState<Session | null>(
         null
     );

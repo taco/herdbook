@@ -204,3 +204,99 @@
     --sidebar-border: hsl(220 13% 91%);
     --sidebar-ring: hsl(217.2 91.2% 59.8%);
 }
+
+/* iOS-style slide transitions for sub-pages */
+
+/* Overlay: slide in/out from right */
+@keyframes slide-in-right {
+    from {
+        transform: translateX(100%);
+    }
+    to {
+        transform: translateX(0);
+    }
+}
+
+@keyframes slide-out-right {
+    from {
+        transform: translateX(0);
+    }
+    to {
+        transform: translateX(100%);
+    }
+}
+
+.animate-slide-in-right {
+    animation: slide-in-right 300ms ease-out forwards;
+    box-shadow: -4px 0 16px rgba(0, 0, 0, 0.15);
+}
+
+.animate-slide-out-right {
+    animation: slide-out-right 250ms ease-in forwards;
+    box-shadow: -4px 0 16px rgba(0, 0, 0, 0.15);
+}
+
+/* Background: parallax push/return */
+@keyframes parallax-push {
+    from {
+        transform: translateX(0) scale(1);
+    }
+    to {
+        transform: translateX(-8%) scale(0.94);
+    }
+}
+
+@keyframes parallax-return {
+    from {
+        transform: translateX(-8%) scale(0.94);
+    }
+    to {
+        transform: translateX(0) scale(1);
+    }
+}
+
+.animate-parallax-push {
+    animation: parallax-push 300ms ease-out forwards;
+}
+
+.animate-parallax-return {
+    animation: parallax-return 250ms ease-in forwards;
+}
+
+/* Dim overlay between background and sub-page */
+@keyframes dim-in {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 0.08;
+    }
+}
+
+@keyframes dim-out {
+    from {
+        opacity: 0.08;
+    }
+    to {
+        opacity: 0;
+    }
+}
+
+.animate-dim-in {
+    animation: dim-in 300ms ease-out forwards;
+}
+
+.animate-dim-out {
+    animation: dim-out 250ms ease-in forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .animate-slide-in-right,
+    .animate-slide-out-right,
+    .animate-parallax-push,
+    .animate-parallax-return,
+    .animate-dim-in,
+    .animate-dim-out {
+        animation: none;
+    }
+}

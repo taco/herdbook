@@ -18,29 +18,34 @@ const TABS: Tab[] = [
 ];
 
 function HorseIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-      aria-hidden="true"
-    >
-      {/* head + ear + neck */}
-      <path d="M17 3l-1 3 3 2-2 1-2-2-2 2-3 1c-2 .7-3 2.4-3 4.6V20a1 1 0 0 0 1 1h3.6c1.1 0 2.1-.6 2.7-1.5l1.4-2.2 2.1-1.1c.7-.4 1.2-1.2 1.2-2V9.5A3 3 0 0 0 18 6.6h-1.4L17 3z" />
+    return (
+        <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={2}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className={className}
+            aria-hidden="true"
+        >
+            {/* head + ear + neck */}
+            <path d="M17 3l-1 3 3 2-2 1-2-2-2 2-3 1c-2 .7-3 2.4-3 4.6V20a1 1 0 0 0 1 1h3.6c1.1 0 2.1-.6 2.7-1.5l1.4-2.2 2.1-1.1c.7-.4 1.2-1.2 1.2-2V9.5A3 3 0 0 0 18 6.6h-1.4L17 3z" />
 
-      {/* eye (filled for clarity at 24px) */}
-      <circle cx="13.2" cy="12.2" r="0.6" fill="currentColor" stroke="none" />
+            {/* eye (filled for clarity at 24px) */}
+            <circle
+                cx="13.2"
+                cy="12.2"
+                r="0.6"
+                fill="currentColor"
+                stroke="none"
+            />
 
-      {/* subtle chest/neck detail */}
-      <path d="M9 17h3" />
-    </svg>
-  );
+            {/* subtle chest/neck detail */}
+            <path d="M9 17h3" />
+        </svg>
+    );
 }
-
 
 export function BottomTabBar() {
     const location = useLocation();

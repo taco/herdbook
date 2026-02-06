@@ -4,6 +4,8 @@
     "private": true,
     "type": "module",
     "scripts": {
+        "format": "prettier --write \"**/*.{ts,tsx,json,md}\"",
+        "typecheck": "tsc --noEmit",
         "test": "playwright test",
         "test:ui": "playwright test --ui"
     },

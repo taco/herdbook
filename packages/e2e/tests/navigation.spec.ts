@@ -34,45 +34,43 @@ test.describe('Navigation', () => {
         ).toBeVisible();
 
         // Navigate to Profile tab
-        await page
-            .getByRole('button', { name: 'Me', exact: true })
-            .click();
+        await page.getByRole('button', { name: 'Me', exact: true }).click();
         await expect(page).toHaveURL('/profile');
         await expect(page.getByText(TEST_RIDER_NAME)).toBeVisible();
 
         // Navigate back to Home tab
-        await page
-            .getByRole('button', { name: 'Home', exact: true })
-            .click();
+        await page.getByRole('button', { name: 'Home', exact: true }).click();
         await expect(page).toHaveURL('/');
     });
 
-    test('sub-page shows back button and no tab bar', async ({ page }) => {
+    test('sub-page slides in over tab page and back button returns', async ({
+        page,
+    }) => {
         // Navigate to a horse edit page
         await page.getByText(TEST_HORSE_NAME).first().click();
         await expect(page).toHaveURL(/\/horses\/.*\/edit/);
 
-        // Back button should be visible
+        // Sub-page should be a fixed overlay covering the tab page
+        const overlay = page.locator('.fixed.inset-0.z-20');
+        await expect(overlay).toBeVisible();
+
+        // Back button should be visible on the overlay
         const backButton = page.getByLabel('Go back');
         await expect(backButton).toBeVisible();
 
-        // Tab bar should not be visible
-        await expect(
-            page.getByRole('button', { name: 'Home' })
-        ).not.toBeVisible();
-
-        // Back button should return to previous page
+        // Click back — exit animation plays, then navigates to previous page
         await backButton.click();
         await expect(page).toHaveURL('/');
+
+        // After navigating back, overlay should be gone
+        await expect(overlay).not.toBeVisible();
     });
 
     test('profile logout clears auth and redirects to login', async ({
         page,
     }) => {
         // Navigate to profile
-        await page
-            .getByRole('button', { name: 'Me', exact: true })
-            .click();
+        await page.getByRole('button', { name: 'Me', exact: true }).click();
         await expect(page).toHaveURL('/profile');
 
         // Click logout
