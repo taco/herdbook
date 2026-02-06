@@ -11,13 +11,16 @@ import { useAuth } from '@/context/AuthContext';
 import Login from '@/pages/Login';
 import Signup from '@/pages/Signup';
 import Dashboard from '@/pages/Dashboard';
-import Logout from '@/pages/Logout';
+import Horses from '@/pages/Horses';
+import Riders from '@/pages/Riders';
+import Profile from '@/pages/Profile';
 import EditSession from '@/pages/EditSession';
 import EditHorse from '@/pages/EditHorse';
 import VoiceSessionCapture from '@/pages/VoiceSessionCapture';
 import SessionReview from '@/pages/SessionReview';
-import PrivateLayout from '@/layouts/PrivateLayout';
-import MinimalPrivateLayout from '@/layouts/MinimalPrivateLayout';
+import TabLayout from '@/layouts/TabLayout';
+import SubPageLayout from '@/layouts/SubPageLayout';
+import FullScreenLayout from '@/layouts/FullScreenLayout';
 
 const PublicRoute: React.FC<{ element: React.ReactElement }> = ({
     element,
@@ -39,10 +42,16 @@ function App() {
                     element={<PublicRoute element={<Signup />} />}
                 />
 
-                {/* Authenticated routes */}
-                <Route element={<PrivateLayout />}>
+                {/* Tab bar routes */}
+                <Route element={<TabLayout />}>
                     <Route path="/" element={<Dashboard />} />
-                    <Route path="/logout" element={<Logout />} />
+                    <Route path="/horses" element={<Horses />} />
+                    <Route path="/riders" element={<Riders />} />
+                    <Route path="/profile" element={<Profile />} />
+                </Route>
+
+                {/* Sub-page routes (floating back button, no tab bar) */}
+                <Route element={<SubPageLayout />}>
                     <Route path="/sessions/new" element={<EditSession />} />
                     <Route
                         path="/sessions/:id/edit"
@@ -52,8 +61,8 @@ function App() {
                     <Route path="/horses/:id/edit" element={<EditHorse />} />
                 </Route>
 
-                {/* Full-screen authenticated routes (no sidebar header) */}
-                <Route element={<MinimalPrivateLayout />}>
+                {/* Full-screen routes (voice flows) */}
+                <Route element={<FullScreenLayout />}>
                     <Route
                         path="/sessions/voice"
                         element={<VoiceSessionCapture />}

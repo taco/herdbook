@@ -4,8 +4,6 @@ import { gql } from '@apollo/client';
 import ActivityCard from '@/components/ActivityCard';
 import SessionDetailSheet from '@/components/SessionDetailSheet';
 import { HorseCard } from '@/components/HorseCard';
-import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
 import {
     GetDashboardDataQuery,
     GetDashboardDataQueryVariables,
@@ -67,7 +65,7 @@ export default function Dashboard() {
 
     return (
         <div className="p-4">
-            <div className="space-y-6 pb-24">
+            <div className="space-y-6">
                 {/* Herd Activity Section */}
                 <section>
                     <h2 className="text-sm font-medium text-muted-foreground mb-3 px-1">
@@ -103,19 +101,6 @@ export default function Dashboard() {
                         ))}
                     </div>
                 </section>
-            </div>
-
-            <div className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-background via-background/95 to-transparent pt-8 pointer-events-none">
-                <div className="w-full pointer-events-auto">
-                    <Button
-                        className="w-full shadow-lg rounded-full text-base font-medium"
-                        size="lg"
-                        onClick={() => navigate('/sessions/voice')}
-                    >
-                        <Plus className="mr-2 h-5 w-5" />
-                        Log Session
-                    </Button>
-                </div>
             </div>
 
             <SessionDetailSheet
