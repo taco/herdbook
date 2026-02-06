@@ -31,6 +31,9 @@ jobs:
         env:
           DATABASE_URL: postgresql://dummy:dummy@localhost:5432/dummy
 
+      - name: Run Checks
+        run: pnpm check
+
       - name: Run tests
         run: pnpm --filter web test
         # Note: API tests currently need DB (integration tests)
