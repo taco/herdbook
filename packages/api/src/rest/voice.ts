@@ -9,6 +9,7 @@ export interface ParseSessionContext {
     horses: Array<{ id: string; name: string }>;
     riders: Array<{ id: string; name: string }>;
     currentDateTime: string;
+    timezone?: string;
 }
 
 export interface ParsedSession {
@@ -127,11 +128,12 @@ Available riders (match case-insensitively, partial matches OK):
 ${context.riders.map((r) => `- ID: "${r.id}", Name: "${r.name}"`).join('\n')}
 
 Current date/time: ${context.currentDateTime}
+User's timezone: ${context.timezone ?? 'UTC'}
 
 Instructions:
 1. Match horse/rider names to their IDs. Use fuzzy matching (partial names, nicknames, case-insensitive).
 2. Parse duration: "an hour" → 60, "45 minutes" → 45, "half an hour" → 30, "an hour and a half" → 90
-3. Parse dates relative to currentDateTime: "yesterday", "last Tuesday", "this morning", etc.
+3. Parse dates relative to currentDateTime in the user's timezone: "yesterday", "last Tuesday", "this morning", etc. Return dates as ISO 8601 strings.
 4. Infer work type from context clues:
    - FLATWORK: dressage, schooling, walk/trot/canter work, arena work
    - JUMPING: jumps, fences, poles, courses

@@ -13,20 +13,20 @@ datasource db {
 }
 
 model Horse {
-  id        String    @id @default(cuid())
+  id        String   @id @default(cuid())
   name      String
   notes     String?
-  isActive  Boolean   @default(true)
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
   sessions  Session[]
 }
 
 model Rider {
-  id        String    @id @default(cuid())
+  id        String   @id @default(cuid())
   name      String
-  email     String    @unique
-  createdAt DateTime  @default(now())
+  email     String   @unique
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
   password  String
   sessions  Session[]
 }
@@ -37,12 +37,12 @@ model Session {
   horseId         String
   rider           Rider    @relation(fields: [riderId], references: [id])
   riderId         String
-  date            DateTime
+  date            DateTime @db.Timestamptz(3)
   durationMinutes Int
   workType        WorkType
   notes           String   @default("")
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  createdAt       DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt       DateTime @updatedAt @db.Timestamptz(3)
 }
 
 enum WorkType {

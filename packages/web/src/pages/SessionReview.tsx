@@ -12,6 +12,10 @@ import NotesSection from '@/components/review/NotesSection';
 import FieldEditSheet, { FieldType } from '@/components/review/FieldEditSheet';
 import { useAuth } from '@/context/AuthContext';
 import {
+    formatAsDateTimeLocalValue,
+    formatSessionDateTime,
+} from '@/lib/dateUtils';
+import {
     WorkType,
     CreateSessionMutation,
     CreateSessionMutationVariables,
@@ -21,21 +25,10 @@ import {
     GetRidersQueryVariables,
 } from '@/generated/graphql';
 
-function formatAsDateTimeLocalValue(date: Date): string {
-    const tzOffsetMs = date.getTimezoneOffset() * 60_000;
-    return new Date(date.getTime() - tzOffsetMs).toISOString().slice(0, 16);
-}
-
 function formatDisplayDate(dateStr: string | null): string | null {
     if (!dateStr) return null;
     try {
-        const date = new Date(dateStr);
-        return date.toLocaleString(undefined, {
-            month: 'short',
-            day: 'numeric',
-            hour: 'numeric',
-            minute: '2-digit',
-        });
+        return formatSessionDateTime(new Date(dateStr));
     } catch {
         return null;
     }

@@ -35,6 +35,7 @@ import VoiceRecordButton from '@/components/VoiceRecordButton';
 import VoiceSessionButton from '@/components/VoiceSessionButton';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/context/AuthContext';
+import { formatAsDateTimeLocalValue, parseSessionDate } from '@/lib/dateUtils';
 import {
     WorkType,
     GetSessionForEditQuery,
@@ -66,11 +67,6 @@ interface PrefillData {
 
 interface LocationState {
     prefill?: PrefillData;
-}
-
-function formatAsDateTimeLocalValue(date: Date): string {
-    const tzOffsetMs = date.getTimezoneOffset() * 60_000;
-    return new Date(date.getTime() - tzOffsetMs).toISOString().slice(0, 16);
 }
 
 const GET_SESSION_FOR_EDIT = gql`
@@ -234,11 +230,9 @@ export default function EditSession() {
         if (isEditMode && data?.session) {
             setHorseId(data.session.horse.id);
             setRiderId(data.session.rider.id);
-            const dateValue = Number(data.session.date);
-            const dateObj = isNaN(dateValue)
-                ? new Date(data.session.date)
-                : new Date(dateValue);
-            setDate(formatAsDateTimeLocalValue(dateObj));
+            setDate(
+                formatAsDateTimeLocalValue(parseSessionDate(data.session.date))
+            );
             setDurationMinutes(data.session.durationMinutes);
             setWorkType(data.session.workType as WorkType);
             setNotes(data.session.notes);

@@ -2,6 +2,7 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { WorkType } from '@/generated/graphql';
 import { apiEndpoint } from '@/lib/api';
+import { getDeviceTimezone } from '@/lib/dateUtils';
 
 export type RecordingState =
     | 'idle'
@@ -108,6 +109,7 @@ export function useRecordingStateMachine({
                         name: r.name,
                     })),
                     currentDateTime: new Date().toISOString(),
+                    timezone: getDeviceTimezone(),
                 })
             );
 

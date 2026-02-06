@@ -2,6 +2,7 @@ import { useState, useRef, useCallback } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { WorkType } from '@/generated/graphql';
 import { apiEndpoint } from '@/lib/api';
+import { getDeviceTimezone } from '@/lib/dateUtils';
 
 type RecordingState = 'idle' | 'recording' | 'processing';
 
@@ -98,6 +99,7 @@ export function useVoiceSessionInput({
                             name: r.name,
                         })),
                         currentDateTime: new Date().toISOString(),
+                        timezone: getDeviceTimezone(),
                     })
                 );
 
