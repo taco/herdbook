@@ -22,14 +22,38 @@ function getHttpsOptions(): { key: Buffer; cert: Buffer } | undefined {
     return undefined;
 }
 
-async function start() {
+async function start(): Promise<void> {
     const httpsOptions = getHttpsOptions();
     const fastify = await createApiApp(httpsOptions);
-    const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 4000;
+    const basePort = process.env.PORT ? parseInt(process.env.PORT, 10) : 4000;
     const host = getServerHost();
     const protocol = httpsOptions ? 'https' : 'http';
-    await fastify.listen({ port, host });
-    console.log(`Server is running on ${protocol}://${host}:${port}/graphql`);
+    const maxAttempts = 10;
+
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+        const port = basePort + attempt;
+        try {
+            await fastify.listen({ port, host });
+            console.log(
+                `Server is running on ${protocol}://${host}:${port}/graphql`
+            );
+            return;
+        } catch (err: unknown) {
+            if (
+                err instanceof Error &&
+                'code' in err &&
+                (err as NodeJS.ErrnoException).code === 'EADDRINUSE'
+            ) {
+                console.warn(`Port ${port} in use, trying ${port + 1}…`);
+                continue;
+            }
+            throw err;
+        }
+    }
+
+    throw new Error(
+        `Could not find an open port after ${maxAttempts} attempts (tried ${basePort}–${basePort + maxAttempts - 1})`
+    );
 }
 
 start();
