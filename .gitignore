@@ -44,7 +44,7 @@ packages/api/src/generated/prisma
 .env.*
 !.env.example
 
-.notes/
+.notes
 
 # Local SSL certs
 *.pem
