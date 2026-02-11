@@ -24,7 +24,6 @@ import EditHorse from '@/pages/EditHorse';
 import SessionDetail from '@/pages/SessionDetail';
 import VoiceSessionCapture from '@/pages/VoiceSessionCapture';
 import TabLayout from '@/layouts/TabLayout';
-import SubPageLayout from '@/layouts/SubPageLayout';
 import FullScreenLayout from '@/layouts/FullScreenLayout';
 
 const SUB_PAGE_PATTERN =
@@ -184,7 +183,7 @@ function AppRoutes(): React.ReactNode {
                         onAnimationEnd={handleOverlayAnimEnd}
                     >
                         <Routes location={location}>
-                            <Route element={<SubPageLayout />}>
+                            <Route element={<FullScreenLayout />}>
                                 <Route
                                     path="/sessions/new"
                                     element={<EditSession />}

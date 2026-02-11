@@ -1,16 +1,16 @@
 import { Outlet, Navigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 
-/**
- * Full-screen authenticated layout for voice flows and immersive experiences.
- * No tab bar, no back button — page controls its own chrome.
- */
-export default function FullScreenLayout() {
+export default function FullScreenLayout(): React.ReactNode {
     const { isAuthenticated } = useAuth();
 
     if (!isAuthenticated) {
         return <Navigate to="/login" />;
     }
 
-    return <Outlet />;
+    return (
+        <main className="min-h-dvh">
+            <Outlet />
+        </main>
+    );
 }

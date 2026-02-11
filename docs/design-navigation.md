@@ -2,15 +2,14 @@
 
 This document defines the navigation patterns, layout system, and UI conventions used across the app. All new pages should follow these standards.
 
-## Three Layout Types
+## Two Layout Types
 
-Every authenticated route renders inside one of three layouts. Choose based on the page's role:
+Every authenticated route renders inside one of two layouts. Choose based on the page's role:
 
-| Layout               | When to Use                              | Has Tab Bar           | Has Back Button       | Example Routes                                       |
-| -------------------- | ---------------------------------------- | --------------------- | --------------------- | ---------------------------------------------------- |
-| **TabLayout**        | Top-level browsing destinations          | Yes (z-30)            | No                    | `/`, `/horses`, `/riders`, `/profile`                |
-| **SubPageLayout**    | Drilling into a resource or creating one | No (slides over tabs) | Page provides its own | `/sessions/:id`, `/horses/:id/edit`, `/sessions/new` |
-| **FullScreenLayout** | Immersive flows that own all chrome      | No                    | Page provides its own | `/sessions/voice`                                    |
+| Layout               | When to Use                                             | Has Tab Bar | Has Back Button       | Example Routes                                                          |
+| -------------------- | ------------------------------------------------------- | ----------- | --------------------- | ----------------------------------------------------------------------- |
+| **TabLayout**        | Top-level browsing destinations                         | Yes (z-30)  | No                    | `/`, `/horses`, `/riders`, `/profile`                                   |
+| **FullScreenLayout** | Drill-in pages, create flows, and immersive full-screen | No          | Page provides its own | `/sessions/:id`, `/horses/:id/edit`, `/sessions/new`, `/sessions/voice` |
 
 ### When to route vs. use local state
 
@@ -32,7 +31,7 @@ Sub-pages are the most common pattern for any "drill-in" page. They slide in fro
 
 ### Adding a new sub-page route
 
-1. Add the route inside the `<SubPageLayout>` group in `App.tsx`.
+1. Add the route inside the `<FullScreenLayout>` group in `App.tsx`.
 2. Update `SUB_PAGE_PATTERN` regex to match the new path.
 3. If the path contains a dynamic segment that could collide with a static segment (like `sessions/voice` vs `sessions/:id`), use a negative lookahead: `sessions\/(?!voice$)[^/]+`.
 
@@ -281,8 +280,8 @@ When writing e2e tests for sub-pages:
 
 ## Checklist for New Pages
 
-- [ ] Decide: TabLayout (browsing), SubPageLayout (drill-in), or FullScreenLayout (immersive)?
-- [ ] If sub-page: add route to `<SubPageLayout>` group and update `SUB_PAGE_PATTERN` regex
+- [ ] Decide: TabLayout (browsing) or FullScreenLayout (drill-in / immersive)?
+- [ ] If sub-page: add route to `<FullScreenLayout>` group and update `SUB_PAGE_PATTERN` regex
 - [ ] Render inline header with back button (`aria-label="Go back"`)
 - [ ] Use `triggerExit()` for back navigation from sub-pages
 - [ ] For detail pages: implement view/edit cascade with `isEditing` state
