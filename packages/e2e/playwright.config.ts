@@ -31,7 +31,7 @@ export default defineConfig({
     /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
     use: {
         /* Base URL to use in actions like `await page.goto('')`. */
-        baseURL: 'http://127.0.0.1:3001',
+        baseURL: 'http://127.0.0.1:3099',
 
         /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
         trace: 'on-first-retry',
@@ -54,10 +54,10 @@ export default defineConfig({
     webServer: [
         {
             command: 'pnpm --filter api dev',
-            url: 'http://127.0.0.1:4001',
+            url: 'http://127.0.0.1:4099',
             reuseExistingServer: !process.env.CI,
             env: {
-                PORT: '4001',
+                PORT: '4099',
                 DATABASE_URL:
                     'postgresql://postgres:test@127.0.0.1:5433/herdbook_test',
                 JWT_SECRET: 'e2e-test-jwt-secret',
@@ -69,11 +69,11 @@ export default defineConfig({
             timeout: 30 * 1000,
         },
         {
-            command: 'pnpm --filter web dev --port 3001',
-            url: 'http://127.0.0.1:3001',
+            command: 'pnpm --filter web dev --port 3099',
+            url: 'http://127.0.0.1:3099',
             reuseExistingServer: !process.env.CI,
             env: {
-                VITE_API_URL: 'http://127.0.0.1:4001',
+                VITE_API_URL: 'http://127.0.0.1:4099',
                 VITE_DEV_AUTOLOGIN: 'false',
                 USE_HTTPS: 'false',
             },

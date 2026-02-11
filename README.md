@@ -29,7 +29,6 @@ Herdbook is a monorepo containing:
 ### Tooling
 
 - [pnpm](https://pnpm.io/) - Package manager
-- [Concurrently](https://github.com/open-cli-tools/concurrently) - Run multiple commands
 
 ## Prerequisites
 
