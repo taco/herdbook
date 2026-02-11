@@ -28,11 +28,22 @@ function getDockerComposeCommand(): string {
     );
 }
 
-async function globalTeardown() {
+async function globalTeardown(): Promise<void> {
     // In CI, the database is managed by GitHub Actions services
     if (process.env.CI) {
         console.log('CI environment detected - skipping database teardown');
         return;
+    }
+
+    // If dev servers are still running externally (e2e-dev.mjs), skip teardown
+    try {
+        const res = await fetch('http://127.0.0.1:4099');
+        if (res.ok || res.status) {
+            console.log('Dev servers still running, skipping Docker teardown');
+            return;
+        }
+    } catch {
+        // Server not responding — Playwright's own servers have exited, proceed with cleanup
     }
 
     console.log('Stopping E2E test database...');

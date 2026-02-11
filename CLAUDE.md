@@ -77,9 +77,26 @@ Use lead/builder/verifier pattern with cost-conscious model allocation:
 - Use `fastify.inject()` for API tests
 - Use `getByRole`/`getByText` for frontend tests
 
+## Skills
+
+Use these skills for common workflows. Invoke with `/skillname` or the Skill tool.
+
+| Task                          | Skill             |
+| ----------------------------- | ----------------- |
+| Creating a new page           | `/new-page`       |
+| Schema/model changes          | `/schema`         |
+| E2E dev loop                  | `/e2e`            |
+| Writing web unit tests        | `/test-web`       |
+| Writing API integration tests | `/test-api`       |
+| Running tests                 | `/verify`         |
+| Pre-commit checks             | `/preflight`      |
+| Git worktree setup            | `/worktree`       |
+| Railway preview deploys       | `/deploy-preview` |
+
 ## New Feature Workflow
 
-1. Define schema (Prisma + GraphQL)
+1. Define schema (Prisma + GraphQL) → `/schema`
 2. Implement resolvers
-3. Build UI and connect
-4. Manual smoke test
+3. Build UI and connect → `/new-page`
+4. Write tests → `/test-api`, `/test-web`, `/e2e`
+5. Pre-commit check → `/preflight`
