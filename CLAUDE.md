@@ -51,6 +51,7 @@ Use lead/builder/verifier pattern with cost-conscious model allocation:
 - Explicit `isLoading` state (no Suspense for data)
 - Local state preferred (`useState`/`useReducer`)
 - Touch targets: minimum 44x44px
+- **Navigation & layouts**: see [docs/design-navigation.md](docs/design-navigation.md) for layout types, sub-page overlay system, view/edit cascade, drawer-based editing, animation standards, and the new page checklist
 
 ## Security
 

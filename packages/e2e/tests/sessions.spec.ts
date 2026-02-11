@@ -1,5 +1,4 @@
 import { test, expect } from '@playwright/test';
-import { selectRadixOption } from '@/utils/radixHelpers';
 import {
     TEST_HORSE_NAME,
     TEST_RIDER_NAME,
@@ -7,9 +6,53 @@ import {
     TEST_RIDER_PASSWORD,
 } from '@/seedConstants';
 
+/** Helper: open the field edit drawer, select an option, and wait for it to close */
+async function selectFieldOption(
+    page: import('@playwright/test').Page,
+    fieldLabel: string,
+    optionText: string
+): Promise<void> {
+    // Tap the SummaryRow to open the FieldEditSheet
+    await page.getByLabel(`Edit ${fieldLabel}`).click();
+    // Wait for the sheet to appear and pick the option
+    const sheet = page.getByRole('dialog');
+    await sheet.getByText(optionText, { exact: true }).click();
+    // Sheet auto-closes on selection for list fields
+    await expect(sheet).not.toBeVisible();
+}
+
+/** Helper: open a field drawer, type a value, and tap Done */
+async function setFieldValue(
+    page: import('@playwright/test').Page,
+    fieldLabel: string,
+    value: string
+): Promise<void> {
+    await page.getByLabel(`Edit ${fieldLabel}`).click();
+    const sheet = page.getByRole('dialog');
+    await expect(sheet).toBeVisible();
+    const input = sheet.locator('input, textarea').first();
+    await input.fill(value);
+    await sheet.getByRole('button', { name: 'Done' }).click();
+    await expect(sheet).not.toBeVisible();
+}
+
+/** Helper: open notes editor, type notes, and tap Done */
+async function setNotes(
+    page: import('@playwright/test').Page,
+    notes: string
+): Promise<void> {
+    // Notes has a different entry point — the "Edit" link in the NotesSection
+    await page.getByLabel('Edit Notes').click();
+    const sheet = page.getByRole('dialog');
+    await expect(sheet).toBeVisible();
+    const textarea = sheet.locator('textarea').first();
+    await textarea.fill(notes);
+    await sheet.getByRole('button', { name: 'Done' }).click();
+    await expect(sheet).not.toBeVisible();
+}
+
 test.describe('Session Management', () => {
     test.beforeEach(async ({ page }) => {
-        // Login before each test
         await page.goto('/login');
         await page.fill('input[id="email"]', TEST_RIDER_EMAIL);
         await page.fill('input[id="password"]', TEST_RIDER_PASSWORD);
@@ -20,43 +63,18 @@ test.describe('Session Management', () => {
     test('can log a new session', async ({ page }) => {
         const uniqueNote = `Worked on canter transitions ${Date.now()}`;
 
-        // Navigate directly to the manual session form
         await page.goto('/sessions/new');
 
-        await selectRadixOption(page, 'Horse', TEST_HORSE_NAME);
-        await page.fill('input[id="durationMinutes"]', '45');
-        await selectRadixOption(page, 'Work type', 'Flatwork');
-        await page.fill('textarea[id="notes"]', uniqueNote);
+        await selectFieldOption(page, 'Horse', TEST_HORSE_NAME);
+        await selectFieldOption(page, 'Work Type', 'Flatwork');
+        await setFieldValue(page, 'Duration', '45');
+        await setNotes(page, uniqueNote);
 
-        await page.click('button[type="submit"]:has-text("Log Session")');
+        await page.getByRole('button', { name: 'Save Session' }).click();
 
         await page.waitForURL('/');
         await expect(page).toHaveURL('/');
-
         await expect(page.getByText(uniqueNote)).toBeVisible();
-    });
-
-    test('shows horse context when selecting horse', async ({ page }) => {
-        await page.goto('/sessions/new');
-
-        await page.waitForSelector('label:has-text("Horse")', {
-            state: 'visible',
-        });
-
-        await selectRadixOption(page, 'Horse', TEST_HORSE_NAME);
-
-        // Wait for last session context to load (if there is one)
-        // The component shows a skeleton while loading, then the ActivityCard
-        // We'll check that the previous session section is visible
-        const previousSessionLabel = page.locator(
-            'label:has-text("Previous session")'
-        );
-        await expect(previousSessionLabel).toBeVisible();
-
-        // The section should either show a skeleton (loading) or content (loaded)
-        // Both are valid states, we just verify the section exists
-        const previousSessionSection = previousSessionLabel.locator('..');
-        await expect(previousSessionSection).toBeVisible();
     });
 
     test('can view session details by tapping activity card', async ({
@@ -65,30 +83,28 @@ test.describe('Session Management', () => {
         // First create a session
         const uniqueNote = `Session for detail view test ${Date.now()}`;
         await page.goto('/sessions/new');
-        await selectRadixOption(page, 'Horse', TEST_HORSE_NAME);
-        await page.fill('input[id="durationMinutes"]', '30');
-        await selectRadixOption(page, 'Work type', 'Groundwork');
-        await page.fill('textarea[id="notes"]', uniqueNote);
-        await page.click('button[type="submit"]:has-text("Log Session")');
+        await selectFieldOption(page, 'Horse', TEST_HORSE_NAME);
+        await selectFieldOption(page, 'Work Type', 'Groundwork');
+        await setFieldValue(page, 'Duration', '30');
+        await setNotes(page, uniqueNote);
+        await page.getByRole('button', { name: 'Save Session' }).click();
         await page.waitForURL('/');
 
         // Find and click the activity card with our note
-        const activityCard = page.locator('text=' + uniqueNote).first();
-        await activityCard.click();
+        await page.getByText(uniqueNote).first().click();
 
-        // Verify the sheet opens with session details
-        const dialog = page.getByRole('dialog');
-        await expect(dialog).toBeVisible();
-        // Check for horse name specifically in the dialog header
+        // Verify we're on the session detail page
+        await expect(page).toHaveURL(/\/sessions\/[^/]+$/);
+
+        // Check session details are visible on the sub-page overlay
+        const detail = page.locator('.fixed.inset-0.z-20');
+        await expect(detail.getByText(TEST_HORSE_NAME)).toBeVisible();
+        await expect(detail.getByText('Groundwork')).toBeVisible();
+        await expect(detail.getByText('30 minutes')).toBeVisible();
+        await expect(detail.getByText(TEST_RIDER_NAME)).toBeVisible();
+        await expect(detail.getByText(uniqueNote)).toBeVisible();
         await expect(
-            dialog.getByRole('heading', { name: TEST_HORSE_NAME })
-        ).toBeVisible();
-        await expect(dialog.getByText('Groundwork')).toBeVisible();
-        await expect(dialog.getByText('30 minutes')).toBeVisible();
-        await expect(dialog.getByText(TEST_RIDER_NAME)).toBeVisible();
-        await expect(dialog.getByText(uniqueNote)).toBeVisible();
-        await expect(
-            dialog.getByRole('button', { name: 'Edit Session' })
+            detail.getByRole('button', { name: 'Edit' })
         ).toBeVisible();
     });
 
@@ -96,45 +112,41 @@ test.describe('Session Management', () => {
         // First create a session
         const originalNote = `Original note ${Date.now()}`;
         await page.goto('/sessions/new');
-        await selectRadixOption(page, 'Horse', TEST_HORSE_NAME);
-        await page.fill('input[id="durationMinutes"]', '45');
-        await selectRadixOption(page, 'Work type', 'Flatwork');
-        await page.fill('textarea[id="notes"]', originalNote);
-        await page.click('button[type="submit"]:has-text("Log Session")');
+        await selectFieldOption(page, 'Horse', TEST_HORSE_NAME);
+        await selectFieldOption(page, 'Work Type', 'Flatwork');
+        await setFieldValue(page, 'Duration', '45');
+        await setNotes(page, originalNote);
+        await page.getByRole('button', { name: 'Save Session' }).click();
         await page.waitForURL('/');
 
-        // Click on the activity card to open details
-        const activityCard = page.locator('text=' + originalNote).first();
-        await activityCard.click();
+        // Click on the activity card to open session detail
+        await page.getByText(originalNote).first().click();
+        await expect(page).toHaveURL(/\/sessions\/[^/]+$/);
 
-        // Click Edit Session button in the dialog
-        const dialog = page.getByRole('dialog');
-        await dialog.getByRole('button', { name: 'Edit Session' }).click();
-        await page.waitForURL(/\/sessions\/.*\/edit/);
+        // Click Edit button in the header
+        await page.getByRole('button', { name: 'Edit' }).click();
 
-        // Verify we're on edit page with correct data loaded
-        await expect(page.getByText('Edit session')).toBeVisible();
-        // Wait for the form data to be fully populated
-        await expect(page.locator('textarea[id="notes"]')).toHaveValue(
-            originalNote
-        );
-        // Also wait for the horse select to show the correct value (not placeholder)
-        await expect(page.locator('button[id="horseId"]')).not.toHaveText(
-            'Select a horse'
-        );
-        // Wait for work type select to be populated
-        await expect(page.locator('button[id="workType"]')).not.toHaveText(
-            'Select a work type'
-        );
+        // The edit overlay should show with the drawer-based editor
+        await expect(
+            page.getByRole('heading', { name: 'Edit Session' })
+        ).toBeVisible();
 
-        // Update the notes
+        // Verify current notes value is shown in the edit overlay
+        await expect(page.getByText(originalNote).first()).toBeVisible();
+
+        // Update the notes via the drawer
         const updatedNote = `Updated note ${Date.now()}`;
-        await page.fill('textarea[id="notes"]', updatedNote);
+        await setNotes(page, updatedNote);
 
-        // Click the Save submit button
-        await page.click('button[type="submit"]:has-text("Save")');
+        // Save — should close edit overlay and return to detail
+        await page.getByRole('button', { name: 'Save Session' }).click();
 
-        // Verify redirect and updated content
+        // Should still be on the session detail page (not redirected to dashboard)
+        await expect(page).toHaveURL(/\/sessions\/[^/]+$/);
+        await expect(page.getByText(updatedNote)).toBeVisible();
+
+        // Go back to dashboard and verify update is reflected
+        await page.getByLabel('Go back').first().click();
         await page.waitForURL('/');
         await expect(page.getByText(updatedNote)).toBeVisible();
         await expect(page.getByText(originalNote)).not.toBeVisible();
@@ -144,24 +156,25 @@ test.describe('Session Management', () => {
         // First create a session
         const uniqueNote = `Session to delete ${Date.now()}`;
         await page.goto('/sessions/new');
-        await selectRadixOption(page, 'Horse', TEST_HORSE_NAME);
-        await page.fill('input[id="durationMinutes"]', '20');
-        await selectRadixOption(page, 'Work type', 'Trail');
-        await page.fill('textarea[id="notes"]', uniqueNote);
-        await page.click('button[type="submit"]:has-text("Log Session")');
+        await selectFieldOption(page, 'Horse', TEST_HORSE_NAME);
+        await selectFieldOption(page, 'Work Type', 'Trail');
+        await setFieldValue(page, 'Duration', '20');
+        await setNotes(page, uniqueNote);
+        await page.getByRole('button', { name: 'Save Session' }).click();
         await page.waitForURL('/');
 
         // Verify session exists
         await expect(page.getByText(uniqueNote)).toBeVisible();
 
-        // Click on the activity card to open details
-        const activityCard = page.locator('text=' + uniqueNote).first();
-        await activityCard.click();
+        // Click on the activity card to open session detail
+        await page.getByText(uniqueNote).first().click();
+        await expect(page).toHaveURL(/\/sessions\/[^/]+$/);
 
-        // Click Edit Session button in the detail sheet
-        const detailSheet = page.getByRole('dialog');
-        await detailSheet.getByRole('button', { name: 'Edit Session' }).click();
-        await page.waitForURL(/\/sessions\/.*\/edit/);
+        // Click Edit button to open edit overlay
+        await page.getByRole('button', { name: 'Edit' }).click();
+        await expect(
+            page.getByRole('heading', { name: 'Edit Session' })
+        ).toBeVisible();
 
         // Click Delete Session button
         await page.getByRole('button', { name: 'Delete Session' }).click();
@@ -171,7 +184,7 @@ test.describe('Session Management', () => {
         await expect(alertDialog.getByText('Delete session?')).toBeVisible();
         await alertDialog.getByRole('button', { name: 'Delete' }).click();
 
-        // Verify redirect and session is gone
+        // Verify redirect to dashboard and session is gone
         await page.waitForURL('/');
         await expect(page.getByText(uniqueNote)).not.toBeVisible();
     });

@@ -9,6 +9,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import RecordingPanel from '@/components/voice/RecordingPanel';
 import ProcessingOverlay from '@/components/voice/ProcessingOverlay';
 import { useRecordingStateMachine } from '@/hooks/useRecordingStateMachine';
+import { formatAsDateTimeLocalValue } from '@/lib/dateUtils';
 import { GetHorsesQuery, GetRidersQuery } from '@/generated/graphql';
 
 const GET_HORSES_QUERY = gql`
@@ -56,10 +57,25 @@ export default function VoiceSessionCapture() {
         riders,
     });
 
-    // Navigate to review screen on success
+    // Navigate to create screen on success with prefill data
     useEffect(() => {
         if (state === 'success' && parsedFields) {
-            navigate('/sessions/review', { state: { parsedFields } });
+            navigate('/sessions/new', {
+                state: {
+                    prefill: {
+                        horseId: parsedFields.horseId,
+                        riderId: parsedFields.riderId,
+                        date: parsedFields.date
+                            ? formatAsDateTimeLocalValue(
+                                  new Date(parsedFields.date)
+                              )
+                            : null,
+                        durationMinutes: parsedFields.durationMinutes,
+                        workType: parsedFields.workType,
+                        notes: parsedFields.notes,
+                    },
+                },
+            });
         }
     }, [state, parsedFields, navigate]);
 

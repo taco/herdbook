@@ -26,6 +26,7 @@ export default function NotesSection({ notes, onEdit }: NotesSectionProps) {
                     type="button"
                     onClick={onEdit}
                     className="text-sm text-primary font-medium"
+                    aria-label="Edit Notes"
                 >
                     Edit
                 </button>
