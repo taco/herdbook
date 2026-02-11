@@ -16,7 +16,7 @@ export function HorseCard({ horse }: HorseCardProps) {
     return (
         <Card
             className="cursor-pointer hover:bg-accent/50 transition-colors"
-            onClick={() => push(`/horses/${horse.id}/edit`)}
+            onClick={() => push(`/horses/${horse.id}`)}
         >
             <CardHeader>
                 <CardTitle className="truncate">{horse.name}</CardTitle>

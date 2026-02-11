@@ -259,6 +259,79 @@ export type UpdateHorseMutation = {
     updateHorse: { __typename?: 'Horse'; id: string };
 };
 
+export type CreateSessionMutationVariables = Exact<{
+    horseId: Scalars['ID']['input'];
+    date: Scalars['DateTime']['input'];
+    durationMinutes: Scalars['Int']['input'];
+    workType: WorkType;
+    notes: Scalars['String']['input'];
+}>;
+
+export type CreateSessionMutation = {
+    __typename?: 'Mutation';
+    createSession: { __typename?: 'Session'; id: string };
+};
+
+export type GetHorseProfileQueryVariables = Exact<{
+    id: Scalars['ID']['input'];
+}>;
+
+export type GetHorseProfileQuery = {
+    __typename?: 'Query';
+    horse: {
+        __typename?: 'Horse';
+        id: string;
+        name: string;
+        notes: string | null;
+        isActive: boolean;
+        activity: Array<{
+            __typename?: 'WeeklyActivity';
+            weekStart: any;
+            count: number;
+        }>;
+        sessions: Array<{
+            __typename?: 'Session';
+            id: string;
+            date: any;
+            durationMinutes: number;
+            workType: WorkType;
+            notes: string;
+            horse: { __typename?: 'Horse'; name: string };
+            rider: { __typename?: 'Rider'; name: string };
+        }>;
+    } | null;
+};
+
+export type GetHorsesListQueryVariables = Exact<{ [key: string]: never }>;
+
+export type GetHorsesListQuery = {
+    __typename?: 'Query';
+    horses: Array<{
+        __typename?: 'Horse';
+        id: string;
+        name: string;
+        activity: Array<{
+            __typename?: 'WeeklyActivity';
+            weekStart: any;
+            count: number;
+        }>;
+    }>;
+};
+
+export type LoginMutationVariables = Exact<{
+    email: Scalars['String']['input'];
+    password: Scalars['String']['input'];
+}>;
+
+export type LoginMutation = {
+    __typename?: 'Mutation';
+    login: {
+        __typename?: 'AuthPayload';
+        token: string;
+        rider: { __typename?: 'Rider'; id: string; name: string };
+    };
+};
+
 export type GetSessionForEditQueryVariables = Exact<{
     id: Scalars['ID']['input'];
 }>;
@@ -275,19 +348,6 @@ export type GetSessionForEditQuery = {
         horse: { __typename?: 'Horse'; id: string; name: string };
         rider: { __typename?: 'Rider'; id: string; name: string };
     } | null;
-};
-
-export type CreateSessionMutationVariables = Exact<{
-    horseId: Scalars['ID']['input'];
-    date: Scalars['DateTime']['input'];
-    durationMinutes: Scalars['Int']['input'];
-    workType: WorkType;
-    notes: Scalars['String']['input'];
-}>;
-
-export type CreateSessionMutation = {
-    __typename?: 'Mutation';
-    createSession: { __typename?: 'Session'; id: string };
 };
 
 export type UpdateSessionMutationVariables = Exact<{
@@ -312,38 +372,6 @@ export type DeleteSessionMutationVariables = Exact<{
 export type DeleteSessionMutation = {
     __typename?: 'Mutation';
     deleteSession: boolean;
-};
-
-export type GetLastSessionForHorseQueryVariables = Exact<{
-    horseId: Scalars['ID']['input'];
-}>;
-
-export type GetLastSessionForHorseQuery = {
-    __typename?: 'Query';
-    lastSessionForHorse: {
-        __typename?: 'Session';
-        id: string;
-        date: any;
-        durationMinutes: number;
-        workType: WorkType;
-        notes: string;
-        horse: { __typename?: 'Horse'; name: string };
-        rider: { __typename?: 'Rider'; name: string };
-    } | null;
-};
-
-export type LoginMutationVariables = Exact<{
-    email: Scalars['String']['input'];
-    password: Scalars['String']['input'];
-}>;
-
-export type LoginMutation = {
-    __typename?: 'Mutation';
-    login: {
-        __typename?: 'AuthPayload';
-        token: string;
-        rider: { __typename?: 'Rider'; id: string; name: string };
-    };
 };
 
 export type SignupMutationVariables = Exact<{
