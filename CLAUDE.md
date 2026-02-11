@@ -20,8 +20,9 @@ Use lead/builder/verifier pattern with cost-conscious model allocation:
 ## Commands
 
 - Always use `pnpm` (not npm)
-- Run `pnpm format` after making changes
-- Run `pnpm check` before committing (runs format:check + typecheck)
+- Always use `pnpm run <script>` instead of `pnpm <script>` shorthand
+- Run `pnpm run format` after making changes
+- Run `pnpm run check` before committing (runs format:check + typecheck)
 
 ## Tech Stack
 
