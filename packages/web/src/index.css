@@ -214,10 +214,33 @@
     --sidebar-ring: hsl(217.2 91.2% 59.8%);
 }
 
-/* iOS-style slide transitions for sub-pages */
+/* View Transition: default is no animation (instant, for tab switches) */
+::view-transition-old(root),
+::view-transition-new(root) {
+    animation: none;
+}
 
-/* Overlay: slide in/out from right */
-@keyframes slide-in-right {
+/* Forward navigation: new page slides in from right over old page */
+[data-transition='slide-forward']::view-transition-old(root) {
+    z-index: 0;
+    animation: 300ms ease-out both vt-shift-left;
+}
+[data-transition='slide-forward']::view-transition-new(root) {
+    z-index: 1;
+    animation: 300ms ease-out both vt-slide-in-right;
+}
+
+/* Back navigation: old page slides out to right, revealing new page underneath */
+[data-transition='slide-back']::view-transition-old(root) {
+    z-index: 1;
+    animation: 250ms ease-in both vt-slide-out-right;
+}
+[data-transition='slide-back']::view-transition-new(root) {
+    z-index: 0;
+    animation: 250ms ease-in both vt-shift-right;
+}
+
+@keyframes vt-slide-in-right {
     from {
         transform: translateX(100%);
     }
@@ -226,7 +249,16 @@
     }
 }
 
-@keyframes slide-out-right {
+@keyframes vt-shift-left {
+    from {
+        transform: translateX(0);
+    }
+    to {
+        transform: translateX(-30%);
+    }
+}
+
+@keyframes vt-slide-out-right {
     from {
         transform: translateX(0);
     }
@@ -235,77 +267,18 @@
     }
 }
 
-.animate-slide-in-right {
-    animation: slide-in-right 300ms ease-out forwards;
-    box-shadow: -4px 0 16px rgba(0, 0, 0, 0.15);
-}
-
-.animate-slide-out-right {
-    animation: slide-out-right 250ms ease-in forwards;
-    box-shadow: -4px 0 16px rgba(0, 0, 0, 0.15);
-}
-
-/* Background: parallax push/return */
-@keyframes parallax-push {
+@keyframes vt-shift-right {
     from {
-        transform: translateX(0) scale(1);
+        transform: translateX(-30%);
     }
     to {
-        transform: translateX(-8%) scale(0.94);
+        transform: translateX(0);
     }
-}
-
-@keyframes parallax-return {
-    from {
-        transform: translateX(-8%) scale(0.94);
-    }
-    to {
-        transform: translateX(0) scale(1);
-    }
-}
-
-.animate-parallax-push {
-    animation: parallax-push 300ms ease-out forwards;
-}
-
-.animate-parallax-return {
-    animation: parallax-return 250ms ease-in forwards;
-}
-
-/* Dim overlay between background and sub-page */
-@keyframes dim-in {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 0.08;
-    }
-}
-
-@keyframes dim-out {
-    from {
-        opacity: 0.08;
-    }
-    to {
-        opacity: 0;
-    }
-}
-
-.animate-dim-in {
-    animation: dim-in 300ms ease-out forwards;
-}
-
-.animate-dim-out {
-    animation: dim-out 250ms ease-in forwards;
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .animate-slide-in-right,
-    .animate-slide-out-right,
-    .animate-parallax-push,
-    .animate-parallax-return,
-    .animate-dim-in,
-    .animate-dim-out {
-        animation: none;
+    ::view-transition-old(root),
+    ::view-transition-new(root) {
+        animation: none !important;
     }
 }

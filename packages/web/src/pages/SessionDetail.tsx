@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import { gql } from '@apollo/client';
 import { useQuery, useMutation } from '@apollo/client/react';
 import {
@@ -27,7 +27,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import SessionEditor from '@/components/session/SessionEditor';
 import type { SessionValues } from '@/components/session/SessionEditor';
-import { useSlideTransition } from '@/context/SlideTransitionContext';
+import { useAppNavigate } from '@/hooks/useAppNavigate';
 import { cn } from '@/lib/utils';
 import {
     parseSessionDate,
@@ -119,11 +119,22 @@ const GET_RIDERS_QUERY = gql`
 
 export default function SessionDetail(): React.ReactNode {
     const { id } = useParams<{ id: string }>();
-    const navigate = useNavigate();
-    const { triggerExit } = useSlideTransition();
+    const { back, backTo } = useAppNavigate();
     const [isEditing, setIsEditing] = useState(false);
+    const [shouldMount, setShouldMount] = useState(false);
+    const [formError, setFormError] = useState<string | null>(null);
 
-    const { data, loading } = useQuery<
+    useEffect(() => {
+        if (isEditing) setShouldMount(true);
+    }, [isEditing]);
+
+    const handleEditTransitionEnd = (e: React.TransitionEvent): void => {
+        if (e.target === e.currentTarget && !isEditing) {
+            setShouldMount(false);
+        }
+    };
+
+    const { data, loading, refetch } = useQuery<
         GetSessionForEditQuery,
         GetSessionForEditQueryVariables
     >(GET_SESSION, { variables: { id: id! } });
@@ -151,33 +162,7 @@ export default function SessionDetail(): React.ReactNode {
         DeleteSessionMutationVariables
     >(DELETE_SESSION_MUTATION);
 
-    const [formError, setFormError] = useState<string | null>(null);
-
-    if (loading) {
-        return (
-            <div className="min-h-dvh p-4 flex items-center justify-center">
-                <p className="text-muted-foreground">Loading...</p>
-            </div>
-        );
-    }
-
     const session = data?.session;
-    if (!session) {
-        return (
-            <div className="min-h-dvh p-4 flex items-center justify-center">
-                <p className="text-red-500">Session not found.</p>
-            </div>
-        );
-    }
-
-    const dateObj = parseSessionDate(session.date);
-    const formattedDate = dateObj.toLocaleDateString('en-US', {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-    });
-    const formattedTime = formatSessionTime(dateObj);
 
     const handleSave = async (values: SessionValues): Promise<void> => {
         setFormError(null);
@@ -194,12 +179,12 @@ export default function SessionDetail(): React.ReactNode {
                 },
                 update(cache) {
                     cache.evict({ fieldName: 'sessions' });
-                    cache.evict({ fieldName: 'session' });
                     cache.evict({ fieldName: 'lastSessionForHorse' });
                     cache.gc();
                 },
             });
             setIsEditing(false);
+            refetch();
         } catch (err) {
             setFormError(
                 err instanceof Error ? err.message : 'An error occurred'
@@ -218,7 +203,7 @@ export default function SessionDetail(): React.ReactNode {
                     cache.gc();
                 },
             });
-            navigate('/');
+            backTo('/');
         } catch (err) {
             setFormError(
                 err instanceof Error ? err.message : 'An error occurred'
@@ -226,25 +211,51 @@ export default function SessionDetail(): React.ReactNode {
         }
     };
 
-    const initialValues: SessionValues = {
-        horseId: session.horse.id,
-        riderId: session.rider.id,
-        dateTime: formatAsDateTimeLocalValue(dateObj),
-        durationMinutes: session.durationMinutes,
-        workType: session.workType as WorkType,
-        notes: session.notes,
-    };
+    const initialValues: SessionValues | null = session
+        ? {
+              horseId: session.horse.id,
+              riderId: session.rider.id,
+              dateTime: formatAsDateTimeLocalValue(
+                  parseSessionDate(session.date)
+              ),
+              durationMinutes: session.durationMinutes,
+              workType: session.workType as WorkType,
+              notes: session.notes,
+          }
+        : null;
 
-    return (
-        <div className="relative min-h-dvh">
-            {/* Detail view */}
+    // Detail view content — loading, error, or data
+    let detailContent: React.ReactNode;
+    if (loading) {
+        detailContent = (
+            <div className="min-h-dvh p-4 flex items-center justify-center">
+                <p className="text-muted-foreground">Loading...</p>
+            </div>
+        );
+    } else if (!session) {
+        detailContent = (
+            <div className="min-h-dvh p-4 flex items-center justify-center">
+                <p className="text-red-500">Session not found.</p>
+            </div>
+        );
+    } else {
+        const dateObj = parseSessionDate(session.date);
+        const formattedDate = dateObj.toLocaleDateString('en-US', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+        });
+        const formattedTime = formatSessionTime(dateObj);
+
+        detailContent = (
             <div className="min-h-dvh flex flex-col bg-background">
                 {/* Header */}
                 <div className="flex items-center gap-2 p-4 border-b">
                     <Button
                         variant="ghost"
                         size="icon"
-                        onClick={triggerExit}
+                        onClick={back}
                         className="h-10 w-10"
                         aria-label="Go back"
                     >
@@ -315,15 +326,22 @@ export default function SessionDetail(): React.ReactNode {
                     </div>
                 </div>
             </div>
+        );
+    }
 
-            {/* Edit overlay */}
+    return (
+        <div className="relative min-h-dvh">
+            {detailContent}
+
+            {/* Edit overlay — always in DOM so CSS transition can play */}
             <div
                 className={cn(
                     'fixed inset-0 z-50 bg-background transform transition-transform duration-300 ease-out',
                     isEditing ? 'translate-x-0' : 'translate-x-full'
                 )}
+                onTransitionEnd={handleEditTransitionEnd}
             >
-                {isEditing && (
+                {shouldMount && initialValues && (
                     <SessionEditor
                         initialValues={initialValues}
                         horses={horses}

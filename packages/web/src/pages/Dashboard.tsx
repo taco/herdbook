@@ -1,8 +1,8 @@
 import { useQuery } from '@apollo/client/react';
-import { useNavigate } from 'react-router-dom';
 import { gql } from '@apollo/client';
 import ActivityCard from '@/components/ActivityCard';
 import { HorseCard } from '@/components/HorseCard';
+import { useAppNavigate } from '@/hooks/useAppNavigate';
 import type {
     GetDashboardDataQuery,
     GetDashboardDataQueryVariables,
@@ -35,7 +35,7 @@ const DASHBOARD_QUERY = gql`
 `;
 
 export default function Dashboard(): React.ReactNode {
-    const navigate = useNavigate();
+    const { push } = useAppNavigate();
     const { data, loading, error } = useQuery<
         GetDashboardDataQuery,
         GetDashboardDataQueryVariables
@@ -83,9 +83,7 @@ export default function Dashboard(): React.ReactNode {
                                     rider: session.rider,
                                     notes: session.notes,
                                 }}
-                                onClick={() =>
-                                    navigate(`/sessions/${session.id}`)
-                                }
+                                onClick={() => push(`/sessions/${session.id}`)}
                             />
                         ))}
                     </div>

@@ -1,11 +1,11 @@
 import { useMemo } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { gql } from '@apollo/client';
 import { useMutation, useQuery } from '@apollo/client/react';
 
 import SessionEditor from '@/components/session/SessionEditor';
 import type { SessionValues } from '@/components/session/SessionEditor';
-import { useSlideTransition } from '@/context/SlideTransitionContext';
+import { useAppNavigate } from '@/hooks/useAppNavigate';
 import { useAuth } from '@/context/AuthContext';
 import { formatAsDateTimeLocalValue } from '@/lib/dateUtils';
 import {
@@ -70,9 +70,8 @@ const GET_RIDERS_QUERY = gql`
 `;
 
 export default function EditSession(): React.ReactNode {
-    const navigate = useNavigate();
     const location = useLocation();
-    const { triggerExit } = useSlideTransition();
+    const { back, backTo } = useAppNavigate();
     const { riderId: currentRiderId } = useAuth();
     const locationState = location.state as LocationState | null;
     const prefill = locationState?.prefill;
@@ -140,7 +139,7 @@ export default function EditSession(): React.ReactNode {
             JSON.stringify(persistedVariables)
         );
 
-        navigate('/');
+        backTo('/');
     };
 
     return (
@@ -149,7 +148,7 @@ export default function EditSession(): React.ReactNode {
             horses={horses}
             riders={riders}
             onSave={handleSave}
-            onBack={triggerExit}
+            onBack={back}
             title="Log Session"
             saving={saving}
         />

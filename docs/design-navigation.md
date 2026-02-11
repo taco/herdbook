@@ -18,43 +18,41 @@ Every authenticated route renders inside one of two layouts. Choose based on the
 
 Rule of thumb: if the user presses the back button, should they leave this page? If yes, it's a route. If they should stay on the page but dismiss something, it's local state.
 
-## Sub-Page Overlay System
+## Navigation with View Transitions
 
-Sub-pages are the most common pattern for any "drill-in" page. They slide in from the right over the tab content with a parallax background effect.
+Page transitions use the browser's **View Transitions API** via `document.startViewTransition()`. The `useAppNavigate` hook wraps `useNavigate()` to provide direction-aware transitions:
+
+```tsx
+import { useAppNavigate } from '@/hooks/useAppNavigate';
+
+const { push, back, backTo, navigate } = useAppNavigate();
+
+push('/sessions/123'); // slide forward (new page slides in from right)
+back(); // slide back to previous page (current page slides out to right)
+backTo('/'); // dismiss to a specific route (back animation — use after saves/deletes)
+navigate('/'); // instant navigation (no transition — only for auth redirects)
+```
 
 ### How it works
 
-1. `App.tsx` uses `SUB_PAGE_PATTERN` regex to detect sub-page routes.
-2. When a sub-page is active, the tab content becomes a fixed background with parallax animation.
-3. The sub-page renders in a `fixed inset-0 z-20` overlay with a slide-in animation.
-4. A dim layer (`z-10`, 8% opacity black) sits between background and overlay.
+1. `push()` / `back()` / `backTo()` set a `data-transition` attribute on `<html>` and call `document.startViewTransition()`.
+2. CSS in `index.css` targets `::view-transition-old(root)` and `::view-transition-new(root)` pseudo-elements based on the `data-transition` attribute.
+3. Tab switches use the BottomTabBar's own `navigate()` (no transition).
 
-### Adding a new sub-page route
+### Graceful degradation
 
-1. Add the route inside the `<FullScreenLayout>` group in `App.tsx`.
-2. Update `SUB_PAGE_PATTERN` regex to match the new path.
-3. If the path contains a dynamic segment that could collide with a static segment (like `sessions/voice` vs `sessions/:id`), use a negative lookahead: `sessions\/(?!voice$)[^/]+`.
-
-### Z-index layers
-
-```
-z-0   Background (tab routes with parallax)
-z-10  Dim overlay (pointer-events-none)
-z-20  Sub-page overlay (slides in from right)
-z-30  Tab bar (always on top, even behind sub-page since it's in background)
-z-50  Edit overlays within sub-pages (fixed inset-0)
-```
+On browsers without View Transitions API support, `viewTransition: true` is ignored — navigation happens instantly with no animation, no crash, no fallback code needed.
 
 ## Page Header Pattern
 
-Every sub-page must render its own inline header. Do not rely on the layout for navigation chrome.
+Every full-screen page must render its own inline header. Do not rely on the layout for navigation chrome.
 
 ```tsx
 <div className="flex items-center gap-2 p-4 border-b">
     <Button
         variant="ghost"
         size="icon"
-        onClick={onBack}
+        onClick={back}
         className="h-10 w-10"
         aria-label="Go back"
     >
@@ -81,17 +79,17 @@ Every sub-page must render its own inline header. Do not rely on the layout for 
 
 There are two back patterns. Use the right one:
 
-### `triggerExit()` — leaving a sub-page
+### `back()` — leaving a full-screen page
 
-Calls `useSlideTransition().triggerExit` which triggers the exit animation, then navigates back after the animation completes. Use this when the user is leaving the sub-page entirely.
+Calls `useAppNavigate().back()` which triggers a slide-back view transition and navigates to the previous page.
 
 ```tsx
-const { triggerExit } = useSlideTransition();
+const { back } = useAppNavigate();
 // In back button onClick:
-onClick = { triggerExit };
+onClick = { back };
 ```
 
-### `setState(false)` — dismissing an overlay within a sub-page
+### `setState(false)` — dismissing an overlay within a page
 
 Sets local state to close an overlay. Does not navigate. The URL stays the same.
 
@@ -102,9 +100,9 @@ onClick={() => setIsEditing(false)}
 
 ### After a successful save
 
-- **Create flows** (`/sessions/new`, `/horses/new`): Navigate to dashboard with `navigate('/')`. Skip triggerExit since the user is done with the flow.
+- **Create flows** (`/sessions/new`, `/horses/new`): Dismiss to dashboard with `backTo('/')`. The page slides out to the right.
 - **Edit overlays** (editing within a detail page): Close the overlay with `setState(false)`. Stay on the detail page so the user sees their changes.
-- **Delete actions**: Navigate to dashboard with `navigate('/')` after deletion.
+- **Delete actions**: Dismiss to dashboard with `backTo('/')` after deletion.
 
 ## View/Edit Cascade Pattern
 
@@ -181,18 +179,14 @@ The `extraActions` prop allows the edit flow to inject a delete button without t
 
 ## Animations
 
-### Sub-page transitions (CSS keyframes in index.css)
+### Page transitions (View Transitions API)
 
-| Animation         | Duration | Easing   | Purpose                              |
-| ----------------- | -------- | -------- | ------------------------------------ |
-| `slide-in-right`  | 300ms    | ease-out | Overlay enters from right            |
-| `slide-out-right` | 250ms    | ease-in  | Overlay exits to right               |
-| `parallax-push`   | 300ms    | ease-out | Background recedes (-8%, scale 0.94) |
-| `parallax-return` | 250ms    | ease-in  | Background returns to normal         |
-| `dim-in`          | 300ms    | ease-out | Dim layer fades to 8%                |
-| `dim-out`         | 250ms    | ease-in  | Dim layer fades out                  |
+| Direction | Duration | Easing   | Effect                                            |
+| --------- | -------- | -------- | ------------------------------------------------- |
+| Forward   | 300ms    | ease-out | New page slides in from right, old slides left    |
+| Back      | 250ms    | ease-in  | Current page slides out to right, old slides back |
 
-Exit is slightly faster than enter (250ms vs 300ms) for snappy feel.
+Exit is slightly faster than enter (250ms vs 300ms) for snappy feel. All transitions are disabled when `prefers-reduced-motion: reduce` is set.
 
 ### Edit overlay transitions (CSS transitions)
 
@@ -202,10 +196,6 @@ The view-to-edit cascade uses CSS transitions (not keyframes):
 transition-transform duration-300 ease-out
 translate-x-0 (visible) ↔ translate-x-full (hidden)
 ```
-
-### Reduced motion
-
-All animations are disabled when `prefers-reduced-motion: reduce` is set. The `@media` query in `index.css` removes all keyframe animations, and `App.tsx` checks the media query at mount to skip the animation state machine entirely.
 
 ## Data Flow Between Pages
 
@@ -220,7 +210,7 @@ Use for: detail pages, edit pages. The ID is the resource identifier.
 ### Location state — prefilling a create form
 
 ```tsx
-navigate('/sessions/new', { state: { prefill: { horseId, workType, ... } } });
+push('/sessions/new', { state: { prefill: { horseId, workType, ... } } });
 ```
 
 Use for: passing structured data from one page to a create form (e.g., voice capture results). The receiving page reads `location.state` and merges with defaults.
@@ -251,7 +241,7 @@ These labels are used by both screen readers and e2e tests. Follow them consiste
 
 | Element              | aria-label              | Notes                               |
 | -------------------- | ----------------------- | ----------------------------------- |
-| Back button (header) | `"Go back"`             | Every sub-page header               |
+| Back button (header) | `"Go back"`             | Every full-screen page header       |
 | SummaryRow           | `` `Edit ${label}` ``   | e.g., "Edit Horse", "Edit Duration" |
 | Notes edit button    | `"Edit Notes"`          | In NotesSection component           |
 | Delete confirmation  | Uses `alertdialog` role | Radix AlertDialog handles this      |
@@ -266,9 +256,8 @@ These labels are used by both screen readers and e2e tests. Follow them consiste
 
 ## E2E Testing Patterns for Navigation
 
-When writing e2e tests for sub-pages:
+When writing e2e tests for full-screen pages:
 
-- **Scoping**: Sub-page content renders on top of background tab content. If text might exist in both layers, scope assertions to the overlay: `page.locator('.fixed.inset-0.z-20')`.
 - **Ambiguous elements**: After closing an edit overlay, both the detail header and the (still-in-DOM) overlay may have matching elements. Use `.first()` to target the visible one.
 - **Field editing helpers**: Use `aria-label` selectors to open field editors:
     ```ts
@@ -281,9 +270,10 @@ When writing e2e tests for sub-pages:
 ## Checklist for New Pages
 
 - [ ] Decide: TabLayout (browsing) or FullScreenLayout (drill-in / immersive)?
-- [ ] If sub-page: add route to `<FullScreenLayout>` group and update `SUB_PAGE_PATTERN` regex
+- [ ] Add route to the appropriate layout group in `App.tsx`
 - [ ] Render inline header with back button (`aria-label="Go back"`)
-- [ ] Use `triggerExit()` for back navigation from sub-pages
+- [ ] Use `useAppNavigate().back()` for back navigation
+- [ ] Use `useAppNavigate().push()` for forward navigation to sub-pages
 - [ ] For detail pages: implement view/edit cascade with `isEditing` state
 - [ ] For forms: use SummaryRow + FieldEditSheet drawer pattern
 - [ ] Extract shared editor if form is used in both create and edit
