@@ -16,6 +16,7 @@ import Riders from '@/pages/Riders';
 import Profile from '@/pages/Profile';
 import EditSession from '@/pages/EditSession';
 import EditHorse from '@/pages/EditHorse';
+import HorseProfile from '@/pages/HorseProfile';
 import SessionDetail from '@/pages/SessionDetail';
 import VoiceSessionCapture from '@/pages/VoiceSessionCapture';
 import TabLayout from '@/layouts/TabLayout';
@@ -55,6 +56,7 @@ function AppRoutes(): React.ReactNode {
                 <Route path="/sessions/new" element={<EditSession />} />
                 <Route path="/sessions/:id" element={<SessionDetail />} />
                 <Route path="/horses/new" element={<EditHorse />} />
+                <Route path="/horses/:id" element={<HorseProfile />} />
                 <Route path="/horses/:id/edit" element={<EditHorse />} />
             </Route>
 
