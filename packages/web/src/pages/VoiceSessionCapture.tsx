@@ -1,5 +1,4 @@
 import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { gql } from '@apollo/client';
 import { useQuery } from '@apollo/client/react';
 import { ChevronLeft, RotateCcw, PenLine, AlertCircle } from 'lucide-react';
@@ -9,6 +8,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import RecordingPanel from '@/components/voice/RecordingPanel';
 import ProcessingOverlay from '@/components/voice/ProcessingOverlay';
 import { useRecordingStateMachine } from '@/hooks/useRecordingStateMachine';
+import { useAppNavigate } from '@/hooks/useAppNavigate';
 import { formatAsDateTimeLocalValue } from '@/lib/dateUtils';
 import { GetHorsesQuery, GetRidersQuery } from '@/generated/graphql';
 
@@ -31,7 +31,7 @@ const GET_RIDERS_QUERY = gql`
 `;
 
 export default function VoiceSessionCapture() {
-    const navigate = useNavigate();
+    const { push, back } = useAppNavigate();
 
     const { data: horsesData, loading: horsesLoading } =
         useQuery<GetHorsesQuery>(GET_HORSES_QUERY);
@@ -60,7 +60,7 @@ export default function VoiceSessionCapture() {
     // Navigate to create screen on success with prefill data
     useEffect(() => {
         if (state === 'success' && parsedFields) {
-            navigate('/sessions/new', {
+            push('/sessions/new', {
                 state: {
                     prefill: {
                         horseId: parsedFields.horseId,
@@ -77,17 +77,17 @@ export default function VoiceSessionCapture() {
                 },
             });
         }
-    }, [state, parsedFields, navigate]);
+    }, [state, parsedFields, push]);
 
     const handleBack = () => {
         if (state === 'recording') {
             cancelRecording();
         }
-        navigate(-1);
+        back();
     };
 
     const handleManualEntry = () => {
-        navigate('/sessions/new');
+        push('/sessions/new');
     };
 
     const isRecording = state === 'recording';

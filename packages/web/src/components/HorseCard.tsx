@@ -1,5 +1,5 @@
-import { useNavigate } from 'react-router-dom';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { useAppNavigate } from '@/hooks/useAppNavigate';
 import { Heatmap } from './Heatmap';
 
 interface HorseCardProps {
@@ -11,12 +11,12 @@ interface HorseCardProps {
 }
 
 export function HorseCard({ horse }: HorseCardProps) {
-    const navigate = useNavigate();
+    const { push } = useAppNavigate();
 
     return (
         <Card
             className="cursor-pointer hover:bg-accent/50 transition-colors"
-            onClick={() => navigate(`/horses/${horse.id}/edit`)}
+            onClick={() => push(`/horses/${horse.id}/edit`)}
         >
             <CardHeader>
                 <CardTitle className="truncate">{horse.name}</CardTitle>

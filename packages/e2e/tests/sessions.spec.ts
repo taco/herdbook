@@ -96,16 +96,13 @@ test.describe('Session Management', () => {
         // Verify we're on the session detail page
         await expect(page).toHaveURL(/\/sessions\/[^/]+$/);
 
-        // Check session details are visible on the sub-page overlay
-        const detail = page.locator('.fixed.inset-0.z-20');
-        await expect(detail.getByText(TEST_HORSE_NAME)).toBeVisible();
-        await expect(detail.getByText('Groundwork')).toBeVisible();
-        await expect(detail.getByText('30 minutes')).toBeVisible();
-        await expect(detail.getByText(TEST_RIDER_NAME)).toBeVisible();
-        await expect(detail.getByText(uniqueNote)).toBeVisible();
-        await expect(
-            detail.getByRole('button', { name: 'Edit' })
-        ).toBeVisible();
+        // Check session details are visible on the detail page
+        await expect(page.getByText(TEST_HORSE_NAME).first()).toBeVisible();
+        await expect(page.getByText('Groundwork').first()).toBeVisible();
+        await expect(page.getByText('30 minutes')).toBeVisible();
+        await expect(page.getByText(TEST_RIDER_NAME).first()).toBeVisible();
+        await expect(page.getByText(uniqueNote)).toBeVisible();
+        await expect(page.getByRole('button', { name: 'Edit' })).toBeVisible();
     });
 
     test('can edit a session', async ({ page }) => {

@@ -50,20 +50,13 @@ test.describe('Navigation', () => {
         await page.getByText(TEST_HORSE_NAME).first().click();
         await expect(page).toHaveURL(/\/horses\/.*\/edit/);
 
-        // Sub-page should be a fixed overlay covering the tab page
-        const overlay = page.locator('.fixed.inset-0.z-20');
-        await expect(overlay).toBeVisible();
-
-        // Back button should be visible on the overlay
+        // Back button should be visible on the sub-page
         const backButton = page.getByLabel('Go back');
         await expect(backButton).toBeVisible();
 
-        // Click back — exit animation plays, then navigates to previous page
+        // Click back — view transition plays, then navigates to previous page
         await backButton.click();
         await expect(page).toHaveURL('/');
-
-        // After navigating back, overlay should be gone
-        await expect(overlay).not.toBeVisible();
     });
 
     test('profile logout clears auth and redirects to login', async ({

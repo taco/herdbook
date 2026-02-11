@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { gql } from '@apollo/client';
 import { useMutation, useQuery } from '@apollo/client/react';
 
@@ -15,7 +15,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ChevronLeft, Save, Plus } from 'lucide-react';
 import ActivityCard from '@/components/ActivityCard';
-import { useSlideTransition } from '@/context/SlideTransitionContext';
+import { useAppNavigate } from '@/hooks/useAppNavigate';
 import {
     GetHorseForEditQuery,
     GetHorseForEditQueryVariables,
@@ -73,8 +73,7 @@ const UPDATE_HORSE_MUTATION = gql`
 export default function EditHorse() {
     const { id } = useParams<{ id: string }>();
     const isEditMode = id !== undefined && id !== 'new';
-    const navigate = useNavigate();
-    const { triggerExit } = useSlideTransition();
+    const { back, backTo } = useAppNavigate();
 
     const [name, setName] = useState('');
     const [notes, setNotes] = useState('');
@@ -151,7 +150,7 @@ export default function EditHorse() {
                     },
                 });
             }
-            navigate('/');
+            backTo('/');
         } catch (err) {
             setFormError(
                 err instanceof Error ? err.message : 'An error occurred'
@@ -194,7 +193,7 @@ export default function EditHorse() {
                 <Button
                     variant="ghost"
                     size="icon"
-                    onClick={triggerExit}
+                    onClick={back}
                     className="h-10 w-10"
                     aria-label="Go back"
                 >
