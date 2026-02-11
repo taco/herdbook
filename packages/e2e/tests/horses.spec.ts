@@ -31,12 +31,20 @@ test.describe('Horse Management', () => {
         await page.waitForURL('/');
         await expect(page.getByText(uniqueName)).toBeVisible();
 
-        // Click horse card to edit
+        // Click horse card → lands on profile
         await page.click(`text=${uniqueName}`);
+        await expect(page).toHaveURL(/\/horses\/[^/]+$/);
+
+        // Navigate to edit from profile
+        await page.getByRole('button', { name: 'Edit' }).click();
         await expect(page).toHaveURL(/\/horses\/.*\/edit/);
 
+        // Wait for the edit form to load the horse data
+        const nameInput = page.locator('input[id="name"]');
+        await expect(nameInput).toHaveValue(uniqueName);
+
         // Edit horse name
-        await page.fill('input[id="name"]', updatedName);
+        await nameInput.fill(updatedName);
         await page.click('button[type="submit"]');
 
         // Verify changes
@@ -55,8 +63,10 @@ test.describe('Horse Management', () => {
         await page.waitForURL('/');
         await expect(page.getByText(uniqueName)).toBeVisible();
 
-        // Click into edit
+        // Click into profile, then edit
         await page.click(`text=${uniqueName}`);
+        await expect(page).toHaveURL(/\/horses\/[^/]+$/);
+        await page.getByRole('button', { name: 'Edit' }).click();
         await expect(page).toHaveURL(/\/horses\/.*\/edit/);
 
         // Uncheck the Active checkbox
