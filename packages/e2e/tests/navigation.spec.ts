@@ -51,9 +51,9 @@ test.describe('Navigation', () => {
     test('sub-page slides in over tab page and back button returns', async ({
         page,
     }) => {
-        // Navigate to a horse edit page
+        // Navigate to a horse profile (sub-page)
         await page.getByText(TEST_HORSE_NAME).first().click();
-        await expect(page).toHaveURL(/\/horses\/.*\/edit/);
+        await expect(page).toHaveURL(/\/horses\/[^/]+$/);
 
         // Back button should be visible on the sub-page
         const backButton = page.getByLabel('Go back');
