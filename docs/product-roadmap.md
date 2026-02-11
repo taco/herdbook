@@ -15,24 +15,24 @@ _February 2026_
 
 The core loop works: **Record session (voice or manual) -> Track per horse -> View activity feed**
 
-| Feature | Status |
-|---|---|
+| Feature                                                  | Status   |
+| -------------------------------------------------------- | -------- |
 | Auth (login/signup, JWT, rate limiting, email allowlist) | Complete |
-| Horse CRUD (create, edit, soft-delete) | Complete |
-| Session CRUD (create, edit, delete) | Complete |
-| Manual session entry with form persistence | Complete |
-| Voice session capture (Whisper + GPT-4o-mini) | Complete |
-| Field-level voice-to-text (notes) | Complete |
-| Dashboard with recent activity feed | Complete |
-| 12-week activity heatmaps per horse | Complete |
-| Session detail bottom sheet | Complete |
-| Mobile navigation (bottom tab bar, parallax overlays) | Complete |
-| Previous session context on new entry | Complete |
-| Rider list (read-only) | Complete |
-| Security hardening (rate limiting, CORS, JWT expiry) | Complete |
-| E2E tests (auth, nav, horses, sessions) | Complete |
-| Deployed to production (Railway + Neon) | Complete |
-| N+1 resolution (DataLoader pattern) | Complete |
+| Horse CRUD (create, edit, soft-delete)                   | Complete |
+| Session CRUD (create, edit, delete)                      | Complete |
+| Manual session entry with form persistence               | Complete |
+| Voice session capture (Whisper + GPT-4o-mini)            | Complete |
+| Field-level voice-to-text (notes)                        | Complete |
+| Dashboard with recent activity feed                      | Complete |
+| 12-week activity heatmaps per horse                      | Complete |
+| Session detail with view/edit cascade                    | Complete |
+| Mobile navigation (bottom tab bar, view transitions)     | Complete |
+| Previous session context on new entry                    | Complete |
+| Rider list (read-only)                                   | Complete |
+| Security hardening (rate limiting, CORS, JWT expiry)     | Complete |
+| E2E tests (auth, nav, horses, sessions)                  | Complete |
+| Deployed to production (Railway + Neon)                  | Complete |
+| N+1 resolution (DataLoader pattern)                      | Complete |
 
 ### Differentiator
 
@@ -45,6 +45,7 @@ Voice-to-text session parsing is the standout feature. It solves a real problem:
 **"I logged sessions... now what?"**
 
 Riders can't answer basic questions:
+
 - "How many times did I ride Luna this month?"
 - "What did we work on last Tuesday?"
 - "Am I riding consistently enough?"
@@ -93,14 +94,14 @@ This is where Herdbook becomes a training companion. AI features progress natura
 
 Driven by real user friction, not pre-planned. Some possibilities:
 
-| Feature | Trigger |
-|---|---|
-| Google SSO | If password login becomes annoying |
-| Rider invitations | If adding barn members is needed |
-| Media attachments | If riders want photos/videos per session |
-| Data export (CSV) | If users ask for it |
-| Error telemetry (Sentry) | If production debugging becomes painful |
-| Observability (structured logging) | Before scaling beyond current users |
+| Feature                            | Trigger                                  |
+| ---------------------------------- | ---------------------------------------- |
+| Google SSO                         | If password login becomes annoying       |
+| Rider invitations                  | If adding barn members is needed         |
+| Media attachments                  | If riders want photos/videos per session |
+| Data export (CSV)                  | If users ask for it                      |
+| Error telemetry (Sentry)           | If production debugging becomes painful  |
+| Observability (structured logging) | Before scaling beyond current users      |
 
 ---
 
@@ -115,13 +116,13 @@ Driven by real user friction, not pre-planned. Some possibilities:
 
 ## Data Model Outlook
 
-| Layer | Schema changes |
-|---|---|
-| 1 (data visibility) | None — existing queries with new filters |
-| 2 (stats + summaries) | None — aggregations on existing data |
-| 3 (suggestions, programs) | Possibly `training_plans` table to persist generated plans |
-| 3 (goal planning) | `goals` table: horse, target date, description, discipline/level |
-| 3 (progress tracking) | Links between goals, plans, and sessions |
+| Layer                     | Schema changes                                                   |
+| ------------------------- | ---------------------------------------------------------------- |
+| 1 (data visibility)       | None — existing queries with new filters                         |
+| 2 (stats + summaries)     | None — aggregations on existing data                             |
+| 3 (suggestions, programs) | Possibly `training_plans` table to persist generated plans       |
+| 3 (goal planning)         | `goals` table: horse, target date, description, discipline/level |
+| 3 (progress tracking)     | Links between goals, plans, and sessions                         |
 
 ---
 

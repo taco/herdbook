@@ -1,34 +1,41 @@
 # Herdbook
 
-A full-stack application built with GraphQL, React, and TypeScript.
+A mobile-first training journal for equestrians. Log riding sessions by voice or form, track activity per horse, and review training patterns over time.
 
-## Overview
+## What It Does
 
-Herdbook is a monorepo containing:
-
-- **API**: A GraphQL API server built with Apollo Server and Fastify
-- **Web**: A React frontend application built with Vite and Apollo Client
+- Voice-to-text session logging (Whisper + GPT-4o-mini) — log rides with dirty or gloved hands
+- Manual session entry with form persistence
+- Per-horse activity heatmaps (12-week view)
+- Dashboard with recent activity feed
+- Horse and session CRUD with soft-delete
+- JWT auth with email allowlist and rate limiting
 
 ## Tech Stack
 
 ### API (`packages/api`)
 
-- [Apollo Server](https://www.apollographql.com/docs/apollo-server/) - GraphQL server
-- [Fastify](https://www.fastify.io/) - Web framework
-- [Prisma](https://www.prisma.io/) - Database ORM
-- [PostgreSQL](https://www.postgresql.org/) - Database
-- [TypeScript](https://www.typescriptlang.org/) - Type safety
+- [Fastify](https://www.fastify.io/) + GraphQL — web framework and API
+- [Prisma](https://www.prisma.io/) — database ORM
+- [PostgreSQL](https://www.postgresql.org/) — database (Neon in production)
+- [TypeScript](https://www.typescriptlang.org/)
 
 ### Web (`packages/web`)
 
-- [React](https://react.dev/) - UI library
-- [Vite](https://vitejs.dev/) - Build tool and dev server
-- [Apollo Client](https://www.apollographql.com/docs/react/) - GraphQL client
-- [TypeScript](https://www.typescriptlang.org/) - Type safety
+- [React](https://react.dev/) + [Vite](https://vitejs.dev/) — UI and build
+- [Apollo Client](https://www.apollographql.com/docs/react/) — GraphQL client
+- [Tailwind CSS](https://tailwindcss.com/) + [Shadcn UI](https://ui.shadcn.com/) — mobile-only styling
+- [TypeScript](https://www.typescriptlang.org/)
+
+### Testing
+
+- [Vitest](https://vitest.dev/) — unit/integration tests
+- [Playwright](https://playwright.dev/) — E2E tests
+- [Docker](https://www.docker.com/) — isolated test Postgres
 
 ### Tooling
 
-- [pnpm](https://pnpm.io/) - Package manager
+- [pnpm](https://pnpm.io/) workspaces — monorepo package manager
 
 ## Prerequisites
 
@@ -56,7 +63,7 @@ pnpm env:local
 3. Initialize the project:
 
 ```bash
-pnpm init
+pnpm run init
 ```
 
 This installs dependencies and generates the Prisma client.
@@ -64,7 +71,7 @@ This installs dependencies and generates the Prisma client.
 4. Set up the database:
 
 ```bash
-pnpm --filter api prisma:migrate
+pnpm --filter api run prisma:migrate
 ```
 
 ## Development
@@ -108,59 +115,49 @@ pnpm build:web
 herdbook/
 ├── packages/
 │   ├── api/              # GraphQL API server
-│   │   ├── prisma/       # Prisma schema and migrations
+│   │   ├── prisma/       # Schema and migrations
 │   │   └── src/
-│   │       ├── schema.graphql
-│   │       ├── resolvers.ts
+│   │       ├── graphql/  # Schema, resolvers, loaders
+│   │       ├── rest/     # REST endpoints (transcribe, parse)
+│   │       ├── middleware/
 │   │       └── index.ts  # Server entry point
-│   ├── web/              # React frontend
+│   ├── web/              # React frontend (mobile-only)
 │   │   └── src/
-│   │       ├── pages/    # Route components
+│   │       ├── pages/
+│   │       ├── layouts/  # TabLayout, FullScreenLayout
 │   │       ├── components/
-│   │       └── main.tsx  # Entry point
-│   └── e2e/              # End-to-end tests (Playwright)
+│   │       └── main.tsx
+│   └── e2e/              # Playwright tests
 │       └── tests/
 ├── docs/                 # Design docs and roadmap
-├── package.json          # Root package.json with workspace scripts
-└── pnpm-workspace.yaml   # pnpm workspace configuration
+├── scripts/              # Dev tooling (dev server, E2E dev loop)
+└── package.json          # Workspace scripts
 ```
 
 ## Available Scripts
 
 ### Root level:
 
-- `pnpm init` - Install dependencies and generate Prisma client
-- `pnpm dev` - Run both API and Web in development mode
-- `pnpm dev:api` - Run only the API server
-- `pnpm dev:web` - Run only the web app
-- `pnpm build` - Build all packages
-- `pnpm build:api` - Build only the API
-- `pnpm build:web` - Build only the web app
-- `pnpm check` - Run format check and typecheck across all packages
-- `pnpm typecheck` - Run TypeScript type checking across all packages
-- `pnpm format` - Auto-fix formatting with Prettier
-- `pnpm format:check` - Check formatting without modifying files
-- `pnpm test:e2e` - Run E2E tests
+- `pnpm run init` — install dependencies and generate Prisma client
+- `pnpm run dev` — run both API and Web in development mode
+- `pnpm run check` — format check + typecheck across all packages
+- `pnpm run format` — auto-fix formatting with Prettier
+- `pnpm run test` — unit/integration tests (API + Web)
+- `pnpm run test:e2e` — E2E tests (Docker Postgres, full stack)
+- `pnpm run test:e2e:dev` — E2E dev loop with hot reload
+- `pnpm run env:local` / `env:neon-dev` / `env:neon-prod` — switch database environments
 
 ### API package (`packages/api`):
 
-- `pnpm dev` - Start development server with hot reload
-- `pnpm build` - Build for production
-- `pnpm start` - Start production server
-- `pnpm prisma:generate` - Generate Prisma Client
-- `pnpm prisma:migrate` - Run database migrations
-- `pnpm prisma:studio` - Open Prisma Studio
+- `pnpm --filter api run dev` — dev server with hot reload
+- `pnpm --filter api run prisma:migrate` — run database migrations
+- `pnpm --filter api run prisma:generate` — generate Prisma Client
+- `pnpm --filter api run prisma:studio` — open Prisma Studio
 
 ### Web package (`packages/web`):
 
-- `pnpm dev` - Start development server
-- `pnpm build` - Build for production
-- `pnpm preview` - Preview production build
-
-### E2E package (`packages/e2e`):
-
-- `pnpm test` - Run E2E tests (starts test DB automatically)
-- `pnpm test:ui` - Run tests with Playwright UI
+- `pnpm --filter web run dev` — dev server
+- `pnpm --filter web run codegen` — regenerate GraphQL types
 
 ## Testing
 

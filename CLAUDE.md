@@ -92,6 +92,7 @@ Use these skills for common workflows. Invoke with `/skillname` or the Skill too
 | Pre-commit checks             | `/preflight`      |
 | Git worktree setup            | `/worktree`       |
 | Railway preview deploys       | `/deploy-preview` |
+| Update docs after changes     | `/updatedocs`     |
 
 ## New Feature Workflow
 
@@ -100,3 +101,4 @@ Use these skills for common workflows. Invoke with `/skillname` or the Skill too
 3. Build UI and connect → `/new-page`
 4. Write tests → `/test-api`, `/test-web`, `/e2e`
 5. Pre-commit check → `/preflight`
+6. Update docs → `/updatedocs`
