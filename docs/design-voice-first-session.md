@@ -6,7 +6,7 @@ This document outlines the implementation plan for a voice-first session logging
 
 **Status:** Planned
 **Last updated:** 2026-02-05
-**Related:** `docs/roadmap.md` (Phase 3), original design doc in Downloads
+**Related:** `docs/product-roadmap.md`, original design doc in Downloads
 
 ---
 
@@ -149,12 +149,12 @@ This section provides the essential patterns and references needed to execute ea
 
 ```
 packages/
-├── api/                    # Fastify + Apollo GraphQL + Prisma
+├── api/                    # Fastify + GraphQL + Prisma
 │   ├── prisma/schema.prisma
 │   ├── src/
-│   │   ├── server.ts       # REST endpoints (/api/transcribe, /api/parse-session)
-│   │   ├── resolvers.ts    # GraphQL resolvers
-│   │   └── schema.graphql
+│   │   ├── graphql/        # schema.graphql, resolvers.ts, loaders.ts
+│   │   ├── rest/           # REST endpoints (/api/transcribe, /api/parse-session)
+│   │   └── server.ts
 │   └── package.json
 │
 ├── web/                    # React + Vite + Apollo Client
@@ -175,8 +175,8 @@ packages/
 **Routing (App.tsx):**
 
 ```tsx
-// All authenticated routes go inside PrivateLayout
-<Route element={<PrivateLayout />}>
+// Voice routes go inside FullScreenLayout (no tab bar)
+<Route element={<FullScreenLayout />}>
     <Route path="/sessions/voice" element={<VoiceSessionCapture />} />
     <Route path="/sessions/review" element={<SessionReview />} />
 </Route>
@@ -187,7 +187,7 @@ packages/
 ```tsx
 // See EditSession.tsx as reference
 import { useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useAppNavigate } from '@/hooks/useAppNavigate';
 import { gql } from '@apollo/client';
 import { useMutation, useQuery } from '@apollo/client/react';
 import { Button } from '@/components/ui/button';
@@ -197,7 +197,7 @@ const MY_QUERY = gql`...`;
 const MY_MUTATION = gql`...`;
 
 export default function MyPage() {
-    const navigate = useNavigate();
+    const { push, back, backTo } = useAppNavigate();
     const { token } = useAuth();
     // State, queries, mutations, handlers
     return (/* JSX */);
@@ -283,7 +283,7 @@ import { WorkType, CreateSessionMutation } from '@/generated/graphql';
 **Run codegen after schema changes:**
 
 ```bash
-cd packages/web && pnpm codegen
+pnpm --filter web run codegen
 ```
 
 ### Backend Endpoints
@@ -307,10 +307,10 @@ Per CLAUDE.md:
 ### Commands
 
 ```bash
-pnpm format          # Run after changes
-pnpm dev             # Start dev servers
-pnpm codegen         # Regenerate GraphQL types (from packages/web)
-pnpm test            # Run tests
+pnpm run format          # Run after changes
+pnpm run dev             # Start dev servers
+pnpm --filter web run codegen  # Regenerate GraphQL types
+pnpm run test            # Run tests
 ```
 
 ### Key Files for Each Phase
@@ -333,8 +333,8 @@ pnpm test            # Run tests
 
 **Phase 4 (Transcript):**
 
-- Modify: `prisma/schema.prisma`, `schema.graphql`, `resolvers.ts`
-- Run: `pnpm prisma migrate dev` after schema change
+- Modify: `prisma/schema.prisma`, `src/graphql/schema.graphql`, `src/graphql/resolvers.ts`
+- Run: `pnpm --filter api run prisma:migrate` after schema change
 
 **Phase 5 (Polish):**
 
@@ -504,8 +504,8 @@ input CreateSessionInput {
 
 ```
 packages/api/prisma/schema.prisma
-packages/api/src/schema.graphql
-packages/api/src/resolvers.ts
+packages/api/src/graphql/schema.graphql
+packages/api/src/graphql/resolvers.ts
 packages/web/src/pages/SessionReview.tsx  # Add transcript accordion
 packages/web/src/components/SessionDetailSheet.tsx  # Show transcript
 ```
