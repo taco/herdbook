@@ -16,6 +16,7 @@
         "check": "pnpm format:check && pnpm typecheck",
         "test": "pnpm --filter api test && pnpm --filter web test",
         "test:e2e": "pnpm --filter e2e test",
+        "test:e2e:dev": "node scripts/e2e-dev.mjs",
         "test:e2e:ui": "pnpm --filter e2e test:ui",
         "env:local": "ln -sf ../../.env.local packages/api/.env && echo 'Switched to local database'",
         "env:neon-dev": "ln -sf ../../.env.neon-dev packages/api/.env && echo 'Switched to Neon dev database'",

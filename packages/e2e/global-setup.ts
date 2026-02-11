@@ -1,4 +1,5 @@
 import { execSync } from 'child_process';
+import net from 'net';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
@@ -7,6 +8,40 @@ const __dirname = dirname(__filename);
 
 const ROOT_DIR = resolve(__dirname, '../..');
 const DOCKER_COMPOSE_FILE = resolve(ROOT_DIR, 'docker-compose.test.yml');
+const DATABASE_URL = 'postgresql://postgres:test@127.0.0.1:5433/herdbook_test';
+
+function tcpReady(port: number, timeoutMs = 1000): Promise<boolean> {
+    return new Promise((resolve) => {
+        const socket = new net.Socket();
+        const timer = setTimeout(() => {
+            socket.destroy();
+            resolve(false);
+        }, timeoutMs);
+        socket.once('connect', () => {
+            clearTimeout(timer);
+            socket.destroy();
+            resolve(true);
+        });
+        socket.once('error', () => {
+            clearTimeout(timer);
+            socket.destroy();
+            resolve(false);
+        });
+        socket.connect(port, '127.0.0.1');
+    });
+}
+
+function testRiderExists(): boolean {
+    try {
+        const result = execSync(
+            `psql "${DATABASE_URL}" -tAc "SELECT 1 FROM \\"Rider\\" WHERE email = 'test@herdbook.test' LIMIT 1"`,
+            { stdio: 'pipe', encoding: 'utf-8' }
+        ).trim();
+        return result === '1';
+    } catch {
+        return false;
+    }
+}
 
 function getDockerComposeCommand(): string {
     try {
@@ -28,12 +63,19 @@ function getDockerComposeCommand(): string {
     );
 }
 
-async function globalSetup() {
+async function globalSetup(): Promise<void> {
     try {
         // In CI, the database is already running via GitHub Actions services
         // and migrations/seed are handled by workflow steps
         if (process.env.CI) {
             console.log('CI environment detected - skipping database setup');
+            return;
+        }
+
+        // If Postgres is already up and seeded (e.g. via e2e-dev.mjs), skip setup
+        const pgUp = await tcpReady(5433);
+        if (pgUp && testRiderExists()) {
+            console.log('E2E infra already running, skipping setup');
             return;
         }
 
