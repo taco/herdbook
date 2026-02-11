@@ -21,14 +21,14 @@ import Riders from '@/pages/Riders';
 import Profile from '@/pages/Profile';
 import EditSession from '@/pages/EditSession';
 import EditHorse from '@/pages/EditHorse';
+import SessionDetail from '@/pages/SessionDetail';
 import VoiceSessionCapture from '@/pages/VoiceSessionCapture';
-import SessionReview from '@/pages/SessionReview';
 import TabLayout from '@/layouts/TabLayout';
 import SubPageLayout from '@/layouts/SubPageLayout';
 import FullScreenLayout from '@/layouts/FullScreenLayout';
 
 const SUB_PAGE_PATTERN =
-    /^\/(horses\/new|horses\/[^/]+\/edit|sessions\/new|sessions\/[^/]+\/edit)$/;
+    /^\/(horses\/new|horses\/[^/]+\/edit|sessions\/new|sessions\/(?!voice$)[^/]+)$/;
 
 function isSubPageRoute(pathname: string): boolean {
     return SUB_PAGE_PATTERN.test(pathname);
@@ -151,10 +151,6 @@ function AppRoutes(): React.ReactNode {
                             path="/sessions/voice"
                             element={<VoiceSessionCapture />}
                         />
-                        <Route
-                            path="/sessions/review"
-                            element={<SessionReview />}
-                        />
                     </Route>
 
                     <Route path="*" element={<Navigate to="/" />} />
@@ -194,8 +190,8 @@ function AppRoutes(): React.ReactNode {
                                     element={<EditSession />}
                                 />
                                 <Route
-                                    path="/sessions/:id/edit"
-                                    element={<EditSession />}
+                                    path="/sessions/:id"
+                                    element={<SessionDetail />}
                                 />
                                 <Route
                                     path="/horses/new"

@@ -13,8 +13,9 @@ import {
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Save, Plus } from 'lucide-react';
+import { ChevronLeft, Save, Plus } from 'lucide-react';
 import ActivityCard from '@/components/ActivityCard';
+import { useSlideTransition } from '@/context/SlideTransitionContext';
 import {
     GetHorseForEditQuery,
     GetHorseForEditQueryVariables,
@@ -73,6 +74,7 @@ export default function EditHorse() {
     const { id } = useParams<{ id: string }>();
     const isEditMode = id !== undefined && id !== 'new';
     const navigate = useNavigate();
+    const { triggerExit } = useSlideTransition();
 
     const [name, setName] = useState('');
     const [notes, setNotes] = useState('');
@@ -186,109 +188,129 @@ export default function EditHorse() {
     }
 
     return (
-        <div className="min-h-dvh flex items-start justify-center p-4 bg-background">
-            <Card className="w-full max-w-md">
-                <CardHeader>
-                    <CardTitle>
-                        {isEditMode ? 'Edit horse' : 'Add horse'}
-                    </CardTitle>
-                    <CardDescription>
-                        {isEditMode
-                            ? "Update your horse's details."
-                            : 'Add a new horse to your herd.'}
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <form onSubmit={handleSubmit} className="space-y-4">
-                        <div className="space-y-1.5">
-                            <Label htmlFor="name">Name</Label>
-                            <Input
-                                id="name"
-                                type="text"
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
-                                placeholder="e.g. Midnight"
-                                required
-                            />
-                        </div>
+        <div className="min-h-dvh flex flex-col bg-background">
+            {/* Header */}
+            <div className="flex items-center gap-2 p-4 border-b">
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={triggerExit}
+                    className="h-10 w-10"
+                    aria-label="Go back"
+                >
+                    <ChevronLeft className="h-6 w-6" />
+                </Button>
+                <h1 className="text-lg font-semibold">
+                    {isEditMode ? 'Edit Horse' : 'Add Horse'}
+                </h1>
+            </div>
 
-                        <div className="space-y-1.5">
-                            <Label htmlFor="notes">Notes</Label>
-                            <textarea
-                                id="notes"
-                                value={notes}
-                                onChange={(e) => setNotes(e.target.value)}
-                                placeholder="e.g. 'Chestnut gelding, 14 hands'"
-                                rows={4}
-                                className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-base shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
-                            />
-                        </div>
-
-                        {isEditMode && (
-                            <div className="flex items-center space-x-2">
-                                <input
-                                    type="checkbox"
-                                    id="isActive"
-                                    checked={isActive}
-                                    onChange={(e) =>
-                                        setIsActive(e.target.checked)
-                                    }
-                                    className="h-4 w-4 rounded border-input bg-background accent-primary"
+            <div className="flex-1 flex items-start justify-center p-4">
+                <Card className="w-full max-w-md">
+                    <CardHeader>
+                        <CardTitle>
+                            {isEditMode ? 'Edit horse' : 'Add horse'}
+                        </CardTitle>
+                        <CardDescription>
+                            {isEditMode
+                                ? "Update your horse's details."
+                                : 'Add a new horse to your herd.'}
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <form onSubmit={handleSubmit} className="space-y-4">
+                            <div className="space-y-1.5">
+                                <Label htmlFor="name">Name</Label>
+                                <Input
+                                    id="name"
+                                    type="text"
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
+                                    placeholder="e.g. Midnight"
+                                    required
                                 />
-                                <Label
-                                    htmlFor="isActive"
-                                    className="cursor-pointer"
-                                >
-                                    Active
-                                </Label>
                             </div>
-                        )}
 
-                        {isEditMode && recentSessions && (
-                            <div className="space-y-2">
-                                <Label>Recent sessions</Label>
-                                <div className="space-y-2">
-                                    {recentSessions.length > 0 ? (
-                                        recentSessions.map((session) => (
-                                            <ActivityCard
-                                                key={session.id}
-                                                session={session}
-                                            />
-                                        ))
-                                    ) : (
-                                        <p className="text-sm text-muted-foreground">
-                                            No sessions yet.
-                                        </p>
-                                    )}
+                            <div className="space-y-1.5">
+                                <Label htmlFor="notes">Notes</Label>
+                                <textarea
+                                    id="notes"
+                                    value={notes}
+                                    onChange={(e) => setNotes(e.target.value)}
+                                    placeholder="e.g. 'Chestnut gelding, 14 hands'"
+                                    rows={4}
+                                    className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-base shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+                                />
+                            </div>
+
+                            {isEditMode && (
+                                <div className="flex items-center space-x-2">
+                                    <input
+                                        type="checkbox"
+                                        id="isActive"
+                                        checked={isActive}
+                                        onChange={(e) =>
+                                            setIsActive(e.target.checked)
+                                        }
+                                        className="h-4 w-4 rounded border-input bg-background accent-primary"
+                                    />
+                                    <Label
+                                        htmlFor="isActive"
+                                        className="cursor-pointer"
+                                    >
+                                        Active
+                                    </Label>
                                 </div>
-                            </div>
-                        )}
-
-                        {formError && (
-                            <p className="text-sm text-red-500">{formError}</p>
-                        )}
-
-                        <Button
-                            className="w-full shadow-lg rounded-full text-base font-medium"
-                            size="lg"
-                            type="submit"
-                            disabled={loading}
-                        >
-                            {isEditMode ? (
-                                <>
-                                    <Save className="mr-2 h-5 w-5" />
-                                    {loading ? 'Saving…' : 'Save'}
-                                </>
-                            ) : (
-                                <>
-                                    <Plus className="mr-2 h-5 w-5" />
-                                    {loading ? 'Creating…' : 'Create'}
-                                </>
                             )}
-                        </Button>
-                    </form>
-                </CardContent>
-            </Card>
+
+                            {isEditMode && recentSessions && (
+                                <div className="space-y-2">
+                                    <Label>Recent sessions</Label>
+                                    <div className="space-y-2">
+                                        {recentSessions.length > 0 ? (
+                                            recentSessions.map((session) => (
+                                                <ActivityCard
+                                                    key={session.id}
+                                                    session={session}
+                                                />
+                                            ))
+                                        ) : (
+                                            <p className="text-sm text-muted-foreground">
+                                                No sessions yet.
+                                            </p>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+
+                            {formError && (
+                                <p className="text-sm text-red-500">
+                                    {formError}
+                                </p>
+                            )}
+
+                            <Button
+                                className="w-full shadow-lg rounded-full text-base font-medium"
+                                size="lg"
+                                type="submit"
+                                disabled={loading}
+                            >
+                                {isEditMode ? (
+                                    <>
+                                        <Save className="mr-2 h-5 w-5" />
+                                        {loading ? 'Saving…' : 'Save'}
+                                    </>
+                                ) : (
+                                    <>
+                                        <Plus className="mr-2 h-5 w-5" />
+                                        {loading ? 'Creating…' : 'Create'}
+                                    </>
+                                )}
+                            </Button>
+                        </form>
+                    </CardContent>
+                </Card>
+            </div>
         </div>
     );
 }
