@@ -5,12 +5,12 @@ import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { useAppNavigate } from '@/hooks/useAppNavigate';
 import {
-    GetDashboardDataQuery,
-    GetDashboardDataQueryVariables,
+    GetHorsesListQuery,
+    GetHorsesListQueryVariables,
 } from '@/generated/graphql';
 
 const HORSES_QUERY = gql`
-    query GetDashboardData {
+    query GetHorsesList {
         horses {
             id
             name
@@ -24,8 +24,8 @@ const HORSES_QUERY = gql`
 
 export default function Horses() {
     const { data, loading, error } = useQuery<
-        GetDashboardDataQuery,
-        GetDashboardDataQueryVariables
+        GetHorsesListQuery,
+        GetHorsesListQueryVariables
     >(HORSES_QUERY);
     const { push } = useAppNavigate();
 
