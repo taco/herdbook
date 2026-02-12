@@ -6,6 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import SummaryRow from '@/components/session/SummaryRow';
 import NotesSection from '@/components/session/NotesSection';
 import FieldEditSheet, { FieldType } from '@/components/session/FieldEditSheet';
+import TextEditSheet from '@/components/TextEditSheet';
 import { formatSessionDateTime } from '@/lib/dateUtils';
 import { WorkType } from '@/generated/graphql';
 
@@ -61,6 +62,7 @@ export default function SessionEditor({
     const [values, setValues] = useState<SessionValues>(initialValues);
     const [sheetOpen, setSheetOpen] = useState(false);
     const [editingField, setEditingField] = useState<FieldType | null>(null);
+    const [notesSheetOpen, setNotesSheetOpen] = useState(false);
     const [formError, setFormError] = useState<string | null>(null);
 
     const horseName = horses.find((h) => h.id === values.horseId)?.name ?? null;
@@ -99,8 +101,6 @@ export default function SessionEditor({
                 return values.durationMinutes;
             case 'dateTime':
                 return values.dateTime;
-            case 'notes':
-                return values.notes;
             default:
                 return null;
         }
@@ -121,8 +121,6 @@ export default function SessionEditor({
                     return { ...prev, durationMinutes: value as number | null };
                 case 'dateTime':
                     return { ...prev, dateTime: (value as string) ?? '' };
-                case 'notes':
-                    return { ...prev, notes: (value as string) ?? '' };
                 default:
                     return prev;
             }
@@ -146,7 +144,7 @@ export default function SessionEditor({
     };
 
     return (
-        <div className="min-h-dvh flex flex-col bg-background">
+        <div className="min-h-dvh bg-background">
             {/* Header */}
             <div className="flex items-center gap-2 p-4 border-b">
                 <Button
@@ -162,7 +160,7 @@ export default function SessionEditor({
             </div>
 
             {/* Main content */}
-            <div className="flex-1 p-4">
+            <div className="p-4">
                 <Card className="w-full max-w-md mx-auto">
                     <CardContent className="pt-6">
                         <div className="space-y-0">
@@ -195,7 +193,7 @@ export default function SessionEditor({
 
                         <NotesSection
                             notes={values.notes}
-                            onEdit={() => openSheet('notes')}
+                            onEdit={() => setNotesSheetOpen(true)}
                         />
 
                         {formError && (
@@ -226,6 +224,15 @@ export default function SessionEditor({
                 fieldType={editingField}
                 value={getFieldValue()}
                 onSave={handleFieldSave}
+            />
+
+            <TextEditSheet
+                open={notesSheetOpen}
+                onOpenChange={setNotesSheetOpen}
+                value={values.notes}
+                onSave={(text) =>
+                    setValues((prev) => ({ ...prev, notes: text }))
+                }
             />
         </div>
     );
