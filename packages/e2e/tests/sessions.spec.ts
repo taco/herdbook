@@ -5,6 +5,11 @@ import {
     TEST_RIDER_EMAIL,
     TEST_RIDER_PASSWORD,
 } from '@/seedConstants';
+import { resetDatabase } from './utils/resetDatabase';
+
+test.beforeAll(() => {
+    resetDatabase();
+});
 
 /** Helper: open the field edit drawer, select an option, and wait for it to close */
 async function selectFieldOption(
