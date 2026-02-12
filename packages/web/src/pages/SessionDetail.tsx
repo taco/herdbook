@@ -336,7 +336,7 @@ export default function SessionDetail(): React.ReactNode {
             {/* Edit overlay — always in DOM so CSS transition can play */}
             <div
                 className={cn(
-                    'fixed inset-0 z-50 bg-background transform transition-transform duration-300 ease-out',
+                    'fixed inset-0 z-50 overflow-y-auto bg-background transform transition-transform duration-300 ease-out',
                     isEditing ? 'translate-x-0' : 'translate-x-full'
                 )}
                 onTransitionEnd={handleEditTransitionEnd}
