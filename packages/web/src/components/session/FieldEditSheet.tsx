@@ -51,8 +51,7 @@ export type FieldType =
     | 'rider'
     | 'workType'
     | 'duration'
-    | 'dateTime'
-    | 'notes';
+    | 'dateTime';
 
 interface FieldEditSheetProps {
     open: boolean;
@@ -112,8 +111,6 @@ export default function FieldEditSheet({
                 return 'Duration (minutes)';
             case 'dateTime':
                 return 'Date & Time';
-            case 'notes':
-                return 'Edit Notes';
             default:
                 return 'Edit';
         }
@@ -220,24 +217,6 @@ export default function FieldEditSheet({
                                 typeof localValue === 'string' ? localValue : ''
                             }
                             onChange={(e) => setLocalValue(e.target.value)}
-                        />
-                        <Button onClick={handleSave} className="w-full">
-                            Done
-                        </Button>
-                    </div>
-                );
-
-            case 'notes':
-                return (
-                    <div className="mt-4 space-y-4">
-                        <textarea
-                            value={
-                                typeof localValue === 'string' ? localValue : ''
-                            }
-                            onChange={(e) => setLocalValue(e.target.value)}
-                            rows={8}
-                            className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-base shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                            autoFocus
                         />
                         <Button onClick={handleSave} className="w-full">
                             Done
