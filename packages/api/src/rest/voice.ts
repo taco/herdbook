@@ -18,7 +18,6 @@ export interface ParsedSession {
     date: string | null;
     durationMinutes: number | null;
     workType: WorkType | null;
-    notes: string | null;
 }
 
 // JSON Schema for OpenAI structured output
@@ -46,7 +45,6 @@ const PARSED_SESSION_SCHEMA = {
                         null,
                     ],
                 },
-                notes: { type: ['string', 'null'] },
             },
             required: [
                 'horseId',
@@ -54,7 +52,6 @@ const PARSED_SESSION_SCHEMA = {
                 'date',
                 'durationMinutes',
                 'workType',
-                'notes',
             ],
             additionalProperties: false,
         },
@@ -141,8 +138,6 @@ Instructions:
    - IN_HAND: leading, ground manners, showmanship
    - TRAIL: hacking, trail ride, outside ride
    - OTHER: anything else or unclear
-5. For notes: Remove redundant information (horse name, rider name, duration, date, work type that are captured in other fields). Clarify spoken language into clean written text. Preserve ALL detail - do not summarize or remove useful information.
-
 Return null for any field you cannot confidently determine.`;
 
     const completion = await openai.chat.completions.create({
@@ -253,7 +248,7 @@ export async function registerVoiceRoutes(app: FastifyInstance): Promise<void> {
             const parsed = await parseTranscript(transcript, context);
 
             return {
-                transcript,
+                notes: transcript,
                 ...parsed,
             };
         } catch (error) {
