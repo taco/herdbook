@@ -22,13 +22,12 @@ interface RiderOption {
 }
 
 export interface ParsedSessionFields {
-    transcript: string;
+    notes: string;
     horseId: string | null;
     riderId: string | null;
     date: string | null;
     durationMinutes: number | null;
     workType: WorkType | null;
-    notes: string | null;
 }
 
 interface UseRecordingStateMachineOptions {
