@@ -38,6 +38,8 @@ interface UseVoiceSessionInputReturn {
     startRecording: () => Promise<void>;
     stopRecording: () => void;
     error: string | null;
+    canRetry: boolean;
+    retry: () => void;
 }
 
 export function useVoiceSessionInput({
@@ -51,8 +53,70 @@ export function useVoiceSessionInput({
     const [error, setError] = useState<string | null>(null);
     const mediaRecorderRef = useRef<MediaRecorder | null>(null);
     const chunksRef = useRef<Blob[]>([]);
+    const audioBlobRef = useRef<Blob | null>(null);
+
+    const submitAudio = useCallback(
+        async (audioBlob: Blob) => {
+            setState('processing');
+
+            const formData = new FormData();
+            formData.append('audio', audioBlob, 'audio.webm');
+            formData.append(
+                'context',
+                JSON.stringify({
+                    horses: horses.map((h) => ({
+                        id: h.id,
+                        name: h.name,
+                    })),
+                    riders: riders.map((r) => ({
+                        id: r.id,
+                        name: r.name,
+                    })),
+                    currentDateTime: new Date().toISOString(),
+                    timezone: getDeviceTimezone(),
+                })
+            );
+
+            try {
+                const response = await fetch(
+                    apiEndpoint('/api/parse-session'),
+                    {
+                        method: 'POST',
+                        headers: {
+                            Authorization: `Bearer ${token}`,
+                        },
+                        body: formData,
+                    }
+                );
+
+                if (!response.ok) {
+                    const errorData = (await response.json()) as {
+                        error: string;
+                    };
+                    throw new Error(
+                        errorData.error || 'Failed to parse session'
+                    );
+                }
+
+                const data = (await response.json()) as ParsedSessionFields;
+                audioBlobRef.current = null;
+                onParsed(data);
+            } catch (err) {
+                const errorMessage =
+                    err instanceof Error
+                        ? err.message
+                        : 'Failed to parse session';
+                setError(errorMessage);
+                onError?.(errorMessage);
+            } finally {
+                setState('idle');
+            }
+        },
+        [token, horses, riders, onParsed, onError]
+    );
 
     const startRecording = useCallback(async () => {
+        audioBlobRef.current = null;
         setError(null);
 
         try {
@@ -76,66 +140,14 @@ export function useVoiceSessionInput({
                 }
             };
 
-            mediaRecorder.onstop = async () => {
+            mediaRecorder.onstop = () => {
                 stream.getTracks().forEach((track) => track.stop());
-
-                setState('processing');
 
                 const audioBlob = new Blob(chunksRef.current, {
                     type: mimeType,
                 });
-
-                const formData = new FormData();
-                formData.append('audio', audioBlob, 'audio.webm');
-                formData.append(
-                    'context',
-                    JSON.stringify({
-                        horses: horses.map((h) => ({
-                            id: h.id,
-                            name: h.name,
-                        })),
-                        riders: riders.map((r) => ({
-                            id: r.id,
-                            name: r.name,
-                        })),
-                        currentDateTime: new Date().toISOString(),
-                        timezone: getDeviceTimezone(),
-                    })
-                );
-
-                try {
-                    const response = await fetch(
-                        apiEndpoint('/api/parse-session'),
-                        {
-                            method: 'POST',
-                            headers: {
-                                Authorization: `Bearer ${token}`,
-                            },
-                            body: formData,
-                        }
-                    );
-
-                    if (!response.ok) {
-                        const errorData = (await response.json()) as {
-                            error: string;
-                        };
-                        throw new Error(
-                            errorData.error || 'Failed to parse session'
-                        );
-                    }
-
-                    const data = (await response.json()) as ParsedSessionFields;
-                    onParsed(data);
-                } catch (err) {
-                    const errorMessage =
-                        err instanceof Error
-                            ? err.message
-                            : 'Failed to parse session';
-                    setError(errorMessage);
-                    onError?.(errorMessage);
-                } finally {
-                    setState('idle');
-                }
+                audioBlobRef.current = audioBlob;
+                submitAudio(audioBlob);
             };
 
             mediaRecorder.start();
@@ -149,7 +161,7 @@ export function useVoiceSessionInput({
             onError?.(errorMessage);
             setState('idle');
         }
-    }, [token, horses, riders, onParsed, onError]);
+    }, [submitAudio, onError]);
 
     const stopRecording = useCallback(() => {
         if (
@@ -160,10 +172,22 @@ export function useVoiceSessionInput({
         }
     }, []);
 
+    const retry = useCallback(() => {
+        if (audioBlobRef.current) {
+            setError(null);
+            submitAudio(audioBlobRef.current);
+        }
+    }, [submitAudio]);
+
+    const canRetry =
+        audioBlobRef.current !== null && state === 'idle' && error !== null;
+
     return {
         state,
         startRecording,
         stopRecording,
         error,
+        canRetry,
+        retry,
     };
 }

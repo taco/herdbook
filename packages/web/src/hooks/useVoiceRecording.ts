@@ -14,6 +14,8 @@ interface UseVoiceRecordingReturn {
     startRecording: () => Promise<void>;
     stopRecording: () => void;
     error: string | null;
+    canRetry: boolean;
+    retry: () => void;
 }
 
 export function useVoiceRecording({
@@ -25,8 +27,50 @@ export function useVoiceRecording({
     const [error, setError] = useState<string | null>(null);
     const mediaRecorderRef = useRef<MediaRecorder | null>(null);
     const chunksRef = useRef<Blob[]>([]);
+    const audioBlobRef = useRef<Blob | null>(null);
+
+    const submitAudio = useCallback(
+        async (audioBlob: Blob) => {
+            setState('processing');
+
+            const formData = new FormData();
+            formData.append('audio', audioBlob, 'audio.webm');
+
+            try {
+                const response = await fetch(apiEndpoint('/api/transcribe'), {
+                    method: 'POST',
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                    body: formData,
+                });
+
+                if (!response.ok) {
+                    const errorData = (await response.json()) as {
+                        error: string;
+                    };
+                    throw new Error(errorData.error || 'Transcription failed');
+                }
+
+                const data = (await response.json()) as {
+                    transcription: string;
+                };
+                audioBlobRef.current = null;
+                onTranscription(data.transcription);
+            } catch (err) {
+                const errorMessage =
+                    err instanceof Error ? err.message : 'Failed to transcribe';
+                setError(errorMessage);
+                onError?.(errorMessage);
+            } finally {
+                setState('idle');
+            }
+        },
+        [token, onTranscription, onError]
+    );
 
     const startRecording = useCallback(async () => {
+        audioBlobRef.current = null;
         setError(null);
 
         try {
@@ -51,54 +95,15 @@ export function useVoiceRecording({
                 }
             };
 
-            mediaRecorder.onstop = async () => {
+            mediaRecorder.onstop = () => {
                 // Stop all tracks to release microphone
                 stream.getTracks().forEach((track) => track.stop());
-
-                setState('processing');
 
                 const audioBlob = new Blob(chunksRef.current, {
                     type: mimeType,
                 });
-
-                const formData = new FormData();
-                formData.append('audio', audioBlob, 'audio.webm');
-
-                try {
-                    const response = await fetch(
-                        apiEndpoint('/api/transcribe'),
-                        {
-                            method: 'POST',
-                            headers: {
-                                Authorization: `Bearer ${token}`,
-                            },
-                            body: formData,
-                        }
-                    );
-
-                    if (!response.ok) {
-                        const errorData = (await response.json()) as {
-                            error: string;
-                        };
-                        throw new Error(
-                            errorData.error || 'Transcription failed'
-                        );
-                    }
-
-                    const data = (await response.json()) as {
-                        transcription: string;
-                    };
-                    onTranscription(data.transcription);
-                } catch (err) {
-                    const errorMessage =
-                        err instanceof Error
-                            ? err.message
-                            : 'Failed to transcribe';
-                    setError(errorMessage);
-                    onError?.(errorMessage);
-                } finally {
-                    setState('idle');
-                }
+                audioBlobRef.current = audioBlob;
+                submitAudio(audioBlob);
             };
 
             mediaRecorder.start();
@@ -112,7 +117,7 @@ export function useVoiceRecording({
             onError?.(errorMessage);
             setState('idle');
         }
-    }, [token, onTranscription, onError]);
+    }, [submitAudio, onError]);
 
     const stopRecording = useCallback(() => {
         if (
@@ -123,10 +128,22 @@ export function useVoiceRecording({
         }
     }, []);
 
+    const retry = useCallback(() => {
+        if (audioBlobRef.current) {
+            setError(null);
+            submitAudio(audioBlobRef.current);
+        }
+    }, [submitAudio]);
+
+    const canRetry =
+        audioBlobRef.current !== null && state === 'idle' && error !== null;
+
     return {
         state,
         startRecording,
         stopRecording,
         error,
+        canRetry,
+        retry,
     };
 }
