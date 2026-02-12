@@ -161,44 +161,6 @@ Return null for any field you cannot confidently determine.`;
  * Register voice-related REST routes
  */
 export async function registerVoiceRoutes(app: FastifyInstance): Promise<void> {
-    // Whisper transcription endpoint
-    app.post('/api/transcribe', async (request, reply) => {
-        // Authenticate user
-        const auth = request.headers.authorization;
-        if (!auth || !auth.startsWith('Bearer ')) {
-            return reply.status(401).send({ error: 'Unauthorized' });
-        }
-
-        const token = auth.slice(7);
-        try {
-            jwt.verify(token, getJwtSecretOrThrow());
-        } catch {
-            return reply.status(401).send({ error: 'Invalid token' });
-        }
-
-        const file = await request.file();
-        if (!file || file.fieldname !== 'audio') {
-            return reply.status(400).send({ error: 'No audio data provided' });
-        }
-
-        const audioBuffer = await file.toBuffer();
-
-        try {
-            const transcription = await transcribeAudio(
-                audioBuffer,
-                file.mimetype
-            );
-            return { transcription };
-        } catch (error) {
-            console.error('Transcription error:', error);
-            return reply.status(500).send({
-                error: 'Transcription failed',
-                details:
-                    error instanceof Error ? error.message : 'Unknown error',
-            });
-        }
-    });
-
     // Parse session from voice input
     app.post('/api/parse-session', async (request, reply) => {
         // Authenticate user
