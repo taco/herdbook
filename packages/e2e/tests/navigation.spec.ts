@@ -5,6 +5,11 @@ import {
     TEST_RIDER_NAME,
     TEST_HORSE_NAME,
 } from '@/seedConstants';
+import { resetDatabase } from './utils/resetDatabase';
+
+test.beforeAll(() => {
+    resetDatabase();
+});
 
 test.describe('Navigation', () => {
     test.beforeEach(async ({ page }) => {
