@@ -79,6 +79,8 @@ test.describe('Horse Profile', () => {
         await expect(page).toHaveURL('/sessions/new');
 
         // Horse should be prefilled
-        await expect(page.getByText(TEST_HORSE_NAME)).toBeVisible();
+        await expect(
+            page.getByText(TEST_HORSE_NAME, { exact: true })
+        ).toBeVisible();
     });
 });
