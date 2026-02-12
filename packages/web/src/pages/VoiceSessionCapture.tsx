@@ -1,7 +1,13 @@
 import { useEffect } from 'react';
 import { gql } from '@apollo/client';
 import { useQuery } from '@apollo/client/react';
-import { ChevronLeft, RotateCcw, PenLine, AlertCircle } from 'lucide-react';
+import {
+    ChevronLeft,
+    Mic,
+    RotateCcw,
+    PenLine,
+    AlertCircle,
+} from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -48,10 +54,12 @@ export default function VoiceSessionCapture() {
         maxDurationSeconds,
         parsedFields,
         error,
+        canRetry,
         startRecording,
         stopRecording,
         cancelRecording,
         reset,
+        retry,
     } = useRecordingStateMachine({
         horses,
         riders,
@@ -135,19 +143,36 @@ export default function VoiceSessionCapture() {
                                             'Failed to process your recording'}
                                     </p>
                                 </div>
-                                <div className="flex flex-col gap-2 w-full mt-2">
-                                    <Button onClick={reset} className="w-full">
-                                        <RotateCcw className="mr-2 h-4 w-4" />
-                                        Try Again
-                                    </Button>
-                                    <Button
-                                        variant="outline"
-                                        onClick={handleManualEntry}
-                                        className="w-full"
+                                <div className="grid grid-cols-3 gap-3 w-full mt-2">
+                                    {canRetry && (
+                                        <button
+                                            onClick={retry}
+                                            className="flex flex-col items-center justify-center gap-1.5 aspect-square rounded-xl bg-primary text-primary-foreground active:opacity-80"
+                                        >
+                                            <RotateCcw className="h-6 w-6" />
+                                            <span className="text-xs font-medium">
+                                                Retry
+                                            </span>
+                                        </button>
+                                    )}
+                                    <button
+                                        onClick={reset}
+                                        className="flex flex-col items-center justify-center gap-1.5 aspect-square rounded-xl bg-secondary text-secondary-foreground active:opacity-80"
                                     >
-                                        <PenLine className="mr-2 h-4 w-4" />
-                                        Manual Entry
-                                    </Button>
+                                        <Mic className="h-6 w-6" />
+                                        <span className="text-xs font-medium">
+                                            Re-record
+                                        </span>
+                                    </button>
+                                    <button
+                                        onClick={handleManualEntry}
+                                        className="flex flex-col items-center justify-center gap-1.5 aspect-square rounded-xl border border-border text-muted-foreground active:opacity-80"
+                                    >
+                                        <PenLine className="h-6 w-6" />
+                                        <span className="text-xs font-medium">
+                                            Manual
+                                        </span>
+                                    </button>
                                 </div>
                             </div>
                         </CardContent>

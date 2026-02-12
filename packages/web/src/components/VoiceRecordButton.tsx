@@ -1,4 +1,4 @@
-import { Mic, Square, Loader2 } from 'lucide-react';
+import { Mic, Square, Loader2, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useVoiceRecording } from '@/hooks/useVoiceRecording';
 import { cn } from '@/lib/utils';
@@ -12,13 +12,16 @@ export default function VoiceRecordButton({
     onTranscription,
     className,
 }: VoiceRecordButtonProps) {
-    const { state, startRecording, stopRecording, error } = useVoiceRecording({
-        onTranscription,
-    });
+    const { state, startRecording, stopRecording, error, canRetry, retry } =
+        useVoiceRecording({
+            onTranscription,
+        });
 
     const handleClick = () => {
         if (state === 'recording') {
             stopRecording();
+        } else if (state === 'idle' && canRetry) {
+            retry();
         } else if (state === 'idle') {
             startRecording();
         }
@@ -44,13 +47,17 @@ export default function VoiceRecordButton({
                         ? 'Stop recording'
                         : isProcessing
                           ? 'Transcribing...'
-                          : 'Start voice recording'
+                          : canRetry
+                            ? 'Tap to retry'
+                            : 'Start voice recording'
                 }
             >
                 {isProcessing ? (
                     <Loader2 className="h-5 w-5 animate-spin" />
                 ) : isRecording ? (
                     <Square className="h-5 w-5" />
+                ) : canRetry ? (
+                    <RotateCcw className="h-5 w-5" />
                 ) : (
                     <Mic className="h-5 w-5" />
                 )}
@@ -65,7 +72,12 @@ export default function VoiceRecordButton({
                     Transcribing...
                 </span>
             )}
-            {error && (
+            {canRetry && (
+                <span className="text-xs text-muted-foreground text-center">
+                    Tap to retry
+                </span>
+            )}
+            {error && !canRetry && (
                 <span className="text-xs text-destructive text-center">
                     {error}
                 </span>

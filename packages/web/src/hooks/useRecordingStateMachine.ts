@@ -42,10 +42,12 @@ interface UseRecordingStateMachineReturn {
     maxDurationSeconds: number;
     parsedFields: ParsedSessionFields | null;
     error: string | null;
+    canRetry: boolean;
     startRecording: () => Promise<void>;
     stopRecording: () => void;
     cancelRecording: () => void;
     reset: () => void;
+    retry: () => void;
 }
 
 const DEFAULT_MAX_DURATION = 180; // 3 minutes
@@ -69,6 +71,7 @@ export function useRecordingStateMachine({
     const timerRef = useRef<number | null>(null);
     const startTimeRef = useRef<number | null>(null);
     const cancelledRef = useRef<boolean>(false);
+    const audioBlobRef = useRef<Blob | null>(null);
 
     // Clamp max duration to hard cap
     const effectiveMaxDuration = Math.min(
@@ -136,6 +139,7 @@ export function useRecordingStateMachine({
                 const data = (await response.json()) as ParsedSessionFields;
                 setParsedFields(data);
                 setState('success');
+                audioBlobRef.current = null;
             } catch (err) {
                 const errorMessage =
                     err instanceof Error
@@ -149,6 +153,7 @@ export function useRecordingStateMachine({
     );
 
     const startRecording = useCallback(async () => {
+        audioBlobRef.current = null;
         setError(null);
         setParsedFields(null);
         setElapsedSeconds(0);
@@ -196,6 +201,7 @@ export function useRecordingStateMachine({
                     const audioBlob = new Blob(chunksRef.current, {
                         type: mimeType,
                     });
+                    audioBlobRef.current = audioBlob;
                     processAudio(audioBlob);
                 }
             };
@@ -246,6 +252,7 @@ export function useRecordingStateMachine({
         // Set cancelled flag so onstop doesn't process audio
         cancelledRef.current = true;
         chunksRef.current = [];
+        audioBlobRef.current = null;
 
         if (
             mediaRecorderRef.current &&
@@ -267,6 +274,15 @@ export function useRecordingStateMachine({
         setElapsedSeconds(0);
     }, [cleanup]);
 
+    const retry = useCallback(() => {
+        if (audioBlobRef.current) {
+            setError(null);
+            processAudio(audioBlobRef.current);
+        }
+    }, [processAudio]);
+
+    const canRetry = audioBlobRef.current !== null && state === 'error';
+
     // Cleanup on unmount
     useEffect(() => {
         return () => {
@@ -280,9 +296,11 @@ export function useRecordingStateMachine({
         maxDurationSeconds: effectiveMaxDuration,
         parsedFields,
         error,
+        canRetry,
         startRecording,
         stopRecording,
         cancelRecording,
         reset,
+        retry,
     };
 }
