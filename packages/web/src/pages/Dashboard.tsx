@@ -67,9 +67,17 @@ export default function Dashboard(): React.ReactNode {
 
                 {/* Recent Activity Section */}
                 <section>
-                    <h2 className="text-sm font-medium text-muted-foreground mb-3 px-1">
-                        Recent Activity
-                    </h2>
+                    <div className="flex items-center justify-between mb-3 px-1">
+                        <h2 className="text-sm font-medium text-muted-foreground">
+                            Recent Activity
+                        </h2>
+                        <button
+                            className="text-sm text-primary"
+                            onClick={() => push('/sessions')}
+                        >
+                            See all
+                        </button>
+                    </div>
                     <div className="space-y-3">
                         {data?.sessions.map((session) => (
                             <ActivityCard

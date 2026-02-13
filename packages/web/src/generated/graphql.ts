@@ -177,20 +177,6 @@ export enum WorkType {
     Trail = 'TRAIL',
 }
 
-export type GetHorsesQueryVariables = Exact<{ [key: string]: never }>;
-
-export type GetHorsesQuery = {
-    __typename?: 'Query';
-    horses: Array<{ __typename?: 'Horse'; id: string; name: string }>;
-};
-
-export type GetRidersQueryVariables = Exact<{ [key: string]: never }>;
-
-export type GetRidersQuery = {
-    __typename?: 'Query';
-    riders: Array<{ __typename?: 'Rider'; id: string; name: string }>;
-};
-
 export type GetDashboardDataQueryVariables = Exact<{ [key: string]: never }>;
 
 export type GetDashboardDataQuery = {
@@ -337,6 +323,13 @@ export type LoginMutation = {
     };
 };
 
+export type GetRidersQueryVariables = Exact<{ [key: string]: never }>;
+
+export type GetRidersQuery = {
+    __typename?: 'Query';
+    riders: Array<{ __typename?: 'Rider'; id: string; name: string }>;
+};
+
 export type GetSessionForEditQueryVariables = Exact<{
     id: Scalars['ID']['input'];
 }>;
@@ -379,6 +372,29 @@ export type DeleteSessionMutation = {
     deleteSession: boolean;
 };
 
+export type GetSessionsQueryVariables = Exact<{
+    limit: InputMaybe<Scalars['Int']['input']>;
+    offset: InputMaybe<Scalars['Int']['input']>;
+    horseId: InputMaybe<Scalars['ID']['input']>;
+    workType: InputMaybe<WorkType>;
+    dateFrom: InputMaybe<Scalars['DateTime']['input']>;
+    dateTo: InputMaybe<Scalars['DateTime']['input']>;
+}>;
+
+export type GetSessionsQuery = {
+    __typename?: 'Query';
+    sessions: Array<{
+        __typename?: 'Session';
+        id: string;
+        date: any;
+        durationMinutes: number;
+        workType: WorkType;
+        notes: string;
+        horse: { __typename?: 'Horse'; id: string; name: string };
+        rider: { __typename?: 'Rider'; name: string };
+    }>;
+};
+
 export type SignupMutationVariables = Exact<{
     name: Scalars['String']['input'];
     email: Scalars['String']['input'];
@@ -392,4 +408,11 @@ export type SignupMutation = {
         token: string;
         rider: { __typename?: 'Rider'; id: string; name: string };
     };
+};
+
+export type GetHorsesQueryVariables = Exact<{ [key: string]: never }>;
+
+export type GetHorsesQuery = {
+    __typename?: 'Query';
+    horses: Array<{ __typename?: 'Horse'; id: string; name: string }>;
 };
