@@ -44,6 +44,7 @@ const SESSIONS_QUERY = gql`
             workType
             notes
             horse {
+                id
                 name
             }
             rider {
@@ -59,7 +60,7 @@ interface SessionItem {
     durationMinutes: number;
     workType: string;
     notes: string;
-    horse: { name: string };
+    horse: { id: string; name: string };
     rider: { name: string };
 }
 

@@ -192,9 +192,23 @@ export default function HorseProfile(): React.ReactNode {
                     {/* Sessions list */}
                     <Separator />
                     <section>
-                        <h2 className="text-sm font-medium text-muted-foreground mb-3">
-                            Sessions
-                        </h2>
+                        <div className="flex items-center justify-between mb-3">
+                            <h2 className="text-sm font-medium text-muted-foreground">
+                                Sessions
+                            </h2>
+                            {sessions.length > 0 && (
+                                <button
+                                    className="text-sm text-primary"
+                                    onClick={() =>
+                                        push(
+                                            `/sessions?horseId=${id}&horseName=${encodeURIComponent(horse.name)}`
+                                        )
+                                    }
+                                >
+                                    View all sessions
+                                </button>
+                            )}
+                        </div>
                         {sessions.length === 0 ? (
                             <p className="text-sm text-muted-foreground">
                                 No sessions yet.
