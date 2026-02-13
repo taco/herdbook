@@ -1,14 +1,24 @@
 ---
-description: E2E dev loop — start infra, write/fix tests, run single tests with fast feedback, iterate, then run the full suite.
+description: E2E dev loop — start infra, write/fix tests, run single tests with fast feedback, iterate, then run the full suite. Also runs smoke/regression tiers.
 allowed-tools: Bash, Read, Glob, Grep, Edit, Write
 ---
 
-# /e2e — E2E Dev Loop
+# /e2e — E2E Dev Loop & Test Runner
 
 ## Usage
 
 - `/e2e` — start the E2E dev environment and iterate
 - `/e2e <description>` — write or fix an E2E test for the described scenario
+- `/e2e smoke` — run smoke tests (auth + navigation, Chrome only)
+- `/e2e regression` — run regression tests (horses, sessions, Chrome + Safari)
+- `/e2e all` — run the full suite (all projects)
+
+## Test Tiers
+
+| Tier       | Directory           | Projects                                 | Tests                           |
+| ---------- | ------------------- | ---------------------------------------- | ------------------------------- |
+| Smoke      | `tests/smoke/`      | `smoke-chrome`                           | auth, navigation                |
+| Regression | `tests/regression/` | `regression-chrome`, `regression-safari` | horses, horse-profile, sessions |
 
 ## Workflow
 
@@ -31,13 +41,14 @@ This starts Docker, migrates, seeds, and launches API + Web with hot reload. Lea
 
 Read these files to match current patterns:
 
-- `packages/e2e/tests/sessions.spec.ts` — most comprehensive example (login, drawer editing, field helpers, navigation)
-- `packages/e2e/tests/horses.spec.ts` — CRUD flow pattern
-- `packages/e2e/tests/auth.spec.ts` — login/signup flow
+- `packages/e2e/tests/regression/sessions.spec.ts` — most comprehensive example (login, drawer editing, field helpers, navigation)
+- `packages/e2e/tests/regression/horses.spec.ts` — CRUD flow pattern
+- `packages/e2e/tests/smoke/auth.spec.ts` — login/signup flow
 - `packages/e2e/tests/seedConstants.ts` — seed data constants
 - `packages/e2e/tests/utils/radixHelpers.ts` — Radix select helper
 
-Test file location: `packages/e2e/tests/<feature>.spec.ts`
+**Smoke tests** (`tests/smoke/`): Auth flows, core navigation — things that should never break.
+**Regression tests** (`tests/regression/`): Feature-specific CRUD, filtering, detail views.
 
 ### 4. Run a single test for fast feedback
 
@@ -51,9 +62,16 @@ With infra already running, global-setup and teardown are skipped — tests star
 
 Edit source or test code. The API server (tsx watch) and Web server (Vite HMR) pick up changes automatically. Re-run the single test.
 
-### 6. Run full suite when done
+### 6. Run by tier
 
 ```bash
+# Smoke only (~18s)
+pnpm --filter e2e run test --project=smoke-chrome
+
+# Regression only (both browsers)
+pnpm --filter e2e run test --project=regression-chrome --project=regression-safari
+
+# Full suite (all projects)
 pnpm --filter e2e run test
 ```
 
@@ -67,7 +85,7 @@ pnpm --filter e2e run test
 - **Back button**: `aria-label="Go back"`
 - **Radix selects**: use `selectRadixOption(page, label, option)` from `utils/radixHelpers`
 - **No `data-testid`**: prefer `getByRole`, `getByLabel`, `getByText`
-- **Mobile viewport**: iPhone 12 (configured in playwright.config.ts)
+- **Mobile viewport**: Pixel 5 (Chrome) and iPhone 12 (Safari)
 - **Single worker, 30s timeout**
 
 ## Mutation Test Patterns
@@ -92,7 +110,7 @@ test('can create a session', async ({ page }) => {
 
 ### Edit flow
 
-Navigate to detail → open edit overlay → modify → save → verify on detail page, then verify on list:
+Navigate to detail -> open edit overlay -> modify -> save -> verify on detail page, then verify on list:
 
 ```typescript
 // Open detail
@@ -110,7 +128,7 @@ await expect(page.getByText(updatedNote)).toBeVisible();
 
 ### Delete flow
 
-From edit overlay → click delete → confirm in alert dialog → verify redirect and item gone:
+From edit overlay -> click delete -> confirm in alert dialog -> verify redirect and item gone:
 
 ```typescript
 await page.getByRole('button', { name: 'Delete Session' }).click();
@@ -158,10 +176,40 @@ async function setNotes(page, notes) {
 
 Read `packages/web/src/App.tsx` for the current route table.
 
-## Ports
+## Infrastructure
+
+### Ports
 
 | Service  | Port | URL                                                     |
 | -------- | ---- | ------------------------------------------------------- |
 | Web      | 3099 | http://127.0.0.1:3099                                   |
 | API      | 4099 | http://127.0.0.1:4099                                   |
 | Postgres | 5433 | postgresql://postgres:test@127.0.0.1:5433/herdbook_test |
+
+### Troubleshooting
+
+#### Port already in use
+
+```bash
+lsof -i :5433 && lsof -i :4099 && lsof -i :3099
+kill -9 $(lsof -t -i :<port>)
+```
+
+#### Stale Prisma client
+
+```bash
+pnpm --filter api run prisma:generate
+```
+
+#### Database migration drift
+
+```bash
+DATABASE_URL="postgresql://postgres:test@127.0.0.1:5433/herdbook_test" \
+  pnpm --filter api run prisma:migrate:deploy
+```
+
+#### Docker cleanup
+
+```bash
+docker compose -f docker-compose.test.yml down -v
+```

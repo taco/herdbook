@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { TEST_RIDER_EMAIL, TEST_RIDER_PASSWORD } from '@/seedConstants';
-import { resetDatabase } from './utils/resetDatabase';
+import { resetDatabase } from '../utils/resetDatabase';
 
 test.beforeAll(() => {
     resetDatabase();

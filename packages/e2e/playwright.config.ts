@@ -39,13 +39,19 @@ export default defineConfig({
 
     /* Configure projects for major browsers */
     projects: [
-        /* Test against mobile viewports. */
-        // {
-        //     name: 'Mobile Chrome',
-        //     use: { ...devices['Pixel 5'] },
-        // },
         {
-            name: 'Mobile Safari',
+            name: 'smoke-chrome',
+            testDir: './tests/smoke',
+            use: { ...devices['Pixel 5'] },
+        },
+        {
+            name: 'regression-chrome',
+            testDir: './tests/regression',
+            use: { ...devices['Pixel 5'] },
+        },
+        {
+            name: 'regression-safari',
+            testDir: './tests/regression',
             use: { ...devices['iPhone 12'] },
         },
     ],
