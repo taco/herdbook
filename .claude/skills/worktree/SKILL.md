@@ -8,27 +8,87 @@ allowed-tools: Bash, Read, Glob, Grep
 
 ## Usage
 
-- `/worktree <branch>` — create a new worktree
+- `/worktree <issue-number>` — preflight checks, fetch issue, create worktree, output launch command
 - `/worktree list` — list active worktrees
 - `/worktree remove <path>` — remove a worktree
-- `/worktree done` — clean up the current worktree (created by `/gh-issue`)
+- `/worktree done` — clean up the current worktree and return to main
 
-## Creating a Worktree
+## Creating a Worktree from an Issue
 
-Read `worktree-setup.sh` for the full bootstrapping logic. The sequence:
+### 1. Preflight checks
+
+Verify the repo is ready before creating a worktree:
+
+1. **Check we're on main:**
+
+    ```bash
+    git branch --show-current
+    ```
+
+    If not on `main`, halt and tell the user.
+
+2. **Check working tree is clean:**
+
+    ```bash
+    git status --porcelain
+    ```
+
+    If there are uncommitted changes, ask the user: proceed anyway or halt?
+
+3. **Sync with origin:**
+    ```bash
+    git fetch origin main
+    ```
+    Compare local and remote:
+    ```bash
+    git rev-list --left-right --count main...origin/main
+    ```
+
+    - If local is behind, run `git pull` to catch up.
+    - If local is ahead, warn the user (unpushed commits) and ask whether to proceed or halt.
+
+### 2. Fetch the issue
 
 ```bash
-./worktree-setup.sh <path> <branch-name>
-cd <worktree-path>
-pnpm install
-pnpm --filter api exec prisma generate
+gh issue view <number> --json title,body,labels,comments,assignees
 ```
 
-The script symlinks env files, SSL certs, and Claude settings from the main worktree.
+Display a brief summary (title + labels). Use the title and labels to derive names:
+
+- Slugify the title (lowercase, hyphens, max ~40 chars): e.g. "Add horse filtering" → `add-horse-filtering`
+- Branch prefix from labels: `fix/` if bug label, `feat/` otherwise
+- Branch: `feat/<slug>` or `fix/<slug>`
+- Path: `../herdbook-<slug>`
+
+### 3. Create worktree
+
+```bash
+./worktree-setup.sh ../herdbook-<slug> feat/<slug>
+```
+
+The script symlinks env files, SSL certs, and Claude settings from the main worktree, then runs `pnpm install` and `prisma generate`.
+
+### 4. Store tracking state
+
+```bash
+WORKTREE=$(cd ../herdbook-<slug> && pwd)
+echo "$WORKTREE" > .claude/current-worktree
+echo -n "<issue_number>" > .claude/current-issue
+```
+
+### 5. Output the launch command
+
+Print a single clean line the user can triple-click to copy:
+
+```
+cd ../herdbook-<slug> && claude
+```
+
+**Stop here.** Do not continue with implementation. The user will launch a new Claude session in the worktree and use `/gh-issue <number>` there.
 
 ## Done — Clean Up Current Worktree
 
-When the user runs `/worktree done`, clean up the worktree that was created by `/gh-issue`:
+When the user runs `/worktree done`:
 
 1. **Read the current worktree path:**
 
