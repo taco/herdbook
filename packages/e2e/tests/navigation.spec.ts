@@ -31,11 +31,11 @@ test.describe('Navigation', () => {
             page.getByRole('heading', { name: 'Horses' })
         ).toBeVisible();
 
-        // Navigate to Riders tab
-        await page.getByRole('button', { name: 'Riders' }).click();
-        await expect(page).toHaveURL('/riders');
+        // Navigate to Sessions tab
+        await page.getByRole('button', { name: 'Sessions' }).click();
+        await expect(page).toHaveURL('/sessions');
         await expect(
-            page.getByRole('heading', { name: 'Riders' })
+            page.getByRole('heading', { name: 'Sessions' })
         ).toBeVisible();
 
         // Navigate to Profile tab
