@@ -1,22 +1,11 @@
 import { test, expect } from '@playwright/test';
-import {
-    TEST_RIDER_EMAIL,
-    TEST_RIDER_PASSWORD,
-    TEST_RIDER_NAME,
-    TEST_HORSE_NAME,
-} from '@/seedConstants';
-import { resetDatabase } from '../utils/resetDatabase';
+import { TEST_RIDER_NAME, TEST_HORSE_NAME } from '@/seedConstants';
 
-test.beforeAll(() => {
-    resetDatabase();
-});
+// storageState from smoke-setup handles auth — no manual login needed
 
 test.describe('Navigation', () => {
     test.beforeEach(async ({ page }) => {
-        await page.goto('/login');
-        await page.fill('input[id="email"]', TEST_RIDER_EMAIL);
-        await page.fill('input[id="password"]', TEST_RIDER_PASSWORD);
-        await page.click('button[type="submit"]');
+        await page.goto('/');
         await page.waitForURL('/');
     });
 
