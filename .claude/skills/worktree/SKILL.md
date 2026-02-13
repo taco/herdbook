@@ -36,10 +36,13 @@ Verify the repo is ready before creating a worktree:
     If there are uncommitted changes, ask the user: proceed anyway or halt?
 
 3. **Sync with origin:**
+
     ```bash
     git fetch origin main
     ```
+
     Compare local and remote:
+
     ```bash
     git rev-list --left-right --count main...origin/main
     ```
@@ -72,8 +75,7 @@ The script symlinks env files, SSL certs, and Claude settings from the main work
 
 ```bash
 WORKTREE=$(cd ../herdbook-<slug> && pwd)
-echo "$WORKTREE" > .claude/current-worktree
-echo -n "<issue_number>" > .claude/current-issue
+printf "ISSUE=<issue_number>\nWORKTREE=%s\n" "$WORKTREE" > .state
 ```
 
 ### 5. Output the launch command
@@ -93,10 +95,10 @@ When the user runs `/worktree done`:
 1. **Read the current worktree path:**
 
     ```bash
-    cat .claude/current-worktree
+    grep '^WORKTREE=' .state | cut -d= -f2-
     ```
 
-    If the file is empty or missing, tell the user there's no active worktree to clean up.
+    If `.state` is missing or has no `WORKTREE` value, tell the user there's no active worktree to clean up.
 
 2. **Kill any running dev servers** in that worktree (check for node processes on the worktree's ports).
 
@@ -112,8 +114,7 @@ When the user runs `/worktree done`:
 4. **Clear tracking files:**
 
     ```bash
-    echo -n > .claude/current-worktree
-    echo -n > .claude/current-issue
+    rm -f .state
     ```
 
 5. **Confirm** the cleanup is complete. The user is now back in the main herdbook.

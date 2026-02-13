@@ -36,7 +36,7 @@ Check that the current environment matches the issue:
 
 4. **Track the issue number** for statusline:
     ```bash
-    echo -n "<issue_number>" > .claude/current-issue
+    printf "ISSUE=<issue_number>\n" > .state
     ```
 
 Display a summary: title, description, labels, and any relevant comments.
