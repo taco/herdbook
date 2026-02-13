@@ -1,5 +1,7 @@
 # Herdbook
 
+[![E2E Nightly](https://github.com/taco/herdbook/actions/workflows/e2e-nightly.yml/badge.svg)](https://github.com/taco/herdbook/actions/workflows/e2e-nightly.yml)
+
 A mobile-first training journal for equestrians. Log riding sessions by voice or form, track activity per horse, and review training patterns over time.
 
 ## What It Does
@@ -173,15 +175,30 @@ pnpm --filter web test
 
 ### E2E Tests
 
-E2E tests use Playwright and run against an isolated Docker Postgres instance.
+E2E tests use Playwright and run against an isolated Docker Postgres instance. Tests are split into two tiers:
+
+- **Smoke** (`tests/smoke/`) — critical path tests (auth, navigation). Chromium-only, parallel, fast.
+- **Regression** (`tests/regression/`) — full feature tests (horses, sessions). Chrome + Safari.
 
 ```bash
-# From root - runs full E2E suite
+# From root - runs all tests (smoke + regression)
 pnpm test:e2e
+
+# Smoke tests only
+pnpm --filter e2e exec playwright test --config playwright.smoke.config.ts
+
+# Regression tests only
+pnpm --filter e2e exec playwright test --config playwright.regression.config.ts
 
 # With Playwright UI for debugging
 pnpm --filter e2e test:ui
 ```
+
+**CI strategy:**
+
+- **Pull requests** run smoke tests only (fast feedback)
+- **Push to main** runs the full suite (smoke + regression)
+- **Nightly cron** runs the full suite on schedule
 
 **Prerequisites**: Docker must be running. The test suite automatically:
 

@@ -56,6 +56,6 @@ packages/api/src/generated/prisma
 test-results/
 playwright-report/
 blob-report/
-playwright/.cache/
-playwright/.auth/
+**/playwright/.cache/
+**/playwright/.auth/
 

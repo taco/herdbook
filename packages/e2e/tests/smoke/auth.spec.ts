@@ -1,10 +1,8 @@
 import { test, expect } from '@playwright/test';
 import { TEST_RIDER_EMAIL, TEST_RIDER_PASSWORD } from '@/seedConstants';
-import { resetDatabase } from '../utils/resetDatabase';
 
-test.beforeAll(() => {
-    resetDatabase();
-});
+// Auth tests need a clean browser state — they test the login/signup flows directly
+test.use({ storageState: { cookies: [], origins: [] } });
 
 test.describe('Authentication', () => {
     test('can log in with valid credentials', async ({ page }) => {
