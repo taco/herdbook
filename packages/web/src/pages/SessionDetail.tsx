@@ -35,6 +35,7 @@ import {
     formatAsDateTimeLocalValue,
 } from '@/lib/dateUtils';
 import { getWorkTypeLabel } from '@/lib/constants';
+import { GET_HORSES_QUERY, GET_RIDERS_QUERY } from '@/lib/queries';
 import {
     WorkType,
     GetSessionForEditQuery,
@@ -96,24 +97,6 @@ const UPDATE_SESSION_MUTATION = gql`
 const DELETE_SESSION_MUTATION = gql`
     mutation DeleteSession($id: ID!) {
         deleteSession(id: $id)
-    }
-`;
-
-const GET_HORSES_QUERY = gql`
-    query GetHorses {
-        horses {
-            id
-            name
-        }
-    }
-`;
-
-const GET_RIDERS_QUERY = gql`
-    query GetRiders {
-        riders {
-            id
-            name
-        }
     }
 `;
 
