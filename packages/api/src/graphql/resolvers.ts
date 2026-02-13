@@ -158,8 +158,33 @@ export const createResolvers = (app: FastifyInstance): Record<string, any> => {
             }),
             sessions: wrapResolver(
                 'read',
-                async (_, args: { limit?: number; offset?: number }) => {
+                async (
+                    _,
+                    args: {
+                        limit?: number;
+                        offset?: number;
+                        horseId?: string;
+                        riderId?: string;
+                        workType?: WorkType;
+                        dateFrom?: Date;
+                        dateTo?: Date;
+                    }
+                ) => {
+                    const where: Prisma.SessionWhereInput = {
+                        horseId: args.horseId,
+                        riderId: args.riderId,
+                        workType: args.workType,
+                    };
+
+                    if (args.dateFrom || args.dateTo) {
+                        where.date = {
+                            ...(args.dateFrom && { gte: args.dateFrom }),
+                            ...(args.dateTo && { lte: args.dateTo }),
+                        };
+                    }
+
                     return prisma.session.findMany({
+                        where,
                         take: args.limit,
                         skip: args.offset,
                         orderBy: { date: 'desc' },
