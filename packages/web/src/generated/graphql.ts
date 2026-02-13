@@ -131,8 +131,13 @@ export type QuerySessionArgs = {
 };
 
 export type QuerySessionsArgs = {
+    dateFrom: InputMaybe<Scalars['DateTime']['input']>;
+    dateTo: InputMaybe<Scalars['DateTime']['input']>;
+    horseId: InputMaybe<Scalars['ID']['input']>;
     limit: InputMaybe<Scalars['Int']['input']>;
     offset: InputMaybe<Scalars['Int']['input']>;
+    riderId: InputMaybe<Scalars['ID']['input']>;
+    workType: InputMaybe<WorkType>;
 };
 
 export type Rider = {
