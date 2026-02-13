@@ -48,6 +48,7 @@ packages/api/src/generated/prisma
 
 # Claude Code
 .claude/current-issue
+.claude/current-worktree
 
 # Local SSL certs
 *.pem

@@ -11,6 +11,7 @@ allowed-tools: Bash, Read, Glob, Grep
 - `/worktree <branch>` — create a new worktree
 - `/worktree list` — list active worktrees
 - `/worktree remove <path>` — remove a worktree
+- `/worktree done` — clean up the current worktree (created by `/gh-issue`)
 
 ## Creating a Worktree
 
@@ -24,6 +25,38 @@ pnpm --filter api exec prisma generate
 ```
 
 The script symlinks env files, SSL certs, and Claude settings from the main worktree.
+
+## Done — Clean Up Current Worktree
+
+When the user runs `/worktree done`, clean up the worktree that was created by `/gh-issue`:
+
+1. **Read the current worktree path:**
+
+    ```bash
+    cat .claude/current-worktree
+    ```
+
+    If the file is empty or missing, tell the user there's no active worktree to clean up.
+
+2. **Kill any running dev servers** in that worktree (check for node processes on the worktree's ports).
+
+3. **Remove the worktree:**
+
+    ```bash
+    git worktree remove <path>
+    git worktree prune
+    ```
+
+    If it fails due to uncommitted changes, warn the user and ask whether to force-remove.
+
+4. **Clear tracking files:**
+
+    ```bash
+    echo -n > .claude/current-worktree
+    echo -n > .claude/current-issue
+    ```
+
+5. **Confirm** the cleanup is complete. The user is now back in the main herdbook.
 
 ## Port Allocation
 
