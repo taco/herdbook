@@ -15,25 +15,97 @@ allowed-tools: Bash, Read, Glob, Grep, mcp__Railway__check-railway-status, mcp__
 
 ## Steps
 
-1. **Check Railway status** — verify CLI authenticated
-2. **Create Neon branch** — branch from main DB, named `preview/<branch>`
-3. **Create Railway environment** — duplicate production settings, override `DATABASE_URL` with Neon branch connection string
-4. **Deploy services** — two services: `api` (Fastify) and `web` (Vite React)
-5. **Run migrations** — against the Neon branch
-6. **Generate domains** — public URLs for both services
+### 1. Check Railway status
 
-### Environment Variables
+```bash
+railway status
+```
 
-**API**: `DATABASE_URL` (Neon branch), `JWT_SECRET`, `PORT` (auto)
-**Web**: `VITE_API_URL` (deployed API URL), `PORT` (auto)
+If not authenticated: `railway login`
+
+### 2. Create Neon branch
+
+Branch name: `preview/<git-branch-name>`
+
+Use the Neon MCP tools:
+
+1. `list_projects` to find the project ID
+2. `create_branch` with name `preview/<branch>`
+3. `get_connection_string` for the new branch — this is the `DATABASE_URL`
+
+### 3. Create Railway environment
+
+```bash
+railway environment create <branch-name> --duplicate production
+```
+
+Override variables for both services:
+
+**API service**:
+
+| Variable       | Value                                                   |
+| -------------- | ------------------------------------------------------- |
+| `DATABASE_URL` | Neon branch connection string (with `?sslmode=require`) |
+| `JWT_SECRET`   | Same as production                                      |
+| `PORT`         | Railway auto-assigns                                    |
+
+**Web service**:
+
+| Variable       | Value                                      |
+| -------------- | ------------------------------------------ |
+| `VITE_API_URL` | Set after API domain is generated (step 5) |
+| `PORT`         | Railway auto-assigns                       |
+
+### 4. Run migrations against Neon branch
+
+```bash
+DATABASE_URL="<neon-branch-url>" pnpm --filter api run prisma:migrate:deploy
+```
+
+### 5. Deploy services
+
+Deploy API first (web needs the API URL):
+
+```bash
+railway deploy --service api
+```
+
+Generate API domain, then set `VITE_API_URL` on web service:
+
+```bash
+railway domain --service api
+railway variables set VITE_API_URL=https://<api-domain> --service web
+railway deploy --service web
+railway domain --service web
+```
+
+### 6. Report URLs
+
+Display both service URLs to the user.
 
 ## Teardown
 
-1. Delete the Railway environment
-2. Delete the Neon database branch
+Order matters — remove Railway environment first, then Neon branch:
+
+1. Delete Railway environment (removes services + domains)
+2. Delete Neon branch using `delete_branch` MCP tool
+3. Confirm both are gone
+
+## Rollback
+
+If deploy fails partway:
+
+- **Neon branch created but Railway failed**: delete the Neon branch to avoid orphaned branches
+- **API deployed but web failed**: check `VITE_API_URL` — most common cause is missing or wrong API domain
+- **Migrations failed**: check the Neon branch connection string includes `?sslmode=require`
 
 ## Troubleshooting
 
-- **Build fails**: API build is `prisma:generate && tsc && tsc-alias`, Web is `tsc && vite build`
-- **DB connection errors**: Neon branches auto-suspend — first request may be slow
-- **CORS errors**: Check `VITE_API_URL` points to correct API domain
+| Problem             | Cause                  | Fix                                                                    |
+| ------------------- | ---------------------- | ---------------------------------------------------------------------- |
+| Build fails (API)   | Missing Prisma client  | Build command must start with `prisma generate`                        |
+| Build fails (Web)   | Missing `VITE_API_URL` | Set variable before deploying web service                              |
+| DB connection error | SSL not enabled        | Add `?sslmode=require` to `DATABASE_URL`                               |
+| DB connection slow  | Neon auto-suspend      | First request wakes compute — takes 1-2s, subsequent requests are fast |
+| CORS errors         | Wrong API URL          | Verify `VITE_API_URL` matches the actual Railway API domain            |
+| Stale preview       | Forgot to redeploy     | After code changes, run `railway deploy` for affected service(s)       |

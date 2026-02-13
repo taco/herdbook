@@ -29,6 +29,7 @@ Display a summary: title, description, labels, and any relevant comments.
         - Explain why for each and alternatives you considered
         - Highlight any potential risks to performance or security with these changes
     - Key design decisions
+    - A **Skills** table mapping each step to the skill that will govern it (see CLAUDE.md Planning Convention)
     - Any open questions
 - **Wait for user approval before proceeding**
 

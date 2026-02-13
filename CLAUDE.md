@@ -17,6 +17,22 @@ Use lead/builder/verifier pattern with cost-conscious model allocation:
 3. Build with Opus
 4. Verify with Sonnet (Opus for security-critical)
 
+### Planning Convention
+
+Every plan must include a **Skills** section that maps each implementation step to the skill that governs it. If no skill applies, write "none". This makes skill usage visible and reviewable.
+
+Example:
+
+```
+## Skills
+| Step | Skill | Why |
+|------|-------|-----|
+| Add birthDate to Horse model | `/schema` | Prisma → migration → GraphQL → resolver → codegen |
+| Build horse profile page | `/new-page` | New FullScreenLayout page with view/edit |
+| Write resolver tests | `/test-api` | Integration test for new query |
+| Pre-commit checks | `/preflight` | Format + typecheck |
+```
+
 ## Commands
 
 - Always use `pnpm` (not npm)

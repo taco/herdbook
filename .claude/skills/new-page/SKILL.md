@@ -33,11 +33,50 @@ Read these files to match current patterns:
 - FullScreen pages: header with back button (`aria-label="Go back"`)
 - View/edit cascade: edit overlay slides in from right (read `SessionDetail.tsx` for pattern)
 - Drawer editing: SummaryRow + FieldEditSheet (read `docs/design-navigation.md`)
-- Apollo cache: evict after mutations (`cache.evict({ fieldName })`)
+- Apollo cache: evict after mutations (see Cache Pattern below)
 - Post-save: create → `backTo('/')`, edit overlay → close overlay, delete → `backTo('/')`
 - Mobile: 44x44px touch targets, `pb-20` for tab bar padding, `min-h-dvh` for full screen
 - Loading: explicit `loading` state from `useQuery` (no Suspense)
 - Auth: handled by layout — don't check in page component
+
+## Apollo Cache Pattern
+
+All mutations use field-level eviction. Evict every cached query field that could contain stale data, then garbage collect:
+
+```typescript
+await createHorse({
+    variables: { name, notes },
+    update(cache) {
+        cache.evict({ fieldName: 'horses' }); // list query
+        cache.gc();
+    },
+});
+```
+
+For updates/deletes, evict both the list and detail fields:
+
+```typescript
+await updateHorse({
+    variables: { id, name, notes, isActive },
+    update(cache) {
+        cache.evict({ fieldName: 'horses' }); // list
+        cache.evict({ fieldName: 'horse' }); // detail
+        cache.gc();
+    },
+});
+```
+
+Also evict related query fields. For example, session mutations also evict `lastSessionForHorse` since that query depends on session data:
+
+```typescript
+update(cache) {
+    cache.evict({ fieldName: 'sessions' });
+    cache.evict({ fieldName: 'lastSessionForHorse' });
+    cache.gc();
+}
+```
+
+**Rule of thumb**: if the mutation could change what any existing query returns, evict that query's field name.
 
 ## After Creating
 
