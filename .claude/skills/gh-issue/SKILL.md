@@ -25,9 +25,11 @@ Display a summary: title, description, labels, and any relevant comments.
 - Use Explore agents (Sonnet) to understand the relevant code areas
 - Use a Plan agent (Opus) to design the implementation
 - Present the plan to the user with:
-  - What files will be created/modified
-  - Key design decisions
-  - Any open questions
+    - What files will be created/modified
+        - Explain why for each and alternatives you considered
+        - Highlight any potential risks to performance or security with these changes
+    - Key design decisions
+    - Any open questions
 - **Wait for user approval before proceeding**
 
 ### 3. Start dev server
