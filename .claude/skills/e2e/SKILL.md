@@ -70,6 +70,90 @@ pnpm --filter e2e run test
 - **Mobile viewport**: iPhone 12 (configured in playwright.config.ts)
 - **Single worker, 30s timeout**
 
+## Mutation Test Patterns
+
+### Create flow
+
+Navigate to form, fill fields via drawer helpers, submit, verify redirect and new item visible:
+
+```typescript
+test('can create a session', async ({ page }) => {
+    const uniqueNote = `Test note ${Date.now()}`;
+    await page.goto('/sessions/new');
+    await selectFieldOption(page, 'Horse', TEST_HORSE_NAME);
+    await selectFieldOption(page, 'Work Type', 'Flatwork');
+    await setFieldValue(page, 'Duration', '45');
+    await setNotes(page, uniqueNote);
+    await page.getByRole('button', { name: 'Save Session' }).click();
+    await page.waitForURL('/');
+    await expect(page.getByText(uniqueNote)).toBeVisible();
+});
+```
+
+### Edit flow
+
+Navigate to detail → open edit overlay → modify → save → verify on detail page, then verify on list:
+
+```typescript
+// Open detail
+await page.getByText(originalNote).first().click();
+// Open edit overlay
+await page.getByRole('button', { name: 'Edit' }).click();
+await expect(page.getByRole('heading', { name: 'Edit Session' })).toBeVisible();
+// Modify and save
+await setNotes(page, updatedNote);
+await page.getByRole('button', { name: 'Save Session' }).click();
+// Verify stays on detail
+await expect(page).toHaveURL(/\/sessions\/[^/]+$/);
+await expect(page.getByText(updatedNote)).toBeVisible();
+```
+
+### Delete flow
+
+From edit overlay → click delete → confirm in alert dialog → verify redirect and item gone:
+
+```typescript
+await page.getByRole('button', { name: 'Delete Session' }).click();
+const alertDialog = page.getByRole('alertdialog');
+await expect(alertDialog.getByText('Delete session?')).toBeVisible();
+await alertDialog.getByRole('button', { name: 'Delete' }).click();
+await page.waitForURL('/');
+await expect(page.getByText(uniqueNote)).not.toBeVisible();
+```
+
+### Drawer helper functions
+
+Define these at the top of your test file for drawer-based field editing:
+
+```typescript
+async function selectFieldOption(page, fieldLabel, optionText) {
+    await page.getByLabel(`Edit ${fieldLabel}`).click();
+    const sheet = page.getByRole('dialog');
+    await sheet.getByText(optionText, { exact: true }).click();
+    await expect(sheet).not.toBeVisible();
+}
+
+async function setFieldValue(page, fieldLabel, value) {
+    await page.getByLabel(`Edit ${fieldLabel}`).click();
+    const sheet = page.getByRole('dialog');
+    const input = sheet.locator('input, textarea').first();
+    await input.fill(value);
+    await sheet.getByRole('button', { name: 'Done' }).click();
+    await expect(sheet).not.toBeVisible();
+}
+
+async function setNotes(page, notes) {
+    await page.getByLabel('Edit Notes').click();
+    const sheet = page.getByRole('dialog');
+    const textarea = sheet.locator('textarea').first();
+    await textarea.fill(notes);
+    await sheet.getByRole('button', { name: 'Done' }).click();
+    await expect(sheet).not.toBeVisible();
+}
+```
+
+**Key rules**: always use `Date.now()` in test data for uniqueness, verify both the immediate result (detail page) and the list view after navigating back.
+
 ## Route Reference
 
 Read `packages/web/src/App.tsx` for the current route table.

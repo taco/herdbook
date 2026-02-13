@@ -70,6 +70,31 @@ pnpm run check
 | `packages/api/src/graphql/loaders.ts`     | DataLoaders (N+1)        |
 | `packages/web/src/generated/graphql.ts`   | Generated TS types       |
 
+## Removing Fields or Models
+
+Removal is the reverse of creation — update consumers first, then remove the source:
+
+### Removing a field
+
+1. **Remove from resolvers** — delete any resolver logic that reads/writes the field
+2. **Remove from GraphQL schema** — delete from `schema.graphql`
+3. **Regenerate frontend types** — `pnpm --filter web run codegen`
+4. **Fix frontend** — remove all references to the field (queries, mutations, UI)
+5. **Create migration** — `pnpm --filter api run prisma:migrate -- --name remove_<field>_from_<model>`
+6. **Generate Prisma client** — `pnpm --filter api run prisma:generate`
+7. **Run checks** — `pnpm run check`
+
+### Removing a model
+
+1. **Remove dependent resolvers** — queries, mutations, field resolvers, DataLoaders
+2. **Remove from GraphQL schema** — type, Query fields, Mutation fields, Input types
+3. **Fix frontend** — remove pages, routes, queries, components
+4. **Remove relations** — update other Prisma models that reference this one
+5. **Create migration** — drops the table
+6. **Generate clients and run checks**
+
+**Key principle**: always remove the consumers (resolvers, frontend) before removing the source (Prisma model), so that `pnpm run check` catches any remaining references at each step.
+
 ## Enum Changes
 
 When adding enum values, update in both `schema.prisma` and `schema.graphql`, then regenerate both clients.
