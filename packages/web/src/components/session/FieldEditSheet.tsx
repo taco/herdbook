@@ -1,6 +1,4 @@
 import { useState, useEffect } from 'react';
-import { Check } from 'lucide-react';
-import { gql } from '@apollo/client';
 import { useQuery } from '@apollo/client/react';
 
 import {
@@ -11,6 +9,7 @@ import {
 } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import PickerSheet from '@/components/ui/PickerSheet';
 import {
     WorkType,
     GetHorsesQuery,
@@ -18,33 +17,8 @@ import {
     GetRidersQuery,
     GetRidersQueryVariables,
 } from '@/generated/graphql';
-
-const GET_HORSES_QUERY = gql`
-    query GetHorses {
-        horses {
-            id
-            name
-        }
-    }
-`;
-
-const GET_RIDERS_QUERY = gql`
-    query GetRiders {
-        riders {
-            id
-            name
-        }
-    }
-`;
-
-const WORK_TYPE_OPTIONS: Array<{ value: WorkType; label: string }> = [
-    { value: WorkType.Flatwork, label: 'Flatwork' },
-    { value: WorkType.Groundwork, label: 'Groundwork' },
-    { value: WorkType.InHand, label: 'In-hand' },
-    { value: WorkType.Jumping, label: 'Jumping' },
-    { value: WorkType.Trail, label: 'Trail' },
-    { value: WorkType.Other, label: 'Other' },
-];
+import { WORK_TYPE_OPTIONS } from '@/lib/constants';
+import { GET_HORSES_QUERY, GET_RIDERS_QUERY } from '@/lib/queries';
 
 export type FieldType =
     | 'horse'
@@ -60,6 +34,14 @@ interface FieldEditSheetProps {
     value: string | number | WorkType | null;
     onSave: (value: string | number | WorkType | null) => void;
 }
+
+const TITLES: Record<FieldType, string> = {
+    horse: 'Select Horse',
+    rider: 'Select Rider',
+    workType: 'Select Work Type',
+    duration: 'Duration (minutes)',
+    dateTime: 'Date & Time',
+};
 
 export default function FieldEditSheet({
     open,
@@ -89,8 +71,8 @@ export default function FieldEditSheet({
         setLocalValue(value);
     }, [value, open]);
 
-    const handleSelect = (newValue: string | number | WorkType) => {
-        onSave(newValue);
+    const handleSelect = (key: string) => {
+        onSave(key);
         onOpenChange(false);
     };
 
@@ -99,86 +81,60 @@ export default function FieldEditSheet({
         onOpenChange(false);
     };
 
-    const getTitle = (): string => {
-        switch (fieldType) {
-            case 'horse':
-                return 'Select Horse';
-            case 'rider':
-                return 'Select Rider';
-            case 'workType':
-                return 'Select Work Type';
-            case 'duration':
-                return 'Duration (minutes)';
-            case 'dateTime':
-                return 'Date & Time';
-            default:
-                return 'Edit';
-        }
-    };
+    // List-type fields delegate to PickerSheet
+    if (fieldType === 'horse') {
+        return (
+            <PickerSheet
+                open={open}
+                onOpenChange={onOpenChange}
+                title={TITLES.horse}
+                items={horses.map((h) => ({ key: h.id, label: h.name }))}
+                selectedKey={(value as string) ?? null}
+                onSelect={handleSelect}
+            />
+        );
+    }
 
-    const renderContent = () => {
-        switch (fieldType) {
-            case 'horse':
-                return (
-                    <div className="space-y-1 mt-4">
-                        {horses.map((horse) => (
-                            <button
-                                key={horse.id}
-                                type="button"
-                                onClick={() => handleSelect(horse.id)}
-                                className="w-full flex items-center justify-between py-3 px-3 rounded-lg hover:bg-muted active:bg-muted transition-colors"
-                            >
-                                <span className="text-base">{horse.name}</span>
-                                {localValue === horse.id && (
-                                    <Check className="h-5 w-5 text-primary" />
-                                )}
-                            </button>
-                        ))}
-                    </div>
-                );
+    if (fieldType === 'rider') {
+        return (
+            <PickerSheet
+                open={open}
+                onOpenChange={onOpenChange}
+                title={TITLES.rider}
+                items={riders.map((r) => ({ key: r.id, label: r.name }))}
+                selectedKey={(value as string) ?? null}
+                onSelect={handleSelect}
+            />
+        );
+    }
 
-            case 'rider':
-                return (
-                    <div className="space-y-1 mt-4">
-                        {riders.map((rider) => (
-                            <button
-                                key={rider.id}
-                                type="button"
-                                onClick={() => handleSelect(rider.id)}
-                                className="w-full flex items-center justify-between py-3 px-3 rounded-lg hover:bg-muted active:bg-muted transition-colors"
-                            >
-                                <span className="text-base">{rider.name}</span>
-                                {localValue === rider.id && (
-                                    <Check className="h-5 w-5 text-primary" />
-                                )}
-                            </button>
-                        ))}
-                    </div>
-                );
+    if (fieldType === 'workType') {
+        return (
+            <PickerSheet
+                open={open}
+                onOpenChange={onOpenChange}
+                title={TITLES.workType}
+                items={WORK_TYPE_OPTIONS.map((o) => ({
+                    key: o.value,
+                    label: o.label,
+                }))}
+                selectedKey={(value as string) ?? null}
+                onSelect={handleSelect}
+            />
+        );
+    }
 
-            case 'workType':
-                return (
-                    <div className="space-y-1 mt-4">
-                        {WORK_TYPE_OPTIONS.map((option) => (
-                            <button
-                                key={option.value}
-                                type="button"
-                                onClick={() => handleSelect(option.value)}
-                                className="w-full flex items-center justify-between py-3 px-3 rounded-lg hover:bg-muted active:bg-muted transition-colors"
-                            >
-                                <span className="text-base">
-                                    {option.label}
-                                </span>
-                                {localValue === option.value && (
-                                    <Check className="h-5 w-5 text-primary" />
-                                )}
-                            </button>
-                        ))}
-                    </div>
-                );
+    // Input-type fields use their own Sheet
+    const title = fieldType ? TITLES[fieldType] : 'Edit';
 
-            case 'duration':
-                return (
+    return (
+        <Sheet open={open} onOpenChange={onOpenChange}>
+            <SheetContent side="bottom" className="max-h-[80vh] overflow-auto">
+                <SheetHeader>
+                    <SheetTitle>{title}</SheetTitle>
+                </SheetHeader>
+
+                {fieldType === 'duration' && (
                     <div className="mt-4 space-y-4">
                         <Input
                             type="number"
@@ -206,10 +162,9 @@ export default function FieldEditSheet({
                             Done
                         </Button>
                     </div>
-                );
+                )}
 
-            case 'dateTime':
-                return (
+                {fieldType === 'dateTime' && (
                     <div className="mt-4 space-y-4">
                         <Input
                             type="datetime-local"
@@ -222,20 +177,7 @@ export default function FieldEditSheet({
                             Done
                         </Button>
                     </div>
-                );
-
-            default:
-                return null;
-        }
-    };
-
-    return (
-        <Sheet open={open} onOpenChange={onOpenChange}>
-            <SheetContent side="bottom" className="max-h-[80vh] overflow-auto">
-                <SheetHeader>
-                    <SheetTitle>{getTitle()}</SheetTitle>
-                </SheetHeader>
-                {renderContent()}
+                )}
             </SheetContent>
         </Sheet>
     );

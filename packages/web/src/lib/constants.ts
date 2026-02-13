@@ -6,10 +6,22 @@ export const WORK_TYPE_LABELS: Record<WorkType, string> = {
     [WorkType.Flatwork]: 'Flatwork',
     [WorkType.Jumping]: 'Jumping',
     [WorkType.Groundwork]: 'Groundwork',
-    [WorkType.InHand]: 'In Hand',
+    [WorkType.InHand]: 'In-hand',
     [WorkType.Trail]: 'Trail',
     [WorkType.Other]: 'Other',
 };
+
+export const WORK_TYPE_OPTIONS: Array<{ value: WorkType; label: string }> = [
+    { value: WorkType.Flatwork, label: WORK_TYPE_LABELS[WorkType.Flatwork] },
+    {
+        value: WorkType.Groundwork,
+        label: WORK_TYPE_LABELS[WorkType.Groundwork],
+    },
+    { value: WorkType.InHand, label: WORK_TYPE_LABELS[WorkType.InHand] },
+    { value: WorkType.Jumping, label: WORK_TYPE_LABELS[WorkType.Jumping] },
+    { value: WorkType.Trail, label: WORK_TYPE_LABELS[WorkType.Trail] },
+    { value: WorkType.Other, label: WORK_TYPE_LABELS[WorkType.Other] },
+];
 
 export const getWorkTypeLabel = (workType: string): string => {
     return WORK_TYPE_LABELS[workType as WorkType] || workType;

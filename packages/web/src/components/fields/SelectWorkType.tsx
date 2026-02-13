@@ -1,4 +1,3 @@
-import { WorkType } from '@/generated/graphql';
 import {
     Select,
     SelectContent,
@@ -6,15 +5,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-
-const WORK_TYPE_OPTIONS: Array<{ value: WorkType; label: string }> = [
-    { value: WorkType.Flatwork, label: 'Flatwork' },
-    { value: WorkType.Groundwork, label: 'Groundwork' },
-    { value: WorkType.InHand, label: 'In-hand' },
-    { value: WorkType.Jumping, label: 'Jumping' },
-    { value: WorkType.Trail, label: 'Trail' },
-    { value: WorkType.Other, label: 'Other' },
-];
+import { WorkType, WORK_TYPE_OPTIONS } from '@/lib/constants';
 
 export default function SelectWorkType({
     value,

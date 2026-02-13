@@ -1,4 +1,3 @@
-import { gql } from '@apollo/client';
 import { useQuery } from '@apollo/client/react';
 
 import {
@@ -8,17 +7,8 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-
 import { GetRidersQuery, GetRidersQueryVariables } from '@/generated/graphql';
-
-const GET_RIDERS_QUERY = gql`
-    query GetRiders {
-        riders {
-            id
-            name
-        }
-    }
-`;
+import { GET_RIDERS_QUERY } from '@/lib/queries';
 
 export default function SelectRider({
     value,

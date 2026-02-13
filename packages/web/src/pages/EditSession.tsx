@@ -8,6 +8,7 @@ import type { SessionValues } from '@/components/session/SessionEditor';
 import { useAppNavigate } from '@/hooks/useAppNavigate';
 import { useAuth } from '@/context/AuthContext';
 import { formatAsDateTimeLocalValue } from '@/lib/dateUtils';
+import { GET_HORSES_QUERY, GET_RIDERS_QUERY } from '@/lib/queries';
 import {
     WorkType,
     CreateSessionMutation,
@@ -47,24 +48,6 @@ const CREATE_SESSION_MUTATION = gql`
             notes: $notes
         ) {
             id
-        }
-    }
-`;
-
-const GET_HORSES_QUERY = gql`
-    query GetHorses {
-        horses {
-            id
-            name
-        }
-    }
-`;
-
-const GET_RIDERS_QUERY = gql`
-    query GetRiders {
-        riders {
-            id
-            name
         }
     }
 `;

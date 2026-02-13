@@ -1,4 +1,3 @@
-import { gql } from '@apollo/client';
 import { useQuery } from '@apollo/client/react';
 
 import {
@@ -9,15 +8,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { GetHorsesQuery, GetHorsesQueryVariables } from '@/generated/graphql';
-
-const GET_HORSES_QUERY = gql`
-    query GetHorses {
-        horses {
-            id
-            name
-        }
-    }
-`;
+import { GET_HORSES_QUERY } from '@/lib/queries';
 
 export default function SelectHorse({
     value,

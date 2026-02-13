@@ -190,4 +190,63 @@ test.describe('Session Management', () => {
         await page.waitForURL('/');
         await expect(page.getByText(uniqueNote)).not.toBeVisible();
     });
+
+    test('can filter sessions by work type and persist across navigation', async ({
+        page,
+    }) => {
+        const ts = Date.now();
+        const flatworkNote = `Flatwork filter test ${ts}`;
+        const groundworkNote = `Groundwork filter test ${ts}`;
+
+        // Create a Flatwork session
+        await page.goto('/sessions/new');
+        await selectFieldOption(page, 'Horse', TEST_HORSE_NAME);
+        await selectFieldOption(page, 'Work Type', 'Flatwork');
+        await setFieldValue(page, 'Duration', '30');
+        await setNotes(page, flatworkNote);
+        await page.getByRole('button', { name: 'Save Session' }).click();
+        await page.waitForURL('/');
+
+        // Create a Groundwork session
+        await page.goto('/sessions/new');
+        await selectFieldOption(page, 'Horse', TEST_HORSE_NAME);
+        await selectFieldOption(page, 'Work Type', 'Groundwork');
+        await setFieldValue(page, 'Duration', '25');
+        await setNotes(page, groundworkNote);
+        await page.getByRole('button', { name: 'Save Session' }).click();
+        await page.waitForURL('/');
+
+        // Go to sessions list
+        await page.goto('/sessions');
+        await expect(page.getByText(flatworkNote)).toBeVisible();
+        await expect(page.getByText(groundworkNote)).toBeVisible();
+
+        // Apply work type filter: tap "Work type" chip → pick Flatwork
+        await page.getByRole('button', { name: 'Work type' }).click();
+        const sheet = page.getByRole('dialog');
+        await sheet.getByText('Flatwork', { exact: true }).click();
+        await expect(sheet).not.toBeVisible();
+
+        // Flatwork session visible, Groundwork hidden
+        await expect(page.getByText(flatworkNote)).toBeVisible();
+        await expect(page.getByText(groundworkNote)).not.toBeVisible();
+
+        // Filter chip should show active label
+        await expect(
+            page.getByRole('button', { name: /Flatwork/ })
+        ).toBeVisible();
+
+        // Navigate to session detail and back — filter persists
+        await page.getByText(flatworkNote).click();
+        await expect(page).toHaveURL(/\/sessions\/[^/]+$/);
+        await page.getByLabel('Go back').click();
+        await expect(page).toHaveURL(/\/sessions\?/);
+        await expect(page.getByText(flatworkNote)).toBeVisible();
+        await expect(page.getByText(groundworkNote)).not.toBeVisible();
+
+        // Clear the filter
+        await page.getByLabel('Clear Work type filter').click();
+        await expect(page.getByText(flatworkNote)).toBeVisible();
+        await expect(page.getByText(groundworkNote)).toBeVisible();
+    });
 });
