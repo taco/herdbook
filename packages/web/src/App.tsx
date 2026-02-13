@@ -12,11 +12,11 @@ import Login from '@/pages/Login';
 import Signup from '@/pages/Signup';
 import Dashboard from '@/pages/Dashboard';
 import Horses from '@/pages/Horses';
-import Riders from '@/pages/Riders';
 import Profile from '@/pages/Profile';
 import EditSession from '@/pages/EditSession';
 import EditHorse from '@/pages/EditHorse';
 import HorseProfile from '@/pages/HorseProfile';
+import Sessions from '@/pages/Sessions';
 import SessionDetail from '@/pages/SessionDetail';
 import VoiceSessionCapture from '@/pages/VoiceSessionCapture';
 import TabLayout from '@/layouts/TabLayout';
@@ -44,7 +44,7 @@ function AppRoutes(): React.ReactNode {
             <Route element={<TabLayout />}>
                 <Route path="/" element={<Dashboard />} />
                 <Route path="/horses" element={<Horses />} />
-                <Route path="/riders" element={<Riders />} />
+                <Route path="/sessions" element={<Sessions />} />
                 <Route path="/profile" element={<Profile />} />
             </Route>
 

@@ -1,5 +1,5 @@
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Home, Plus, Users, User } from 'lucide-react';
+import { Home, Plus, ClipboardList, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface Tab {
@@ -13,7 +13,7 @@ const TABS: Tab[] = [
     { path: '/', label: 'Home', icon: Home },
     { path: '/horses', label: 'Horses', icon: HorseIcon },
     { path: '/sessions/voice', label: 'Log', icon: Plus, isCenter: true },
-    { path: '/riders', label: 'Riders', icon: Users },
+    { path: '/sessions', label: 'Sessions', icon: ClipboardList },
     { path: '/profile', label: 'Me', icon: User },
 ];
 
