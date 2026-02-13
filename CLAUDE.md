@@ -97,20 +97,19 @@ Example:
 
 Use these skills for common workflows. Invoke with `/skillname` or the Skill tool.
 
-| Task                          | Skill             |
-| ----------------------------- | ----------------- |
-| Creating a new page           | `/new-page`       |
-| Schema/model changes          | `/schema`         |
-| E2E dev loop                  | `/e2e`            |
-| Writing web unit tests        | `/test-web`       |
-| Writing API integration tests | `/test-api`       |
-| Running tests                 | `/verify`         |
-| Pre-commit checks             | `/preflight`      |
-| Git worktree setup            | `/worktree`       |
-| Railway preview deploys       | `/deploy-preview` |
-| Neon Postgres guidance        | `/neon-postgres`  |
-| Update docs after changes     | `/updatedocs`     |
-| Implement a GitHub issue      | `/gh-issue`       |
+| Task                               | Skill             |
+| ---------------------------------- | ----------------- |
+| Creating a new page                | `/new-page`       |
+| Schema/model changes               | `/schema`         |
+| E2E tests (dev, smoke, regression) | `/e2e`            |
+| Writing web unit tests             | `/test-web`       |
+| Writing API integration tests      | `/test-api`       |
+| Pre-commit checks                  | `/preflight`      |
+| Git worktree setup                 | `/worktree`       |
+| Railway preview deploys            | `/deploy-preview` |
+| Neon Postgres guidance             | `/neon-postgres`  |
+| Update docs after changes          | `/updatedocs`     |
+| Implement a GitHub issue           | `/gh-issue`       |
 
 ## New Feature Workflow
 
