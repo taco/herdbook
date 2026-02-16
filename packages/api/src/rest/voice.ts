@@ -3,60 +3,42 @@ import OpenAI from 'openai';
 import jwt from 'jsonwebtoken';
 import type { WorkType } from '@prisma/client';
 import { getJwtSecretOrThrow } from '@/config';
+import { PROMPTS, type PromptName } from './voicePrompts';
 
 // Types for parse-session endpoint
 export interface ParseSessionContext {
     horses: Array<{ id: string; name: string }>;
     riders: Array<{ id: string; name: string }>;
-    currentDateTime: string;
-    timezone?: string;
+    speakerName: string;
 }
 
+/** Raw response from GPT — names, not IDs */
+export interface RawParsedSession {
+    horseName: string | null;
+    riderName: string | null;
+    durationMinutes: number | null;
+    workType: WorkType | null;
+    formattedNotes?: string;
+}
+
+/** Resolved response with IDs looked up from context */
 export interface ParsedSession {
     horseId: string | null;
     riderId: string | null;
-    date: string | null;
     durationMinutes: number | null;
     workType: WorkType | null;
+    formattedNotes?: string;
 }
 
-// JSON Schema for OpenAI structured output
-const PARSED_SESSION_SCHEMA = {
-    type: 'json_schema',
-    json_schema: {
-        name: 'session',
-        strict: true,
-        schema: {
-            type: 'object',
-            properties: {
-                horseId: { type: ['string', 'null'] },
-                riderId: { type: ['string', 'null'] },
-                date: { type: ['string', 'null'] },
-                durationMinutes: { type: ['number', 'null'] },
-                workType: {
-                    type: ['string', 'null'],
-                    enum: [
-                        'FLATWORK',
-                        'JUMPING',
-                        'GROUNDWORK',
-                        'IN_HAND',
-                        'TRAIL',
-                        'OTHER',
-                        null,
-                    ],
-                },
-            },
-            required: [
-                'horseId',
-                'riderId',
-                'date',
-                'durationMinutes',
-                'workType',
-            ],
-            additionalProperties: false,
-        },
-    },
-} as const;
+function resolveNameToId(
+    name: string | null,
+    items: Array<{ id: string; name: string }>
+): string | null {
+    if (!name) return null;
+    const lower = name.toLowerCase();
+    const match = items.find((item) => item.name.toLowerCase() === lower);
+    return match?.id ?? null;
+}
 
 /**
  * Transcribe audio using OpenAI Whisper
@@ -107,46 +89,32 @@ export async function transcribeAudio(
  */
 export async function parseTranscript(
     transcript: string,
-    context: ParseSessionContext
-): Promise<ParsedSession> {
+    context: ParseSessionContext,
+    options?: { model?: string; promptName?: PromptName }
+): Promise<{
+    parsed: ParsedSession;
+    raw: RawParsedSession;
+    usage: OpenAI.CompletionUsage | undefined;
+}> {
     const openaiApiKey = process.env.OPENAI_API_KEY;
     if (!openaiApiKey) {
         throw new Error('OpenAI API key not configured');
     }
 
     const openai = new OpenAI({ apiKey: openaiApiKey });
+    const model = options?.model ?? 'gpt-5.2';
+    const promptName = options?.promptName ?? 'v2';
+    const prompt = PROMPTS[promptName];
 
-    const systemPrompt = `You are a session parser for an equestrian training log app. Extract structured fields from the user's spoken description of a training session.
-
-Available horses (match case-insensitively, partial matches OK):
-${context.horses.map((h) => `- ID: "${h.id}", Name: "${h.name}"`).join('\n')}
-
-Available riders (match case-insensitively, partial matches OK):
-${context.riders.map((r) => `- ID: "${r.id}", Name: "${r.name}"`).join('\n')}
-
-Current date/time: ${context.currentDateTime}
-User's timezone: ${context.timezone ?? 'UTC'}
-
-Instructions:
-1. Match horse/rider names to their IDs. Use fuzzy matching (partial names, nicknames, case-insensitive).
-2. Parse duration: "an hour" → 60, "45 minutes" → 45, "half an hour" → 30, "an hour and a half" → 90
-3. Parse dates relative to currentDateTime in the user's timezone: "yesterday", "last Tuesday", "this morning", etc. Return dates as ISO 8601 strings.
-4. Infer work type from context clues:
-   - FLATWORK: dressage, schooling, walk/trot/canter work, arena work
-   - JUMPING: jumps, fences, poles, courses
-   - GROUNDWORK: lunging, long-lining, liberty work
-   - IN_HAND: leading, ground manners, showmanship
-   - TRAIL: hacking, trail ride, outside ride
-   - OTHER: anything else or unclear
-Return null for any field you cannot confidently determine.`;
+    const systemPrompt = prompt.buildPrompt(context);
 
     const completion = await openai.chat.completions.create({
-        model: 'gpt-4o-mini',
+        model,
         messages: [
             { role: 'system', content: systemPrompt },
             { role: 'user', content: transcript },
         ],
-        response_format: PARSED_SESSION_SCHEMA,
+        response_format: prompt.schema,
     });
 
     const content = completion.choices[0].message.content;
@@ -154,7 +122,17 @@ Return null for any field you cannot confidently determine.`;
         throw new Error('Failed to parse transcript');
     }
 
-    return JSON.parse(content) as ParsedSession;
+    const raw = JSON.parse(content) as RawParsedSession;
+
+    const parsed: ParsedSession = {
+        horseId: resolveNameToId(raw.horseName, context.horses),
+        riderId: resolveNameToId(raw.riderName, context.riders),
+        durationMinutes: raw.durationMinutes,
+        workType: raw.workType,
+        formattedNotes: raw.formattedNotes,
+    };
+
+    return { parsed, raw, usage: completion.usage ?? undefined };
 }
 
 /**
@@ -207,7 +185,7 @@ export async function registerVoiceRoutes(app: FastifyInstance): Promise<void> {
             );
 
             // Step 2: Parse transcript into structured fields
-            const parsed = await parseTranscript(transcript, context);
+            const { parsed } = await parseTranscript(transcript, context);
 
             return {
                 notes: transcript,

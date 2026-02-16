@@ -74,14 +74,11 @@ export default function VoiceSessionCapture() {
                     prefill: {
                         horseId: parsedFields.horseId,
                         riderId: parsedFields.riderId,
-                        date: parsedFields.date
-                            ? formatAsDateTimeLocalValue(
-                                  new Date(parsedFields.date)
-                              )
-                            : null,
+                        date: formatAsDateTimeLocalValue(new Date()),
                         durationMinutes: parsedFields.durationMinutes,
                         workType: parsedFields.workType,
-                        notes: parsedFields.notes,
+                        notes:
+                            parsedFields.formattedNotes ?? parsedFields.notes,
                     },
                 },
             });

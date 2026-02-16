@@ -2,7 +2,6 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { WorkType } from '@/generated/graphql';
 import { apiEndpoint } from '@/lib/api';
-import { getDeviceTimezone } from '@/lib/dateUtils';
 
 export type RecordingState =
     | 'idle'
@@ -25,9 +24,9 @@ export interface ParsedSessionFields {
     notes: string;
     horseId: string | null;
     riderId: string | null;
-    date: string | null;
     durationMinutes: number | null;
     workType: WorkType | null;
+    formattedNotes?: string;
 }
 
 interface UseRecordingStateMachineOptions {
@@ -59,7 +58,7 @@ export function useRecordingStateMachine({
     riders,
     maxDurationSeconds = DEFAULT_MAX_DURATION,
 }: UseRecordingStateMachineOptions): UseRecordingStateMachineReturn {
-    const { token } = useAuth();
+    const { token, riderName } = useAuth();
     const [state, setState] = useState<RecordingState>('idle');
     const [error, setError] = useState<string | null>(null);
     const [elapsedSeconds, setElapsedSeconds] = useState(0);
@@ -139,8 +138,7 @@ export function useRecordingStateMachine({
                         id: r.id,
                         name: r.name,
                     })),
-                    currentDateTime: new Date().toISOString(),
-                    timezone: getDeviceTimezone(),
+                    speakerName: riderName ?? 'Unknown',
                 })
             );
 
@@ -178,7 +176,7 @@ export function useRecordingStateMachine({
                 setState('error');
             }
         },
-        [token, horses, riders]
+        [token, horses, riders, riderName]
     );
 
     const startRecording = useCallback(async () => {
