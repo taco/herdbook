@@ -128,10 +128,18 @@ export function getJwtExpiration(): SignOptions['expiresIn'] {
         '30 days') as SignOptions['expiresIn'];
 }
 
-export function getRateLimits(): { read: number; write: number; auth: number } {
+export function getRateLimits(): {
+    read: number;
+    write: number;
+    auth: number;
+    aiBurst: number;
+    aiDaily: number;
+} {
     return {
         read: Number(process.env.RATE_LIMIT_READ) || 120,
         write: Number(process.env.RATE_LIMIT_WRITE) || 30,
         auth: Number(process.env.RATE_LIMIT_AUTH) || 10,
+        aiBurst: Number(process.env.RATE_LIMIT_AI_BURST) || 2,
+        aiDaily: Number(process.env.RATE_LIMIT_AI_DAILY) || 20,
     };
 }

@@ -6,6 +6,7 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { prisma } from '@/db';
 import { getJwtExpiration, getJwtSecretOrThrow, getRateLimits } from '@/config';
+import { rateLimitKey } from '@/middleware/auth';
 import type { Loaders } from './loaders';
 
 export type RiderSafe = Prisma.RiderGetPayload<{ omit: { password: true } }>;
@@ -48,9 +49,21 @@ function logResolverCall(
     });
 }
 
-type Limiter = (
-    req: any
-) => Promise<{ isExceeded: boolean; ttl?: number; remaining?: number }>;
+type RateLimitResult =
+    | { isAllowed: true; key: string }
+    | {
+          isAllowed: false;
+          key: string;
+          max: number;
+          timeWindow: number;
+          remaining: number;
+          ttl: number;
+          ttlInSeconds: number;
+          isExceeded: boolean;
+          isBanned: boolean;
+      };
+
+type Limiter = (req: any) => Promise<RateLimitResult>;
 
 async function enforceRateLimit(
     limiter: Limiter,
@@ -58,16 +71,11 @@ async function enforceRateLimit(
     bucket: string,
     resolverName: string,
     code = 'RATE_LIMITED'
-) {
+): Promise<void> {
     const res = await limiter(context.reply.request);
-    if (res.isExceeded) {
-        const riderId = context.rider?.id;
-        const key = riderId
-            ? `rider:${riderId}`
-            : `ip:${context.reply.request.ip}`;
-
+    if (!res.isAllowed && res.isExceeded) {
         console.warn(
-            `[gql:rate-limit] ${bucket} bucket exceeded for ${resolverName} — key=${key}, ttl=${res.ttl}s`
+            `[gql:rate-limit] ${bucket} bucket exceeded for ${resolverName} — key=${res.key}, ttl=${res.ttl}s`
         );
         throw new GraphQLError('Too many requests', {
             extensions: {
@@ -81,35 +89,26 @@ async function enforceRateLimit(
 
 export const createResolvers = (app: FastifyInstance): Record<string, any> => {
     if (!app.hasDecorator('gqlRateLimiters')) {
-        const keyByUserOrIp = (req: any) => {
-            // If you attach rider to req somewhere, prefer that; otherwise IP.
-            // You can also key off auth header or API key if that's how you identify callers.
-            const riderId = (req as any).rider?.id;
-            return riderId ? `rider:${riderId}` : `ip:${req.ip}`;
-        };
-
         const rateLimits = getRateLimits();
 
         app.decorate('gqlRateLimiters', {
-            // "default" bucket for common reads
             read: app.createRateLimit({
                 max: rateLimits.read,
                 timeWindow: '1 minute',
-                keyGenerator: keyByUserOrIp,
+                keyGenerator: rateLimitKey,
             }),
 
-            // Stricter bucket for writes
             write: app.createRateLimit({
                 max: rateLimits.write,
                 timeWindow: '1 minute',
-                keyGenerator: keyByUserOrIp,
+                keyGenerator: rateLimitKey,
             }),
 
-            // Very strict bucket for auth endpoints (protect login/signup)
+            // Auth bucket stays IP-only (no JWT to decode on login/signup)
             auth: app.createRateLimit({
                 max: rateLimits.auth,
                 timeWindow: '1 minute',
-                keyGenerator: (req: any) => `ip:${req.ip}`, // usually IP-based is fine here
+                keyGenerator: (req: any) => `ip:${req.ip}`,
             }),
         });
     }

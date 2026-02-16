@@ -5,6 +5,15 @@ import { createLoaders } from '@/graphql/loaders';
 import { getJwtSecretOrThrow } from '@/config';
 import type { Context } from '@/graphql/resolvers';
 
+/**
+ * Shared rate-limit key: rider ID from JWT, falling back to IP.
+ * Used by both GraphQL and REST rate limiters.
+ */
+export function rateLimitKey(req: FastifyRequest): string {
+    const auth = verifyToken(req.headers.authorization);
+    return auth ? `rider:${auth.riderId}` : `ip:${req.ip}`;
+}
+
 export async function buildContext(
     request: FastifyRequest,
     reply: FastifyReply
