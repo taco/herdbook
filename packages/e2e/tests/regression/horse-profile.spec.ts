@@ -78,9 +78,9 @@ test.describe('Horse Profile', () => {
         await page.getByRole('button', { name: 'Log Session' }).click();
         await expect(page).toHaveURL('/sessions/new');
 
-        // Horse should be prefilled
+        // Horse should be prefilled in the summary row
         await expect(
-            page.getByText(TEST_HORSE_NAME, { exact: true })
-        ).toBeVisible();
+            page.getByRole('button', { name: 'Edit Horse' })
+        ).toContainText(TEST_HORSE_NAME);
     });
 });
