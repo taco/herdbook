@@ -6,6 +6,7 @@ interface RecordingPanelProps {
     isRecording: boolean;
     elapsedSeconds: number;
     maxDurationSeconds: number;
+    wakeLockActive: boolean;
     onStart: () => void;
     onStop: () => void;
     onCancel: () => void;
@@ -21,6 +22,7 @@ export default function RecordingPanel({
     isRecording,
     elapsedSeconds,
     maxDurationSeconds,
+    wakeLockActive,
     onStart,
     onStop,
     onCancel,
@@ -89,6 +91,14 @@ export default function RecordingPanel({
                     </span>
                 )}
             </div>
+
+            {/* Wake lock warning */}
+            {isRecording && !wakeLockActive && (
+                <p className="text-sm text-amber-600 text-center px-4">
+                    Keep your screen on — your device may sleep and stop
+                    recording
+                </p>
+            )}
 
             {/* Controls */}
             <div className="flex items-center gap-4">
