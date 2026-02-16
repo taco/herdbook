@@ -55,6 +55,7 @@ export default function VoiceSessionCapture() {
         parsedFields,
         error,
         canRetry,
+        wakeLockActive,
         startRecording,
         stopRecording,
         cancelRecording,
@@ -182,6 +183,7 @@ export default function VoiceSessionCapture() {
                         isRecording={isRecording}
                         elapsedSeconds={elapsedSeconds}
                         maxDurationSeconds={maxDurationSeconds}
+                        wakeLockActive={wakeLockActive}
                         onStart={startRecording}
                         onStop={stopRecording}
                         onCancel={cancelRecording}

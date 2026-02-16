@@ -43,6 +43,7 @@ interface UseRecordingStateMachineReturn {
     parsedFields: ParsedSessionFields | null;
     error: string | null;
     canRetry: boolean;
+    wakeLockActive: boolean;
     startRecording: () => Promise<void>;
     stopRecording: () => void;
     cancelRecording: () => void;
@@ -64,6 +65,7 @@ export function useRecordingStateMachine({
     const [elapsedSeconds, setElapsedSeconds] = useState(0);
     const [parsedFields, setParsedFields] =
         useState<ParsedSessionFields | null>(null);
+    const [wakeLockActive, setWakeLockActive] = useState(false);
 
     const mediaRecorderRef = useRef<MediaRecorder | null>(null);
     const chunksRef = useRef<Blob[]>([]);
@@ -72,12 +74,38 @@ export function useRecordingStateMachine({
     const startTimeRef = useRef<number | null>(null);
     const cancelledRef = useRef<boolean>(false);
     const audioBlobRef = useRef<Blob | null>(null);
+    const wakeLockRef = useRef<WakeLockSentinel | null>(null);
 
     // Clamp max duration to hard cap
     const effectiveMaxDuration = Math.min(
         maxDurationSeconds,
         HARD_CAP_DURATION
     );
+
+    const acquireWakeLock = useCallback(async () => {
+        if (!('wakeLock' in navigator)) {
+            setWakeLockActive(false);
+            return;
+        }
+        try {
+            wakeLockRef.current = await navigator.wakeLock.request('screen');
+            setWakeLockActive(true);
+            wakeLockRef.current.addEventListener('release', () => {
+                setWakeLockActive(false);
+                wakeLockRef.current = null;
+            });
+        } catch {
+            // Wake lock request can fail (e.g. low battery mode) — not critical
+            setWakeLockActive(false);
+        }
+    }, []);
+
+    const releaseWakeLock = useCallback(() => {
+        if (wakeLockRef.current) {
+            wakeLockRef.current.release();
+            // State update handled by the 'release' event listener
+        }
+    }, []);
 
     const cleanup = useCallback(() => {
         if (timerRef.current) {
@@ -88,10 +116,11 @@ export function useRecordingStateMachine({
             streamRef.current.getTracks().forEach((track) => track.stop());
             streamRef.current = null;
         }
+        releaseWakeLock();
         mediaRecorderRef.current = null;
         chunksRef.current = [];
         startTimeRef.current = null;
-    }, []);
+    }, [releaseWakeLock]);
 
     const processAudio = useCallback(
         async (audioBlob: Blob) => {
@@ -209,6 +238,7 @@ export function useRecordingStateMachine({
             mediaRecorder.start();
             setState('recording');
             startTimeRef.current = Date.now();
+            acquireWakeLock();
 
             // Start timer
             timerRef.current = window.setInterval(() => {
@@ -237,7 +267,7 @@ export function useRecordingStateMachine({
             setError(errorMessage);
             setState('error');
         }
-    }, [effectiveMaxDuration, processAudio]);
+    }, [effectiveMaxDuration, processAudio, acquireWakeLock]);
 
     const stopRecording = useCallback(() => {
         if (
@@ -283,6 +313,27 @@ export function useRecordingStateMachine({
 
     const canRetry = audioBlobRef.current !== null && state === 'error';
 
+    // Re-acquire wake lock when tab regains focus during recording
+    // Safari releases wake locks when the page is backgrounded
+    useEffect(() => {
+        const handleVisibilityChange = (): void => {
+            if (
+                document.visibilityState === 'visible' &&
+                state === 'recording'
+            ) {
+                acquireWakeLock();
+            }
+        };
+
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+        return () => {
+            document.removeEventListener(
+                'visibilitychange',
+                handleVisibilityChange
+            );
+        };
+    }, [state, acquireWakeLock]);
+
     // Cleanup on unmount
     useEffect(() => {
         return () => {
@@ -297,6 +348,7 @@ export function useRecordingStateMachine({
         parsedFields,
         error,
         canRetry,
+        wakeLockActive,
         startRecording,
         stopRecording,
         cancelRecording,
