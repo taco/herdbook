@@ -157,9 +157,12 @@ export function useRecordingStateMachine({
                 if (!response.ok) {
                     const errorData = (await response.json()) as {
                         error: string;
+                        message?: string;
                     };
                     throw new Error(
-                        errorData.error || 'Failed to parse session'
+                        errorData.message ||
+                            errorData.error ||
+                            'Failed to parse session'
                     );
                 }
 

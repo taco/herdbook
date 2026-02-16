@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import type { FastifyInstance } from 'fastify';
+import type { InjectOptions } from 'fastify';
 
 import { createApiApp } from '@/server';
 
@@ -287,6 +288,120 @@ describe('Rate limiting', () => {
                 expect.fail('Expected to find a rate limited response');
             } finally {
                 await freshApp.close();
+            }
+        },
+        TEST_TIMEOUT_MS
+    );
+});
+
+describe('AI rate limiting (REST)', () => {
+    const TEST_TIMEOUT_MS = 30_000;
+    const AI_BURST_LIMIT = 2;
+    const AI_DAILY_LIMIT = 3;
+
+    /** Build a minimal multipart request to /api/parse-session */
+    function buildParseSessionRequest(): InjectOptions {
+        const boundary = '----TestBoundary';
+        const context = JSON.stringify({
+            horses: [],
+            riders: [],
+            speakerName: 'Test',
+        });
+        // Tiny valid audio-like payload (will fail at OpenAI, but rate limit runs first)
+        const body = [
+            `--${boundary}`,
+            'Content-Disposition: form-data; name="audio"; filename="audio.webm"',
+            'Content-Type: audio/webm',
+            '',
+            'fake-audio-bytes',
+            `--${boundary}`,
+            'Content-Disposition: form-data; name="context"',
+            '',
+            context,
+            `--${boundary}--`,
+        ].join('\r\n');
+
+        return {
+            method: 'POST',
+            url: '/api/parse-session',
+            headers: {
+                'content-type': `multipart/form-data; boundary=${boundary}`,
+                authorization: 'Bearer fake-token',
+            },
+            payload: body,
+        };
+    }
+
+    it(
+        'returns 429 when AI burst limit is exceeded',
+        async () => {
+            process.env.RATE_LIMIT_AI_BURST = String(AI_BURST_LIMIT);
+            const app = await createApiApp();
+
+            try {
+                const requests = [];
+                for (let i = 0; i < AI_BURST_LIMIT + 1; i++) {
+                    requests.push(app.inject(buildParseSessionRequest()));
+                }
+                const responses = await Promise.all(requests);
+
+                const rateLimited = responses.find((r) => r.statusCode === 429);
+                expect(rateLimited).toBeDefined();
+
+                const body = JSON.parse(rateLimited!.body) as {
+                    error: string;
+                    message: string;
+                    rateLimit: {
+                        bucket: string;
+                        ttl: number;
+                        remaining: number;
+                    };
+                };
+                expect(body.error).toBe('RATE_LIMITED');
+                expect(body.rateLimit.bucket).toContain('ai:burst');
+                expect(body.message).toContain('Too many requests');
+            } finally {
+                await app.close();
+                delete process.env.RATE_LIMIT_AI_BURST;
+            }
+        },
+        TEST_TIMEOUT_MS
+    );
+
+    it(
+        'returns 429 when AI daily limit is exceeded',
+        async () => {
+            // High burst so we only hit the daily cap
+            process.env.RATE_LIMIT_AI_BURST = '100';
+            process.env.RATE_LIMIT_AI_DAILY = String(AI_DAILY_LIMIT);
+            const app = await createApiApp();
+
+            try {
+                const requests = [];
+                for (let i = 0; i < AI_DAILY_LIMIT + 1; i++) {
+                    requests.push(app.inject(buildParseSessionRequest()));
+                }
+                const responses = await Promise.all(requests);
+
+                const rateLimited = responses.find((r) => r.statusCode === 429);
+                expect(rateLimited).toBeDefined();
+
+                const body = JSON.parse(rateLimited!.body) as {
+                    error: string;
+                    message: string;
+                    rateLimit: {
+                        bucket: string;
+                        ttl: number;
+                        remaining: number;
+                    };
+                };
+                expect(body.error).toBe('RATE_LIMITED');
+                expect(body.rateLimit.bucket).toContain('ai:daily');
+                expect(body.message).toContain('daily limit');
+            } finally {
+                await app.close();
+                delete process.env.RATE_LIMIT_AI_BURST;
+                delete process.env.RATE_LIMIT_AI_DAILY;
             }
         },
         TEST_TIMEOUT_MS

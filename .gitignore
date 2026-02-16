@@ -49,6 +49,7 @@ packages/api/src/generated/prisma
 
 # Claude Code
 .state
+.claude/settings.local.json
 
 # Local SSL certs
 *.pem
