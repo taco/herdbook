@@ -29,13 +29,14 @@ Read the target page (or the page the feature will live on) to understand:
 
 Categorize interactive elements by reachability on a phone held one-handed:
 
-| Zone | Reach | Where on screen | Use for |
-|------|-------|-----------------|---------|
-| **Easy** | Natural thumb arc | Bottom 40% | Primary actions, frequent interactions |
-| **OK** | Stretch | Middle 30% | Secondary actions, content interaction |
-| **Hard** | Requires hand shift | Top 30% | Navigation (back button), rare actions |
+| Zone     | Reach               | Where on screen | Use for                                |
+| -------- | ------------------- | --------------- | -------------------------------------- |
+| **Easy** | Natural thumb arc   | Bottom 40%      | Primary actions, frequent interactions |
+| **OK**   | Stretch             | Middle 30%      | Secondary actions, content interaction |
+| **Hard** | Requires hand shift | Top 30%         | Navigation (back button), rare actions |
 
 **Rules:**
+
 - Primary CTAs (Generate, Save, Analyze) belong in the Easy zone
 - Destructive actions can be in Hard zone (intentional friction)
 - If a feature adds interactive elements, map each one to a zone
@@ -44,14 +45,15 @@ Categorize interactive elements by reachability on a phone held one-handed:
 
 For any feature that shows AI-generated or complex content:
 
-| Level | What to show | Interaction |
-|---|---|---|
-| **Glance** | Headline or summary (1-2 lines) | None — visible on page |
-| **Scan** | Key content (4-6 lines) | Default collapsed state |
-| **Read** | Full content | "Show more" or scroll |
-| **Explore** | Related actions, settings | Tap into drawer/sheet |
+| Level       | What to show                    | Interaction             |
+| ----------- | ------------------------------- | ----------------------- |
+| **Glance**  | Headline or summary (1-2 lines) | None — visible on page  |
+| **Scan**    | Key content (4-6 lines)         | Default collapsed state |
+| **Read**    | Full content                    | "Show more" or scroll   |
+| **Explore** | Related actions, settings       | Tap into drawer/sheet   |
 
 **Rules:**
+
 - Never show full AI output inline — always collapse with "Show more"
 - Bottom sheets for anything requiring input (selection, forms)
 - Keep the page scannable without expanding anything
@@ -60,17 +62,18 @@ For any feature that shows AI-generated or complex content:
 
 Every interactive component needs all states defined **before** implementation:
 
-| State | Required? | What to show |
-|---|---|---|
-| Empty | If data-dependent | Friendly message + CTA to create data |
-| Loading | Always for async | Skeleton matching content shape |
-| Loaded | Always | Primary content |
-| Error | Always for async | Message + retry action, preserve stale content if available |
-| Stale | If cached | Existing content + indicator + refresh action |
-| Rate limited | If AI-powered | Clear message + when to retry |
-| Disabled | If conditionally available | Muted state + explanation why |
+| State        | Required?                  | What to show                                                |
+| ------------ | -------------------------- | ----------------------------------------------------------- |
+| Empty        | If data-dependent          | Friendly message + CTA to create data                       |
+| Loading      | Always for async           | Skeleton matching content shape                             |
+| Loaded       | Always                     | Primary content                                             |
+| Error        | Always for async           | Message + retry action, preserve stale content if available |
+| Stale        | If cached                  | Existing content + indicator + refresh action               |
+| Rate limited | If AI-powered              | Clear message + when to retry                               |
+| Disabled     | If conditionally available | Muted state + explanation why                               |
 
 **Rules:**
+
 - Skeleton shapes should match the loaded content layout (not a generic spinner)
 - Errors should never lose existing content — show stale data + error toast
 - Rate limit messages should say **when** the user can try again
@@ -79,12 +82,12 @@ Every interactive component needs all states defined **before** implementation:
 
 Verify every interactive element meets minimum sizes:
 
-| Element | Minimum size | Herdbook standard |
-|---|---|---|
-| Buttons | 44x44px | `h-10 w-10` (icon) or `min-h-[44px]` |
-| Chips/tags | 44px height | `h-11 px-4` |
-| List rows | 44px height | `min-h-[52px]` with padding |
-| Close/dismiss | 44x44px | Ghost button with icon |
+| Element       | Minimum size | Herdbook standard                    |
+| ------------- | ------------ | ------------------------------------ |
+| Buttons       | 44x44px      | `h-10 w-10` (icon) or `min-h-[44px]` |
+| Chips/tags    | 44px height  | `h-11 px-4`                          |
+| List rows     | 44px height  | `min-h-[52px]` with padding          |
+| Close/dismiss | 44x44px      | Ghost button with icon               |
 
 ### 6. Bottom Sheet Patterns
 
