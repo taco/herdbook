@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { TEST_RIDER_NAME, TEST_HORSE_NAME } from '@/seedConstants';
+import { TEST_HORSE_NAME } from '@/seedConstants';
 
 // storageState from smoke-setup handles auth — no manual login needed
 
@@ -30,7 +30,9 @@ test.describe('Navigation', () => {
         // Navigate to Profile tab
         await page.getByRole('button', { name: 'Me', exact: true }).click();
         await expect(page).toHaveURL('/profile');
-        await expect(page.getByText(TEST_RIDER_NAME)).toBeVisible();
+        await expect(
+            page.getByRole('heading', { name: 'Profile' })
+        ).toBeVisible();
 
         // Navigate back to Home tab
         await page.getByRole('button', { name: 'Home', exact: true }).click();
