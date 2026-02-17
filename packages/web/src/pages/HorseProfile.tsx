@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Heatmap } from '@/components/Heatmap';
 import ActivityCard from '@/components/ActivityCard';
+import HorseSummarySection from '@/components/HorseSummarySection';
 import { useAppNavigate } from '@/hooks/useAppNavigate';
 import { parseSessionDate } from '@/lib/dateUtils';
 import { formatTimeAgo } from '@/lib/utils';
@@ -26,6 +27,12 @@ const GET_HORSE_PROFILE = gql`
             activity(weeks: 12) {
                 weekStart
                 count
+            }
+            summary {
+                content
+                generatedAt
+                stale
+                refreshAvailableAt
             }
             sessions {
                 id
@@ -51,12 +58,12 @@ export default function HorseProfile(): React.ReactNode {
     const { push, back } = useAppNavigate();
     const [notesExpanded, setNotesExpanded] = useState(false);
 
-    const { data, loading } = useQuery<
+    const { data, loading, refetch } = useQuery<
         GetHorseProfileQuery,
         GetHorseProfileQueryVariables
     >(GET_HORSE_PROFILE, { variables: { id: id! } });
 
-    if (loading) {
+    if (loading && !data) {
         return (
             <div className="min-h-dvh p-4 flex items-center justify-center">
                 <p className="text-muted-foreground">Loading...</p>
@@ -145,6 +152,15 @@ export default function HorseProfile(): React.ReactNode {
                             </p>
                         </div>
                     </section>
+
+                    {/* Training Summary */}
+                    <Separator />
+                    <HorseSummarySection
+                        horseId={id!}
+                        totalSessions={totalSessions}
+                        summary={horse.summary ?? null}
+                        onSummaryGenerated={() => refetch()}
+                    />
 
                     {/* Notes */}
                     {horse.notes && (

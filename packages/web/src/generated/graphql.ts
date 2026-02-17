@@ -45,11 +45,20 @@ export type Horse = {
     name: Scalars['String']['output'];
     notes: Maybe<Scalars['String']['output']>;
     sessions: Array<Session>;
+    summary: Maybe<HorseSummary>;
     updatedAt: Scalars['DateTime']['output'];
 };
 
 export type HorseActivityArgs = {
     weeks: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type HorseSummary = {
+    __typename?: 'HorseSummary';
+    content: Scalars['String']['output'];
+    generatedAt: Scalars['DateTime']['output'];
+    refreshAvailableAt: Maybe<Scalars['DateTime']['output']>;
+    stale: Scalars['Boolean']['output'];
 };
 
 export type Mutation = {
@@ -280,6 +289,13 @@ export type GetHorseProfileQuery = {
             weekStart: any;
             count: number;
         }>;
+        summary: {
+            __typename?: 'HorseSummary';
+            content: string;
+            generatedAt: any;
+            stale: boolean;
+            refreshAvailableAt: any | null;
+        } | null;
         sessions: Array<{
             __typename?: 'Session';
             id: string;

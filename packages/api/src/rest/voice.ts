@@ -1,9 +1,13 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import OpenAI from 'openai';
 import type { WorkType } from '@prisma/client';
-import { getRateLimits } from '@/config';
-import { rateLimitKey, verifyToken } from '@/middleware/auth';
-import { PROMPTS, type PromptName } from './voicePrompts';
+import { verifyToken } from '@/middleware/auth';
+import {
+    VOICE_PARSE_PROMPTS,
+    type VoiceParseVersion,
+    resolveModel,
+} from '@/prompts';
+import { setupAiLimiters, withAiRateLimit } from './utils/aiRateLimit';
 
 // Types for parse-session endpoint
 export interface ParseSessionContext {
@@ -90,7 +94,7 @@ export async function transcribeAudio(
 export async function parseTranscript(
     transcript: string,
     context: ParseSessionContext,
-    options?: { model?: string; promptName?: PromptName }
+    options?: { promptVersion?: VoiceParseVersion }
 ): Promise<{
     parsed: ParsedSession;
     raw: RawParsedSession;
@@ -102,11 +106,11 @@ export async function parseTranscript(
     }
 
     const openai = new OpenAI({ apiKey: openaiApiKey });
-    const model = options?.model ?? 'gpt-5.2';
-    const promptName = options?.promptName ?? 'v2';
-    const prompt = PROMPTS[promptName];
+    const promptVersion = options?.promptVersion ?? 'v2';
+    const promptConfig = VOICE_PARSE_PROMPTS[promptVersion];
+    const model = resolveModel(promptConfig);
 
-    const systemPrompt = prompt.buildPrompt(context);
+    const systemPrompt = promptConfig.buildSystemPrompt(context);
 
     const completion = await openai.chat.completions.create({
         model,
@@ -114,7 +118,8 @@ export async function parseTranscript(
             { role: 'system', content: systemPrompt },
             { role: 'user', content: transcript },
         ],
-        response_format: prompt.schema,
+        response_format:
+            promptConfig.schema as OpenAI.ChatCompletionCreateParams['response_format'],
     });
 
     const content = completion.choices[0].message.content;
@@ -135,89 +140,15 @@ export async function parseTranscript(
     return { parsed, raw, usage: completion.usage ?? undefined };
 }
 
-type RateLimitResult =
-    | { isAllowed: true; key: string }
-    | {
-          isAllowed: false;
-          key: string;
-          max: number;
-          timeWindow: number;
-          remaining: number;
-          ttl: number;
-          ttlInSeconds: number;
-          isExceeded: boolean;
-          isBanned: boolean;
-      };
-
-type Limiter = (req: FastifyRequest) => Promise<RateLimitResult>;
-
 /**
  * Register voice-related REST routes
  */
 export async function registerVoiceRoutes(app: FastifyInstance): Promise<void> {
-    const rateLimits = getRateLimits();
-
-    // Per-endpoint burst limiter
-    const burstLimiter: Limiter = app.createRateLimit({
-        max: rateLimits.aiBurst,
-        timeWindow: '1 minute',
-        keyGenerator: rateLimitKey,
-    });
-
-    // Shared daily limiter — decorator so future AI endpoints share the same pool
-    if (!app.hasDecorator('aiDailyLimiter')) {
-        app.decorate(
-            'aiDailyLimiter',
-            app.createRateLimit({
-                max: rateLimits.aiDaily,
-                timeWindow: '1 day',
-                keyGenerator: rateLimitKey,
-            })
-        );
-    }
-    const dailyLimiter = (app as any).aiDailyLimiter as Limiter;
-
-    type Handler = (
-        request: FastifyRequest,
-        reply: FastifyReply
-    ) => Promise<unknown>;
-
-    // Wrapper HOF — mirrors wrapResolver('read', fn) in resolvers.ts
-    const wrapHandler =
-        (bucket: string, handler: Handler): Handler =>
-        async (request: FastifyRequest, reply: FastifyReply) => {
-            const limiters: Array<[string, Limiter]> = [
-                ['burst', burstLimiter],
-                ['daily', dailyLimiter],
-            ];
-            for (const [name, limiter] of limiters) {
-                const rl = await limiter(request);
-                if (!rl.isAllowed && rl.isExceeded) {
-                    const key = rateLimitKey(request);
-                    console.warn(
-                        `[rest:rate-limit] ${bucket}:${name} exceeded for ${request.url} — key=${key}, ttl=${rl.ttl}s`
-                    );
-                    const message =
-                        name === 'daily'
-                            ? "You've reached your daily limit for AI features. Please try again tomorrow."
-                            : 'Too many requests. Please wait a moment and try again.';
-                    return reply.status(429).send({
-                        error: 'RATE_LIMITED',
-                        message,
-                        rateLimit: {
-                            bucket: `${bucket}:${name}`,
-                            ttl: rl.ttl,
-                            remaining: rl.remaining,
-                        },
-                    });
-                }
-            }
-            return handler(request, reply);
-        };
+    const limiters = setupAiLimiters(app);
 
     app.post(
         '/api/parse-session',
-        wrapHandler('ai', async (request, reply) => {
+        withAiRateLimit(limiters, 'ai', async (request, reply) => {
             // Authenticate user
             const authHeader = request.headers.authorization;
             if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -270,13 +201,11 @@ export async function registerVoiceRoutes(app: FastifyInstance): Promise<void> {
                     ...parsed,
                 };
             } catch (error) {
-                console.error('Parse session error:', error);
+                console.error('[voice] Parse session error:', error);
                 return reply.status(500).send({
                     error: 'Failed to parse session',
                     details:
-                        error instanceof Error
-                            ? error.message
-                            : 'Unknown error',
+                        'Something went wrong parsing your recording. Please try again.',
                 });
             }
         })

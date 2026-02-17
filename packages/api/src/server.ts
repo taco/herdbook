@@ -16,6 +16,7 @@ import { createResolvers, type Context } from '@/graphql/resolvers';
 import { secureByDefaultTransformer } from '@/graphql/directives';
 import { buildContext } from '@/middleware/auth';
 import { registerVoiceRoutes } from '@/rest/voice';
+import { registerSummaryRoutes } from '@/rest/horseSummary';
 import { prisma } from '@/db';
 
 function readSchemaSDLOrThrow(): string {
@@ -69,6 +70,7 @@ export async function createApiApp(httpsOptions?: {
 
     // REST routes
     await registerVoiceRoutes(app);
+    await registerSummaryRoutes(app);
 
     // GraphQL
     const schema = secureByDefaultTransformer(

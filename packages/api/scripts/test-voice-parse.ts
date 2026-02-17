@@ -2,7 +2,7 @@ import 'dotenv/config';
 import { parseArgs } from 'node:util';
 import { readFileSync, appendFileSync } from 'node:fs';
 import { SAMPLE_TRANSCRIPTS, TEST_CONTEXT } from './voiceFixtures';
-import { PROMPTS, type PromptName } from '../src/rest/voicePrompts';
+import { VOICE_PARSE_PROMPTS, type VoiceParseVersion } from '../src/prompts';
 import { estimateCost, formatCost, SUPPORTED_MODELS } from './voiceCost';
 import type { ParseSessionContext } from '../src/rest/voice';
 import OpenAI from 'openai';
@@ -60,7 +60,7 @@ Supported models: ${SUPPORTED_MODELS.join(', ')}
 
 interface ParseResult {
     model: string;
-    promptName: PromptName;
+    promptName: VoiceParseVersion;
     systemPrompt: string;
     latencyMs: number;
     parsed: Record<string, unknown>;
@@ -76,7 +76,7 @@ async function runParse(
     transcript: string,
     context: ParseSessionContext,
     model: string,
-    promptName: PromptName
+    promptName: VoiceParseVersion
 ): Promise<ParseResult> {
     const openaiApiKey = process.env.OPENAI_API_KEY;
     if (!openaiApiKey) {
@@ -84,8 +84,8 @@ async function runParse(
     }
 
     const openai = new OpenAI({ apiKey: openaiApiKey });
-    const prompt = PROMPTS[promptName];
-    const systemPrompt = prompt.buildPrompt(context);
+    const promptConfig = VOICE_PARSE_PROMPTS[promptName];
+    const systemPrompt = promptConfig.buildSystemPrompt(context);
 
     const start = performance.now();
 
@@ -95,7 +95,8 @@ async function runParse(
             { role: 'system', content: systemPrompt },
             { role: 'user', content: transcript },
         ],
-        response_format: prompt.schema,
+        response_format:
+            promptConfig.schema as OpenAI.ChatCompletionCreateParams['response_format'],
     });
 
     const latencyMs = performance.now() - start;
@@ -249,10 +250,12 @@ async function main(): Promise<void> {
         process.exit(1);
     }
 
-    const promptName = (values.prompt ?? 'v2') as PromptName;
-    if (!PROMPTS[promptName]) {
+    const promptName = (values.prompt ?? 'v2') as VoiceParseVersion;
+    if (!VOICE_PARSE_PROMPTS[promptName]) {
         console.error(`Unknown prompt: ${promptName}`);
-        console.error(`Available: ${Object.keys(PROMPTS).join(', ')}`);
+        console.error(
+            `Available: ${Object.keys(VOICE_PARSE_PROMPTS).join(', ')}`
+        );
         process.exit(1);
     }
 
