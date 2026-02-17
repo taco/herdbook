@@ -24,6 +24,13 @@ type WeeklyActivity {
     count: Int!
 }
 
+type HorseSummary {
+    content: String!
+    generatedAt: DateTime!
+    stale: Boolean!
+    refreshAvailableAt: DateTime
+}
+
 type Horse {
     id: ID!
     name: String!
@@ -32,6 +39,7 @@ type Horse {
     createdAt: DateTime!
     updatedAt: DateTime!
     sessions: [Session!]!
+    summary: HorseSummary
     activity(weeks: Int): [WeeklyActivity!]!
 }
 

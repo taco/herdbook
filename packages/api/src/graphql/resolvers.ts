@@ -3,10 +3,12 @@ import { GraphQLError, type GraphQLResolveInfo } from 'graphql';
 import { WorkType, type Prisma } from '@prisma/client';
 import type { FastifyInstance, FastifyReply } from 'fastify';
 import bcrypt from 'bcrypt';
+import { isDevelopment } from '@/config';
 import jwt from 'jsonwebtoken';
 import { prisma } from '@/db';
 import { getJwtExpiration, getJwtSecretOrThrow, getRateLimits } from '@/config';
 import { rateLimitKey } from '@/middleware/auth';
+import { getRefreshCooldownHours } from '@/rest/utils/summaryUtils';
 import type { Loaders } from './loaders';
 
 export type RiderSafe = Prisma.RiderGetPayload<{ omit: { password: true } }>;
@@ -421,6 +423,47 @@ export const createResolvers = (app: FastifyInstance): Record<string, any> => {
         Horse: {
             sessions: (parent: { id: string }) =>
                 prisma.session.findMany({ where: { horseId: parent.id } }),
+            summary: async (parent: {
+                id: string;
+                summaryContent: string | null;
+                summaryGeneratedAt: Date | null;
+            }) => {
+                if (!parent.summaryContent || !parent.summaryGeneratedAt)
+                    return null;
+
+                const newSessions = await prisma.session.count({
+                    where: {
+                        horseId: parent.id,
+                        createdAt: { gt: parent.summaryGeneratedAt },
+                    },
+                });
+                const stale = isDevelopment() || newSessions > 0;
+
+                let refreshAvailableAt: Date | null = null;
+                if (stale && !isDevelopment()) {
+                    const latestSession = await prisma.session.findFirst({
+                        where: { horseId: parent.id },
+                        orderBy: { date: 'desc' },
+                        select: { date: true },
+                    });
+                    if (latestSession) {
+                        const cooldownHours = getRefreshCooldownHours(
+                            latestSession.date
+                        );
+                        refreshAvailableAt = new Date(
+                            parent.summaryGeneratedAt.getTime() +
+                                cooldownHours * 60 * 60 * 1000
+                        );
+                    }
+                }
+
+                return {
+                    content: parent.summaryContent,
+                    generatedAt: parent.summaryGeneratedAt,
+                    stale,
+                    refreshAvailableAt,
+                };
+            },
             activity: async (
                 parent: { id: string },
                 args: { weeks?: number }

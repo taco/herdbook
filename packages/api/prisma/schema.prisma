@@ -13,13 +13,15 @@ datasource db {
 }
 
 model Horse {
-  id        String   @id @default(cuid())
-  name      String
-  notes     String?
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now()) @db.Timestamptz(3)
-  updatedAt DateTime @updatedAt @db.Timestamptz(3)
-  sessions  Session[]
+  id                              String    @id @default(cuid())
+  name                            String
+  notes                           String?
+  isActive                        Boolean   @default(true)
+  createdAt                       DateTime  @default(now()) @db.Timestamptz(3)
+  updatedAt                       DateTime  @updatedAt @db.Timestamptz(3)
+  sessions                        Session[]
+  summaryContent    String?
+  summaryGeneratedAt DateTime? @db.Timestamptz(3)
 }
 
 model Rider {
@@ -44,6 +46,7 @@ model Session {
   createdAt       DateTime @default(now()) @db.Timestamptz(3)
   updatedAt       DateTime @updatedAt @db.Timestamptz(3)
 }
+
 
 enum WorkType {
   FLATWORK
