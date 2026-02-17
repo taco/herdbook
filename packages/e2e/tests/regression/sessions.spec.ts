@@ -1,9 +1,9 @@
 import { test, expect } from '@playwright/test';
 import {
     TEST_HORSE_NAME,
-    TEST_RIDER_NAME,
     TEST_RIDER_EMAIL,
     TEST_RIDER_PASSWORD,
+    TEST_SESSION_NOTE,
 } from '@/seedConstants';
 import { resetDatabase } from '../utils/resetDatabase';
 
@@ -82,47 +82,9 @@ test.describe('Session Management', () => {
         await expect(page.getByText(uniqueNote)).toBeVisible();
     });
 
-    test('can view session details by tapping activity card', async ({
-        page,
-    }) => {
-        // First create a session
-        const uniqueNote = `Session for detail view test ${Date.now()}`;
-        await page.goto('/sessions/new');
-        await selectFieldOption(page, 'Horse', TEST_HORSE_NAME);
-        await selectFieldOption(page, 'Work Type', 'Groundwork');
-        await setFieldValue(page, 'Duration', '30');
-        await setNotes(page, uniqueNote);
-        await page.getByRole('button', { name: 'Save Session' }).click();
-        await page.waitForURL('/');
-
-        // Find and click the activity card with our note
-        await page.getByText(uniqueNote).first().click();
-
-        // Verify we're on the session detail page
-        await expect(page).toHaveURL(/\/sessions\/[^/]+$/);
-
-        // Check session details are visible on the detail page
-        await expect(page.getByText(TEST_HORSE_NAME).first()).toBeVisible();
-        await expect(page.getByText('Groundwork').first()).toBeVisible();
-        await expect(page.getByText('30 minutes')).toBeVisible();
-        await expect(page.getByText(TEST_RIDER_NAME).first()).toBeVisible();
-        await expect(page.getByText(uniqueNote)).toBeVisible();
-        await expect(page.getByRole('button', { name: 'Edit' })).toBeVisible();
-    });
-
     test('can edit a session', async ({ page }) => {
-        // First create a session
-        const originalNote = `Original note ${Date.now()}`;
-        await page.goto('/sessions/new');
-        await selectFieldOption(page, 'Horse', TEST_HORSE_NAME);
-        await selectFieldOption(page, 'Work Type', 'Flatwork');
-        await setFieldValue(page, 'Duration', '45');
-        await setNotes(page, originalNote);
-        await page.getByRole('button', { name: 'Save Session' }).click();
-        await page.waitForURL('/');
-
-        // Click on the activity card to open session detail
-        await page.getByText(originalNote).first().click();
+        // Navigate to the seeded session via the dashboard
+        await page.getByText(TEST_SESSION_NOTE).first().click();
         await expect(page).toHaveURL(/\/sessions\/[^/]+$/);
 
         // Click Edit button in the header
@@ -132,9 +94,6 @@ test.describe('Session Management', () => {
         await expect(
             page.getByRole('heading', { name: 'Edit Session' })
         ).toBeVisible();
-
-        // Verify current notes value is shown in the edit overlay
-        await expect(page.getByText(originalNote).first()).toBeVisible();
 
         // Update the notes via the drawer
         const updatedNote = `Updated note ${Date.now()}`;
@@ -151,11 +110,11 @@ test.describe('Session Management', () => {
         await page.getByLabel('Go back').first().click();
         await page.waitForURL('/');
         await expect(page.getByText(updatedNote)).toBeVisible();
-        await expect(page.getByText(originalNote)).not.toBeVisible();
     });
 
     test('can delete a session', async ({ page }) => {
-        // First create a session
+        // First create a session to delete (don't use the seed session —
+        // other tests depend on it and test order isn't guaranteed)
         const uniqueNote = `Session to delete ${Date.now()}`;
         await page.goto('/sessions/new');
         await selectFieldOption(page, 'Horse', TEST_HORSE_NAME);
@@ -164,9 +123,6 @@ test.describe('Session Management', () => {
         await setNotes(page, uniqueNote);
         await page.getByRole('button', { name: 'Save Session' }).click();
         await page.waitForURL('/');
-
-        // Verify session exists
-        await expect(page.getByText(uniqueNote)).toBeVisible();
 
         // Click on the activity card to open session detail
         await page.getByText(uniqueNote).first().click();

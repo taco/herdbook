@@ -5,6 +5,7 @@ import {
     TEST_RIDER_PASSWORD,
     TEST_RIDER_NAME,
     TEST_HORSE_NAME,
+    TEST_SESSION_NOTE,
 } from '../../e2e/tests/seedConstants';
 
 async function seedE2E() {
@@ -47,6 +48,24 @@ async function seedE2E() {
             data: {
                 name: testHorseName,
                 notes: 'Test horse for E2E tests',
+            },
+        });
+    }
+
+    // Create a seeded session so edit/delete tests don't need to create through the UI
+    const existingSession = await prisma.session.findFirst({
+        where: { notes: TEST_SESSION_NOTE },
+    });
+
+    if (!existingSession) {
+        await prisma.session.create({
+            data: {
+                horseId: horse.id,
+                riderId: rider.id,
+                date: new Date(),
+                durationMinutes: 45,
+                workType: 'FLATWORK',
+                notes: TEST_SESSION_NOTE,
             },
         });
     }
