@@ -8,12 +8,15 @@ allowed-tools: Bash, Read, Glob, Grep
 
 ## Usage
 
-- `/worktree <issue-number>` — preflight checks, fetch issue, create worktree, output launch command
+- `/worktree <issue-number>` — fetch issue, create worktree named from issue title, output launch command
+- `/worktree <name>` — create worktree with the given name (no issue)
 - `/worktree list` — list active worktrees
 - `/worktree remove <path>` — remove a worktree
 - `/worktree done` — clean up the current worktree and return to main
 
-## Creating a Worktree from an Issue
+**Argument detection:** If the argument is purely numeric, treat it as a GitHub issue number. Otherwise treat it as a direct name/slug.
+
+## Creating a Worktree
 
 ### 1. Preflight checks
 
@@ -50,7 +53,9 @@ Verify the repo is ready before creating a worktree:
     - If local is behind, run `git pull` to catch up.
     - If local is ahead, warn the user (unpushed commits) and ask whether to proceed or halt.
 
-### 2. Fetch the issue
+### 2. Determine names
+
+#### From an issue (numeric argument)
 
 ```bash
 gh issue view <number> --json title,body,labels,comments,assignees
@@ -61,6 +66,13 @@ Display a brief summary (title + labels). Use the title and labels to derive nam
 - Slugify the title (lowercase, hyphens, max ~40 chars): e.g. "Add horse filtering" → `add-horse-filtering`
 - Branch prefix from labels: `fix/` if bug label, `feat/` otherwise
 - Branch: `feat/<slug>` or `fix/<slug>`
+- Path: `../herdbook-<slug>`
+
+#### From a name (non-numeric argument)
+
+Use the argument directly as the slug (lowercase, hyphens):
+
+- Branch: `feat/<slug>`
 - Path: `../herdbook-<slug>`
 
 ### 3. Create worktree
@@ -75,18 +87,24 @@ The script symlinks env files, SSL certs, and Claude settings from the main work
 
 ```bash
 WORKTREE=$(cd ../herdbook-<slug> && pwd)
-printf "ISSUE=<issue_number>\nWORKTREE=%s\n" "$WORKTREE" > .state
 ```
+
+Write `.state` file. Include `ISSUE` only if an issue number was provided:
+
+- **With issue:** `printf "ISSUE=<issue_number>\nWORKTREE=%s\n" "$WORKTREE" > .state`
+- **Without issue:** `printf "WORKTREE=%s\n" "$WORKTREE" > .state`
 
 ### 5. Output the launch command
 
-Print a single clean line the user can triple-click to copy:
+Print a message like:
 
 ```
+Worktree is ready. Here is the launch command:
+
 cd ../herdbook-<slug> && claude
 ```
 
-**Stop here.** Do not continue with implementation. The user will launch a new Claude session in the worktree and use `/gh-issue <number>` there.
+**Stop here.** Do not continue with implementation. The user will launch a new Claude session in the worktree.
 
 ## Done — Clean Up Current Worktree
 
