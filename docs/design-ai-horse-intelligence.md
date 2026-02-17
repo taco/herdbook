@@ -46,13 +46,13 @@ FAB (Log Session)
 
 The page has all the data needed for AI features — session history with dates, work types, durations, and notes. The API already supports:
 
-| Existing Infrastructure | Location | Relevance |
-|---|---|---|
-| REST endpoint pattern | `packages/api/src/rest/voice.ts` | Auth, rate limiting, OpenAI calls |
-| Prompt registry | `packages/api/src/rest/voicePrompts.ts` | Typed prompt variants |
-| Shared AI rate limiter | `voice.ts` → `aiDailyLimiter` decorator | Reuse for summary/analysis |
-| OpenAI integration | `voice.ts` → `OpenAI` client | Same client pattern |
-| GraphQL type extensions | `schema.graphql` → `Horse` type | Add `summary`/`analyses` fields |
+| Existing Infrastructure | Location                                | Relevance                         |
+| ----------------------- | --------------------------------------- | --------------------------------- |
+| REST endpoint pattern   | `packages/api/src/rest/voice.ts`        | Auth, rate limiting, OpenAI calls |
+| Prompt registry         | `packages/api/src/rest/voicePrompts.ts` | Typed prompt variants             |
+| Shared AI rate limiter  | `voice.ts` → `aiDailyLimiter` decorator | Reuse for summary/analysis        |
+| OpenAI integration      | `voice.ts` → `OpenAI` client            | Same client pattern               |
+| GraphQL type extensions | `schema.graphql` → `Horse` type         | Add `summary`/`analyses` fields   |
 
 ---
 
@@ -72,15 +72,15 @@ The page has all the data needed for AI features — session history with dates,
 
 The feature uses two AI tiers with different models, costs, and interaction patterns:
 
-| | Training Summary (Tier 1) | "What's Next" Analysis (Tier 2) |
-|---|---|---|
-| **Model** | gpt-4.1-mini | gpt-5.2 |
-| **Cost per call** | ~$0.002 | ~$0.014 |
-| **Trigger** | Rider taps "Generate Summary" | Rider selects focus areas + taps "Analyze" |
-| **Content** | Factual training recap | Recommendations and observations |
-| **Tone** | Objective, reportorial | Advisory, conversational |
-| **Caching** | One per horse | One per horse per unique focus combo |
-| **Placement** | Inline on horse page | Inline on horse page |
+|                   | Training Summary (Tier 1)     | "What's Next" Analysis (Tier 2)            |
+| ----------------- | ----------------------------- | ------------------------------------------ |
+| **Model**         | gpt-4.1-mini                  | gpt-5.2                                    |
+| **Cost per call** | ~$0.002                       | ~$0.014                                    |
+| **Trigger**       | Rider taps "Generate Summary" | Rider selects focus areas + taps "Analyze" |
+| **Content**       | Factual training recap        | Recommendations and observations           |
+| **Tone**          | Objective, reportorial        | Advisory, conversational                   |
+| **Caching**       | One per horse                 | One per horse per unique focus combo       |
+| **Placement**     | Inline on horse page          | Inline on horse page                       |
 
 **Why two models?** The summary is factual extraction — a smaller model handles it well at 7x lower cost. Analysis requires reasoning about training patterns and making recommendations, which benefits from a more capable model.
 
@@ -91,22 +91,22 @@ Per-session token estimate: ~80 tokens (date: 4, duration: 2, workType: 3, rider
 **Tier 1: Summary (gpt-4.1-mini -- $0.40/$1.60 per M tokens)**
 
 | Sessions | Input tokens | Input cost | Output (~400 tok) | Total   |
-| -------- | ------------ | ---------- | ------------------ | ------- |
-| 10       | ~1,300       | $0.0005    | $0.0006            | $0.0011 |
-| 20       | ~2,100       | $0.0008    | $0.0006            | $0.0015 |
-| 30       | ~2,900       | $0.0012    | $0.0006            | $0.0018 |
-| 60       | ~5,300       | $0.0021    | $0.0006            | $0.0028 |
+| -------- | ------------ | ---------- | ----------------- | ------- |
+| 10       | ~1,300       | $0.0005    | $0.0006           | $0.0011 |
+| 20       | ~2,100       | $0.0008    | $0.0006           | $0.0015 |
+| 30       | ~2,900       | $0.0012    | $0.0006           | $0.0018 |
+| 60       | ~5,300       | $0.0021    | $0.0006           | $0.0028 |
 
 At 20 summaries/day across all users: ~$0.04/day, ~$1.08/month
 
 **Tier 2: Analysis (gpt-5.2 -- $1.75/$14.00 per M tokens)**
 
 | Sessions | Input tokens | Input cost | Output (~600 tok) | Total   |
-| -------- | ------------ | ---------- | ------------------ | ------- |
-| 10       | ~1,300       | $0.0023    | $0.0084            | $0.0107 |
-| 20       | ~2,100       | $0.0037    | $0.0084            | $0.0121 |
-| 30       | ~2,900       | $0.0051    | $0.0084            | $0.0135 |
-| 60       | ~5,300       | $0.0093    | $0.0084            | $0.0177 |
+| -------- | ------------ | ---------- | ----------------- | ------- |
+| 10       | ~1,300       | $0.0023    | $0.0084           | $0.0107 |
+| 20       | ~2,100       | $0.0037    | $0.0084           | $0.0121 |
+| 30       | ~2,900       | $0.0051    | $0.0084           | $0.0135 |
+| 60       | ~5,300       | $0.0093    | $0.0084           | $0.0177 |
 
 At 10 analyses/day: ~$0.14/day, ~$4.05/month
 
@@ -152,11 +152,11 @@ Regeneration is gated by two conditions — **both** must be true:
 
 **Cooldown tiers** based on how recently the horse was worked:
 
-| Last session age | Cooldown | Rationale |
-|---|---|---|
-| < 7 days | 48 hours | Active training -- frequent updates useful |
-| 7-14 days | 72 hours | Moderate activity -- less urgency |
-| > 14 days | 7 days (168h) | Idle -- data isn't changing |
+| Last session age | Cooldown      | Rationale                                  |
+| ---------------- | ------------- | ------------------------------------------ |
+| < 7 days         | 48 hours      | Active training -- frequent updates useful |
+| 7-14 days        | 72 hours      | Moderate activity -- less urgency          |
+| > 14 days        | 7 days (168h) | Idle -- data isn't changing                |
 
 ```
 function getRefreshCooldownHours(latestSessionDate: Date): number {
@@ -176,12 +176,12 @@ If the rider hasn't added any sessions since the last generation, the refresh bu
 
 **UI state mapping:**
 
-| Cooldown elapsed? | New sessions? | Button state |
-|---|---|---|
-| Yes | Yes | Enabled — "Refresh (N new sessions)" |
-| Yes | No | Disabled — "Up to date" |
-| No | Yes | Disabled — "Available in Xh" with stale indicator |
-| No | No | Disabled — "Up to date" |
+| Cooldown elapsed? | New sessions? | Button state                                      |
+| ----------------- | ------------- | ------------------------------------------------- |
+| Yes               | Yes           | Enabled — "Refresh (N new sessions)"              |
+| Yes               | No            | Disabled — "Up to date"                           |
+| No                | Yes           | Disabled — "Available in Xh" with stale indicator |
+| No                | No            | Disabled — "Up to date"                           |
 
 ### Data Flow
 
@@ -219,27 +219,27 @@ If the rider hasn't added any sessions since the last generation, the refresh bu
 
 ```graphql
 query GetHorseProfile($id: ID!) {
-  horse(id: $id) {
-    # ... existing fields
-    summary {
-      content
-      sessionCount
-      sessionWindowStart
-      sessionWindowEnd
-      stale
-      refreshAvailableAt
-      generatedAt
+    horse(id: $id) {
+        # ... existing fields
+        summary {
+            content
+            sessionCount
+            sessionWindowStart
+            sessionWindowEnd
+            stale
+            refreshAvailableAt
+            generatedAt
+        }
+        analyses {
+            id
+            focusAreas
+            content
+            stale
+            refreshAvailableAt
+            generatedAt
+        }
+        availableFocusAreas
     }
-    analyses {
-      id
-      focusAreas
-      content
-      stale
-      refreshAvailableAt
-      generatedAt
-    }
-    availableFocusAreas
-  }
 }
 ```
 
@@ -271,6 +271,7 @@ model HorseSummary {
 ```
 
 **Key fields:**
+
 - `@unique` on `horseId` -- one summary per horse, upserted on regeneration
 - `sessionCountAtGeneration` -- compared to current session count to compute `stale` flag
 - `latestSessionDate` -- drives cooldown calculation (determines which cooldown tier applies)
@@ -303,6 +304,7 @@ model HorseAnalysis {
 ```
 
 **Key fields:**
+
 - No `@unique` on `horseId` alone -- multiple analyses per horse (different focus combos)
 - `focusHash` -- Prisma's `@@unique` does not support array fields directly. The `focusHash` is a deterministic string computed from sorted focus areas (e.g., the sorted comma-joined string `"COMPETITION_READINESS,FLATWORK"`). This enables unique constraint enforcement and efficient lookups.
 - `focusAreas` as `String[]` -- preserves the original selection for display
@@ -322,12 +324,12 @@ model Horse {
 
 These models are self-contained and don't require changes to existing `Horse`, `Session`, or `Rider` models beyond adding relations.
 
-| Future feature          | Schema impact                                          |
-| ----------------------- | ------------------------------------------------------ |
-| Training programs       | New `TrainingPlan` model linked to horse + analysis    |
-| Goal planning           | New `Goal` model with target date, discipline, level   |
-| Progress tracking       | Links between goals, plans, and sessions               |
-| Per-rider summaries     | Add `riderId` to HorseSummary for rider-specific views |
+| Future feature      | Schema impact                                          |
+| ------------------- | ------------------------------------------------------ |
+| Training programs   | New `TrainingPlan` model linked to horse + analysis    |
+| Goal planning       | New `Goal` model with target date, discipline, level   |
+| Progress tracking   | Links between goals, plans, and sessions               |
+| Per-rider summaries | Add `riderId` to HorseSummary for rider-specific views |
 
 ---
 
@@ -378,6 +380,7 @@ Error responses: same pattern as summary
 Both endpoints share the existing `aiDailyLimiter` decorator from voice routes, plus per-endpoint burst limiters. Pattern follows `registerVoiceRoutes` in `packages/api/src/rest/voice.ts`.
 
 **Why REST, not GraphQL mutation?**
+
 - Follows established pattern from voice endpoints
 - Long-running AI calls are easier to handle in REST (timeouts, streaming if needed later)
 - Rate limiting is simpler at the route level
@@ -387,37 +390,39 @@ Both endpoints share the existing `aiDailyLimiter` decorator from voice routes, 
 
 ```graphql
 type HorseSummary {
-  content: String!
-  generatedAt: DateTime!
-  sessionWindowStart: DateTime!
-  sessionWindowEnd: DateTime!
-  sessionCount: Int!
-  stale: Boolean!              # computed: current session count > sessionCountAtGeneration
-  refreshAvailableAt: DateTime # null if refresh available now; DateTime when cooldown expires
+    content: String!
+    generatedAt: DateTime!
+    sessionWindowStart: DateTime!
+    sessionWindowEnd: DateTime!
+    sessionCount: Int!
+    stale: Boolean! # computed: current session count > sessionCountAtGeneration
+    refreshAvailableAt: DateTime # null if refresh available now; DateTime when cooldown expires
 }
 
 type HorseAnalysis {
-  id: ID!
-  focusAreas: [String!]!
-  content: String!
-  generatedAt: DateTime!
-  stale: Boolean!
-  refreshAvailableAt: DateTime
+    id: ID!
+    focusAreas: [String!]!
+    content: String!
+    generatedAt: DateTime!
+    stale: Boolean!
+    refreshAvailableAt: DateTime
 }
 
 type Horse {
-  # ... existing fields
-  summary: HorseSummary              # nullable -- null if never generated
-  analyses: [HorseAnalysis!]!        # empty array if none
-  availableFocusAreas: [String!]!    # computed from horse's session work types + training goals
+    # ... existing fields
+    summary: HorseSummary # nullable -- null if never generated
+    analyses: [HorseAnalysis!]! # empty array if none
+    availableFocusAreas: [String!]! # computed from horse's session work types + training goals
 }
 ```
 
 **Computed fields (resolved in GQL layer, not stored):**
+
 - `stale` -- True when current session count > `sessionCountAtGeneration`
 - `refreshAvailableAt` -- Null if refresh is available now; otherwise the DateTime when cooldown expires
 
 `availableFocusAreas` returns the union of:
+
 1. Work types the horse has actually done (from sessions)
 2. Static training goal options (always available)
 
@@ -454,6 +459,7 @@ FAB (Log Session)
 ```
 
 **Why inline for both?**
+
 - Riders want to see context (heatmap, stats) alongside AI content
 - A bottom sheet hides the data the AI is summarizing
 - Tabs fragment the page
@@ -463,28 +469,28 @@ FAB (Log Session)
 
 **Summary section states:**
 
-| State | Display |
-|---|---|
-| < 3 sessions | "Log a few sessions to get an AI training summary." (muted text) |
-| No summary yet (3+ sessions) | [Generate Summary] button |
-| Loading | Skeleton lines (4-6 lines) |
-| Loaded (fresh) | Content (collapsible), metadata. Refresh disabled. |
-| Loaded (stale, cooldown active) | Content + "Refreshes in Xh" indicator |
-| Loaded (stale, refresh available) | Content + active Refresh button + "N new sessions" badge |
-| Error | Error message + Retry button (keep stale content visible) |
-| Rate limited | "Daily AI limit reached." with existing content visible |
+| State                             | Display                                                          |
+| --------------------------------- | ---------------------------------------------------------------- |
+| < 3 sessions                      | "Log a few sessions to get an AI training summary." (muted text) |
+| No summary yet (3+ sessions)      | [Generate Summary] button                                        |
+| Loading                           | Skeleton lines (4-6 lines)                                       |
+| Loaded (fresh)                    | Content (collapsible), metadata. Refresh disabled.               |
+| Loaded (stale, cooldown active)   | Content + "Refreshes in Xh" indicator                            |
+| Loaded (stale, refresh available) | Content + active Refresh button + "N new sessions" badge         |
+| Error                             | Error message + Retry button (keep stale content visible)        |
+| Rate limited                      | "Daily AI limit reached." with existing content visible          |
 
 **"What's Next" section states:**
 
-| State | Display |
-|---|---|
-| No focus selected | Focus area chips, prompt to select |
-| Focus selected, no cache | [Analyze] button |
-| Loading | Skeleton |
-| Loaded | Analysis content, focus chips shown, cooldown info |
-| Multiple saved | Tabs or accordion for each saved analysis |
-| Error | Error message + Retry |
-| Rate limited | Same as summary |
+| State                    | Display                                            |
+| ------------------------ | -------------------------------------------------- |
+| No focus selected        | Focus area chips, prompt to select                 |
+| Focus selected, no cache | [Analyze] button                                   |
+| Loading                  | Skeleton                                           |
+| Loaded                   | Analysis content, focus chips shown, cooldown info |
+| Multiple saved           | Tabs or accordion for each saved analysis          |
+| Error                    | Error message + Retry                              |
+| Rate limited             | Same as summary                                    |
 
 ### Mobile UX Considerations
 
@@ -498,6 +504,7 @@ FAB (Log Session)
 ### Wireframe Descriptions
 
 **Summary section (loaded state):**
+
 ```
 ┌──────────────────────────────────────┐
 │ Training Summary               [R]  │  <- Section header + refresh icon
@@ -513,6 +520,7 @@ FAB (Log Session)
 ```
 
 **"What's Next" section (focus selection):**
+
 ```
 ┌──────────────────────────────────────┐
 │ What's Next                          │
@@ -527,6 +535,7 @@ FAB (Log Session)
 ```
 
 **"What's Next" section (loaded with analysis):**
+
 ```
 ┌──────────────────────────────────────┐
 │ What's Next                    [R]  │
@@ -555,6 +564,7 @@ Factual, data-driven. Observes and reports without recommending.
 **File:** `packages/api/src/rest/summaryPrompts.ts`
 
 **Content areas:**
+
 - Training frequency and consistency (sessions per week, gaps, cadence changes)
 - Work type distribution and shifts over time
 - Key observations from notes (recurring themes, progress markers)
@@ -596,6 +606,7 @@ Reasoning-heavy, recommendation-oriented. Grounded in session data.
 **File:** `packages/api/src/rest/analysisPrompts.ts`
 
 **Content areas:**
+
 - Recommendations based ONLY on rider's selected focus areas
 - Specific, actionable suggestions (not generic advice)
 - Grounded in the horse's actual session data (references specific sessions)
@@ -640,11 +651,13 @@ SESSIONS (chronological, oldest first):
 ### Focus Areas
 
 **Work types** (filtered to what the horse has actually done):
+
 - FLATWORK, JUMPING, GROUNDWORK, IN_HAND, TRAIL
 
 Only show work types present in the horse's session history. No suggesting jump work for a horse that has never jumped.
 
 **Training goals** (always available):
+
 - Competition readiness
 - Fitness & conditioning
 - Behavior & attitude
@@ -674,21 +687,22 @@ This enables A/B testing prompt versions without code changes.
 
 ### Key Files to Reference
 
-| File | Why |
-|---|---|
-| `packages/api/src/rest/voice.ts` | REST endpoint pattern: auth, rate limiting, OpenAI calls |
-| `packages/api/src/rest/voicePrompts.ts` | Prompt registry pattern with typed variants |
-| `packages/api/src/server.ts` | Route registration pattern |
-| `packages/api/src/middleware/auth.ts` | `verifyToken()`, `rateLimitKey()` |
-| `packages/api/src/config.ts` | `getRateLimits()` — aiBurst: 2/min, aiDaily: 20/day |
-| `packages/api/src/graphql/resolvers.ts` | `wrapResolver()` pattern, `Horse` type resolver |
-| `packages/web/src/pages/HorseProfile.tsx` | Integration point for summary + analysis sections |
-| `packages/web/src/components/ui/skeleton.tsx` | Loading states |
-| `packages/api/scripts/voiceCost.ts` | MODEL_PRICING map, cost estimation utilities |
+| File                                          | Why                                                      |
+| --------------------------------------------- | -------------------------------------------------------- |
+| `packages/api/src/rest/voice.ts`              | REST endpoint pattern: auth, rate limiting, OpenAI calls |
+| `packages/api/src/rest/voicePrompts.ts`       | Prompt registry pattern with typed variants              |
+| `packages/api/src/server.ts`                  | Route registration pattern                               |
+| `packages/api/src/middleware/auth.ts`         | `verifyToken()`, `rateLimitKey()`                        |
+| `packages/api/src/config.ts`                  | `getRateLimits()` — aiBurst: 2/min, aiDaily: 20/day      |
+| `packages/api/src/graphql/resolvers.ts`       | `wrapResolver()` pattern, `Horse` type resolver          |
+| `packages/web/src/pages/HorseProfile.tsx`     | Integration point for summary + analysis sections        |
+| `packages/web/src/components/ui/skeleton.tsx` | Loading states                                           |
+| `packages/api/scripts/voiceCost.ts`           | MODEL_PRICING map, cost estimation utilities             |
 
 ### Patterns to Follow
 
 **REST endpoint registration** (from `server.ts`):
+
 ```ts
 import { registerVoiceRoutes } from '@/rest/voice';
 await registerVoiceRoutes(app);
@@ -698,6 +712,7 @@ await registerSummaryRoutes(app);
 ```
 
 **Prompt registry** (from `voicePrompts.ts`):
+
 ```ts
 export type PromptName = 'v1';
 export interface PromptVariant {
@@ -708,38 +723,45 @@ export const PROMPTS: Record<PromptName, PromptVariant> = { ... };
 ```
 
 **Rate limiting** (from `voice.ts`):
+
 - Per-endpoint burst limiter: `app.createRateLimit({ max: 2, timeWindow: '1 minute' })`
 - Shared daily limiter: reuse `app.aiDailyLimiter` decorator
 
 **GraphQL resolver for computed fields** (new pattern):
+
 ```ts
 Horse: {
     summary: async (parent) => {
         const summary = await prisma.horseSummary.findUnique({
-            where: { horseId: parent.id }
+            where: { horseId: parent.id },
         });
         if (!summary) return null;
         const currentCount = await prisma.session.count({
-            where: { horseId: parent.id }
+            where: { horseId: parent.id },
         });
         const stale = currentCount > summary.sessionCountAtGeneration;
-        const cooldownHours = getRefreshCooldownHours(summary.latestSessionDate);
-        const cooldownExpires = new Date(summary.generatedAt.getTime() + cooldownHours * 3600000);
-        const refreshAvailableAt = cooldownExpires > new Date() ? cooldownExpires : null;
+        const cooldownHours = getRefreshCooldownHours(
+            summary.latestSessionDate
+        );
+        const cooldownExpires = new Date(
+            summary.generatedAt.getTime() + cooldownHours * 3600000
+        );
+        const refreshAvailableAt =
+            cooldownExpires > new Date() ? cooldownExpires : null;
         return { ...summary, stale, refreshAvailableAt };
-    }
+    };
 }
 ```
 
 ### Available Components to Reuse
 
-| Component   | Use For                          |
-|-------------|----------------------------------|
+| Component   | Use For                            |
+| ----------- | ---------------------------------- |
 | `Button`    | Generate, Refresh, Analyze buttons |
-| `Skeleton`  | Loading states for AI content    |
-| `Separator` | Section dividers                 |
-| `Badge`     | "N new sessions" stale indicator |
-| `Card`      | Summary and analysis containers  |
+| `Skeleton`  | Loading states for AI content      |
+| `Separator` | Section dividers                   |
+| `Badge`     | "N new sessions" stale indicator   |
+| `Card`      | Summary and analysis containers    |
 
 ---
 
@@ -750,12 +772,14 @@ Horse: {
 **Scope:** Prisma model, REST endpoint, GraphQL read, frontend component
 
 **Files to create:**
+
 - `packages/api/src/rest/summaryPrompts.ts`
 - `packages/api/src/rest/horseSummary.ts`
 - `packages/web/src/components/HorseSummarySection.tsx`
 - `packages/web/src/hooks/useHorseSummary.ts`
 
 **Files to modify:**
+
 - `packages/api/prisma/schema.prisma` (add HorseSummary model + Horse relation)
 - `packages/api/src/graphql/schema.graphql` (add HorseSummary type, Horse.summary field)
 - `packages/api/src/graphql/resolvers.ts` (add Horse.summary resolver with computed fields)
@@ -769,12 +793,14 @@ Horse: {
 **Scope:** Builds on Phase 1 patterns. Adds focus area selection, multiple cached analyses per horse, inline section with chip selector.
 
 **Files to create:**
+
 - `packages/api/src/rest/analysisPrompts.ts`
 - `packages/api/src/rest/horseAnalysis.ts`
 - `packages/web/src/components/WhatsNextSection.tsx`
 - `packages/web/src/hooks/useHorseAnalysis.ts`
 
 **Files to modify:**
+
 - `packages/api/prisma/schema.prisma` (add HorseAnalysis model)
 - `packages/api/src/graphql/schema.graphql` (add HorseAnalysis type, Horse.analyses + availableFocusAreas)
 - `packages/api/src/graphql/resolvers.ts` (add resolvers)
@@ -817,6 +843,7 @@ Horse: {
 **Rationale:** Riders want to see context (heatmap, stats) alongside AI content. A bottom sheet hides the data the AI is summarizing. Tabs fragment the page. Inline sections with collapse/expand give the best information density for mobile.
 
 **Alternatives considered:**
+
 - **Tabs (Summary | Analysis):** Hides summary behind a tap. Summary should be visible by default.
 - **Analysis in bottom sheet:** Hides the session list and stats that the analysis references. Reading a multi-paragraph analysis in a sheet that covers context loses value.
 
@@ -858,15 +885,15 @@ Horse: {
 
 ## Future Enhancements (Not in Scope)
 
-| Enhancement | Description | Why Deferred |
-|---|---|---|
-| Training programs | Multi-week structured plans | Requires goals data model (Layer 3) |
-| Goal planning | "Prepare for May show" | New schema + complex UX |
-| Progress tracking | Compare actual vs. plan | Depends on goals + programs |
-| Streaming responses | Show AI text as it generates | Adds complexity; generation is fast enough |
-| Rider preferences | Customize tone, length, focus | Validate base feature first |
-| Historical summaries | Browse past summaries | Low value; current summary is what matters |
-| Export / share | Share summary as text/image | Wait for user request |
+| Enhancement          | Description                   | Why Deferred                               |
+| -------------------- | ----------------------------- | ------------------------------------------ |
+| Training programs    | Multi-week structured plans   | Requires goals data model (Layer 3)        |
+| Goal planning        | "Prepare for May show"        | New schema + complex UX                    |
+| Progress tracking    | Compare actual vs. plan       | Depends on goals + programs                |
+| Streaming responses  | Show AI text as it generates  | Adds complexity; generation is fast enough |
+| Rider preferences    | Customize tone, length, focus | Validate base feature first                |
+| Historical summaries | Browse past summaries         | Low value; current summary is what matters |
+| Export / share       | Share summary as text/image   | Wait for user request                      |
 
 ---
 
