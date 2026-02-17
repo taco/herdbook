@@ -99,6 +99,7 @@ Use these skills for common workflows. Invoke with `/skillname` or the Skill too
 
 | Task                               | Skill             |
 | ---------------------------------- | ----------------- |
+| Mobile UX analysis for new feature | `/mobile-ux`      |
 | Creating a new page                | `/new-page`       |
 | Schema/model changes               | `/schema`         |
 | E2E tests (dev, smoke, regression) | `/e2e`            |
@@ -113,6 +114,7 @@ Use these skills for common workflows. Invoke with `/skillname` or the Skill too
 
 ## New Feature Workflow
 
+0. Mobile UX analysis → `/mobile-ux`
 1. Define schema (Prisma + GraphQL) → `/schema`
 2. Implement resolvers
 3. Build UI and connect → `/new-page`
