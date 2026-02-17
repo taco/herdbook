@@ -24,7 +24,9 @@
         "env:status": "readlink packages/api/.env || echo 'Not a symlink'",
         "prisma:migrate:deploy": "pnpm --filter api prisma:migrate:deploy",
         "prisma:studio": "pnpm --filter api prisma:studio",
-        "prepare": "husky"
+        "prepare": "husky",
+        "db:sync-remote-dev": "node scripts/sync-remote-dev.mjs",
+        "db:delete-remote-dev": "node scripts/delete-branch.mjs"
     },
     "devDependencies": {
         "husky": "^9.1.7",
