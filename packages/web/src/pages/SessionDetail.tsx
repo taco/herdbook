@@ -320,7 +320,9 @@ export default function SessionDetail(): React.ReactNode {
             <div
                 className={cn(
                     'fixed inset-0 z-50 overflow-y-auto bg-background transform transition-transform duration-300 ease-out',
-                    isEditing ? 'translate-x-0' : 'translate-x-full'
+                    isEditing
+                        ? 'translate-x-0'
+                        : 'translate-x-full pointer-events-none'
                 )}
                 onTransitionEnd={handleEditTransitionEnd}
             >
