@@ -108,7 +108,6 @@ Use these skills for common workflows. Invoke with `/skillname` or the Skill too
 | Pre-commit checks                  | `/preflight`      |
 | Git worktree setup                 | `/worktree`       |
 | Railway preview deploys            | `/deploy-preview` |
-| Neon Postgres guidance             | `/neon-postgres`  |
 | Update docs after changes          | `/updatedocs`     |
 | Implement a GitHub issue           | `/gh-issue`       |
 | Write a well-scoped GitHub issue   | `/write-issue`    |

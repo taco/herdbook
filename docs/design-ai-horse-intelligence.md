@@ -46,13 +46,13 @@ FAB (Log Session)
 
 The page has all the data needed for AI features — session history with dates, work types, durations, and notes. The API already supports:
 
-| Existing Infrastructure | Location                                | Relevance                         |
-| ----------------------- | --------------------------------------- | --------------------------------- |
-| REST endpoint pattern   | `packages/api/src/rest/voice.ts`        | Auth, rate limiting, OpenAI calls |
-| Prompt registry         | `packages/api/src/rest/voicePrompts.ts` | Typed prompt variants             |
-| Shared AI rate limiter  | `voice.ts` → `aiDailyLimiter` decorator | Reuse for summary/analysis        |
-| OpenAI integration      | `voice.ts` → `OpenAI` client            | Same client pattern               |
-| GraphQL type extensions | `schema.graphql` → `Horse` type         | Add `summary`/`analyses` fields   |
+| Existing Infrastructure | Location                                     | Relevance                         |
+| ----------------------- | -------------------------------------------- | --------------------------------- |
+| REST endpoint pattern   | `packages/api/src/rest/voice.ts`             | Auth, rate limiting, OpenAI calls |
+| Prompt registry         | `packages/api/src/prompts/`                  | Versioned prompt configs          |
+| Shared AI rate limiter  | `packages/api/src/rest/utils/aiRateLimit.ts` | Reuse for summary/analysis        |
+| OpenAI integration      | `voice.ts` → `OpenAI` client                 | Same client pattern               |
+| GraphQL type extensions | `schema.graphql` → `Horse` type              | Add `summary`/`analyses` fields   |
 
 ---
 
@@ -667,7 +667,7 @@ Training goals are always shown because they represent analytical lenses that ap
 
 ### Prompt Registry
 
-Both prompts follow the existing `voicePrompts.ts` pattern with versioned variants:
+Both prompts follow the existing `packages/api/src/prompts/` pattern with versioned configs:
 
 ```typescript
 // summaryPrompts.ts
@@ -690,7 +690,7 @@ This enables A/B testing prompt versions without code changes.
 | File                                          | Why                                                      |
 | --------------------------------------------- | -------------------------------------------------------- |
 | `packages/api/src/rest/voice.ts`              | REST endpoint pattern: auth, rate limiting, OpenAI calls |
-| `packages/api/src/rest/voicePrompts.ts`       | Prompt registry pattern with typed variants              |
+| `packages/api/src/prompts/`                   | Prompt registry pattern with versioned configs           |
 | `packages/api/src/server.ts`                  | Route registration pattern                               |
 | `packages/api/src/middleware/auth.ts`         | `verifyToken()`, `rateLimitKey()`                        |
 | `packages/api/src/config.ts`                  | `getRateLimits()` — aiBurst: 2/min, aiDaily: 20/day      |
@@ -711,7 +711,7 @@ import { registerSummaryRoutes } from '@/rest/horseSummary';
 await registerSummaryRoutes(app);
 ```
 
-**Prompt registry** (from `voicePrompts.ts`):
+**Prompt registry** (from `packages/api/src/prompts/`):
 
 ```ts
 export type PromptName = 'v1';

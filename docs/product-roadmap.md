@@ -21,7 +21,7 @@ The core loop works: **Record session (voice or manual) -> Track per horse -> Vi
 | Horse CRUD (create, edit, soft-delete)                   | Complete |
 | Session CRUD (create, edit, delete)                      | Complete |
 | Manual session entry with form persistence               | Complete |
-| Voice session capture (Whisper + GPT-4o-mini)            | Complete |
+| Voice session capture (Whisper + GPT-5.2)                | Complete |
 | Field-level voice-to-text (notes)                        | Complete |
 | Dashboard with recent activity feed                      | Complete |
 | 12-week activity heatmaps per horse                      | Complete |
@@ -33,6 +33,9 @@ The core loop works: **Record session (voice or manual) -> Track per horse -> Vi
 | E2E tests (auth, nav, horses, sessions)                  | Complete |
 | Deployed to production (Railway + Neon)                  | Complete |
 | N+1 resolution (DataLoader pattern)                      | Complete |
+| AI horse training summaries (GPT-5-mini)                 | Complete |
+| Versioned prompt registry                                | Complete |
+| Unified AI rate limiting (GraphQL + REST)                | Complete |
 
 ### Differentiator
 
@@ -63,7 +66,7 @@ The next work follows a single arc: **make logged data visible, then meaningful,
 
 Horse profiles, session filtering, calendar view. Riders need to browse and find their data. This is the foundation everything else builds on.
 
-- **Horse profile page** — Tap a horse, see all sessions, basic stats, larger heatmap, quick-add button scoped to that horse. Highest-impact missing page.
+- **Horse profile page redesign** — At-a-glance chips, intensity/rating fields, 14-day chart, work type mix. See [design-horse-profile-redesign.md](design-horse-profile-redesign.md).
 - **Session filtering** — Filter by horse, date range, work type. Dashboard becomes write-only at 50+ sessions without this.
 - **Calendar view** — Equestrians think in weeks. Show which days had sessions, for which horses. Helps riders see gaps and plan.
 - **Data ownership** — Any rider can currently edit any session. Fix before more users are active.
@@ -75,7 +78,7 @@ No schema changes needed. New queries and frontend pages.
 Stats, trends, and AI summaries. The app starts telling riders something they didn't already know.
 
 - **Training stats** — Sessions per week trend, hours this month vs last, work type distribution, streak tracking.
-- **AI session summaries** — Natural language summary on horse profile: _"You've ridden Luna 8 times in the last 3 weeks — mostly flatwork with two jumping sessions. Your last ride focused on canter transitions and you noted she was stiff to the right."_ LLM reads session history and synthesizes.
+- **~~AI session summaries~~** — Shipped. Horse profile shows AI-generated training summaries with workload signals, focus areas, and narrative insight.
 - **Pagination** — API supports it, UI only shows last 20. Add infinite scroll or load-more.
 
 ### Layer 3: Make the data actionable — AI as training guide
@@ -119,7 +122,7 @@ Driven by real user friction, not pre-planned. Some possibilities:
 | Layer                     | Schema changes                                                   |
 | ------------------------- | ---------------------------------------------------------------- |
 | 1 (data visibility)       | None — existing queries with new filters                         |
-| 2 (stats + summaries)     | None — aggregations on existing data                             |
+| 2 (stats + summaries)     | `summaryContent`, `summaryGeneratedAt` on Horse                  |
 | 3 (suggestions, programs) | Possibly `training_plans` table to persist generated plans       |
 | 3 (goal planning)         | `goals` table: horse, target date, description, discipline/level |
 | 3 (progress tracking)     | Links between goals, plans, and sessions                         |
