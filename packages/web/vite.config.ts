@@ -32,6 +32,7 @@ export default defineConfig({
                 name: 'Herdbook',
                 short_name: 'Herdbook',
                 description: 'Horse management application',
+                display: 'standalone',
                 theme_color: '#ffffff',
                 icons: [
                     {
