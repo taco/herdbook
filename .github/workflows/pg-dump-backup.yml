@@ -1,0 +1,70 @@
+name: Nightly pg_dump Backup
+
+on:
+  schedule:
+    - cron: '0 6 * * *' # 6am UTC daily
+  workflow_dispatch:
+
+env:
+  AWS_REGION: us-east-1
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Install PostgreSQL 17 client
+        run: |
+          sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+          curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo gpg --dearmor -o /etc/apt/trusted.gpg.d/postgresql.gpg
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends postgresql-client-17
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/${{ secrets.AWS_IAM_ROLE }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Determine backup tier
+        id: tier
+        run: |
+          DAY_OF_MONTH=$(date -u +%-d)
+          DAY_OF_WEEK=$(date -u +%u)
+          if [ "$DAY_OF_MONTH" -eq 1 ]; then
+            TIER=monthly
+          elif [ "$DAY_OF_WEEK" -eq 7 ]; then
+            TIER=weekly
+          else
+            TIER=daily
+          fi
+          echo "tier=$TIER" >> "$GITHUB_OUTPUT"
+          echo "Selected tier: $TIER"
+
+      # Use the direct (non-pooled) Neon connection string — pg_dump
+      # does not work through PgBouncer.
+      - name: Run pg_dump
+        env:
+          DATABASE_URL: ${{ secrets.NEON_DATABASE_URL }}
+        run: |
+          TIMESTAMP=$(date -u +%Y-%m-%dT%H%M%SZ)
+          FILENAME="herdbook-${TIMESTAMP}.dump"
+          pg_dump "$DATABASE_URL" --format=custom --no-owner --no-acl -f "$FILENAME"
+          echo "FILENAME=$FILENAME" >> "$GITHUB_ENV"
+          echo "Dump created: $FILENAME ($(du -h "$FILENAME" | cut -f1))"
+
+      - name: Upload to S3
+        run: |
+          TIER="${{ steps.tier.outputs.tier }}"
+          S3_PATH="s3://${{ secrets.S3_BUCKET_NAME }}/${TIER}/${FILENAME}"
+          aws s3 cp "$FILENAME" "$S3_PATH"
+          echo "Uploaded to: $S3_PATH"
+
+      - name: Verify upload
+        run: |
+          TIER="${{ steps.tier.outputs.tier }}"
+          aws s3 ls "s3://${{ secrets.S3_BUCKET_NAME }}/${TIER}/${FILENAME}"
