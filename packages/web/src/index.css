@@ -82,8 +82,13 @@
     * {
         @apply border-border;
     }
+    html,
+    body {
+        overscroll-behavior: none;
+    }
     body {
         @apply bg-background text-foreground;
+        -webkit-touch-callout: none;
     }
 }
 
