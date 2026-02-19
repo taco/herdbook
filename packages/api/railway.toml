@@ -1,7 +1,7 @@
 [build]
-buildCommand = "pnpm run build"
+buildCommand = "pnpm run build:api"
 watchPatterns = ["packages/api/**", "pnpm-lock.yaml"]
 
 [deploy]
-startCommand = "pnpm run start"
+startCommand = "pnpm --filter api run start"
 preDeployCommand = "pnpm run prisma:migrate:deploy"
