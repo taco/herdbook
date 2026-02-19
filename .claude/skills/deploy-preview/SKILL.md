@@ -58,6 +58,10 @@ Override variables for both services:
 
 ### 4. Run migrations against Neon branch
 
+> **Note:** Production migrations are automatic via `packages/api/railway.toml` (`preDeployCommand`).
+> This manual step is only needed for preview environments, which use dynamic Neon branches
+> that don't exist in the production Railway config.
+
 ```bash
 DATABASE_URL="<neon-branch-url>" pnpm --filter api run prisma:migrate:deploy
 ```

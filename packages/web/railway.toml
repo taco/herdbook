@@ -1,0 +1,6 @@
+[build]
+buildCommand = "pnpm run build"
+watchPatterns = ["packages/web/**", "pnpm-lock.yaml"]
+
+[deploy]
+startCommand = "pnpm run start"
