@@ -117,13 +117,15 @@ Use these skills for common workflows. Invoke with `/skillname` or the Skill too
 | Implement a GitHub issue           | `/gh-issue`       |
 | Write a well-scoped GitHub issue   | `/write-issue`    |
 | Fixup-squash into previous commits | `/fixup`          |
+| Design conversation before coding  | `/design`         |
 
 ## New Feature Workflow
 
-0. Mobile UX analysis → `/mobile-ux`
-1. Define schema (Prisma + GraphQL) → `/schema`
-2. Implement resolvers
-3. Build UI and connect → `/new-page`
-4. Write tests → `/test-api`, `/test-web`, `/e2e`
-5. Pre-commit check → `/preflight`
-6. Update docs → `/updatedocs`
+0. Design conversation (if needed) → `/design`
+1. Mobile UX analysis → `/mobile-ux`
+2. Define schema (Prisma + GraphQL) → `/schema`
+3. Implement resolvers
+4. Build UI and connect → `/new-page`
+5. Write tests → `/test-api`, `/test-web`, `/e2e`
+6. Pre-commit check → `/preflight`
+7. Update docs → `/updatedocs`
