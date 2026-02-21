@@ -80,6 +80,11 @@ Example:
 
 - Conventional commits: `type(scope): description`
 - Types: `feat`, `fix`, `refactor`, `chore`, `docs`
+    - `feat`: user-facing capability (new feature, new page, new endpoint)
+    - `fix`: bug fix
+    - `chore`: infrastructure, tooling, CI, dependencies, monitoring (e.g., adding Sentry)
+    - `docs`: documentation only
+    - `refactor`: code restructuring, no behavior change
 - Prefer `git add <file>` over `git add .`
 - Do not add any co-author lines in commit messages
 - The top message should be short and easy to read without losing context
@@ -111,6 +116,7 @@ Use these skills for common workflows. Invoke with `/skillname` or the Skill too
 | Update docs after changes          | `/updatedocs`     |
 | Implement a GitHub issue           | `/gh-issue`       |
 | Write a well-scoped GitHub issue   | `/write-issue`    |
+| Fixup-squash into previous commits | `/fixup`          |
 
 ## New Feature Workflow
 

@@ -64,16 +64,25 @@ gh issue view <number> --json title,body,labels,comments,assignees
 Display a brief summary (title + labels). Use the title and labels to derive names:
 
 - Slugify the title (lowercase, hyphens, max ~40 chars): e.g. "Add horse filtering" → `add-horse-filtering`
-- Branch prefix from labels: `fix/` if bug label, `feat/` otherwise
-- Branch: `feat/<slug>` or `fix/<slug>`
+- Branch prefix from labels (first match wins):
+    - `bug` → `fix/`
+    - `documentation` → `docs/`
+    - `chore` or `maintenance` → `chore/`
+    - `refactor` → `refactor/`
+    - No matching label → `feat/`
+- Branch: `<prefix><slug>` (e.g. `fix/login-crash`, `chore/add-sentry`)
 - Path: `../herdbook-<slug>`
 
 #### From a name (non-numeric argument)
 
-Use the argument directly as the slug (lowercase, hyphens):
+If the argument contains a recognized prefix (`feat/`, `fix/`, `chore/`, `docs/`, `refactor/`), use it as-is:
 
-- Branch: `feat/<slug>`
-- Path: `../herdbook-<slug>`
+- `/worktree chore/add-sentry` → Branch: `chore/add-sentry`, Path: `../herdbook-add-sentry`
+- `/worktree docs/update-readme` → Branch: `docs/update-readme`, Path: `../herdbook-update-readme`
+
+If no recognized prefix, default to `feat/`:
+
+- `/worktree some-feature` → Branch: `feat/some-feature`, Path: `../herdbook-some-feature`
 
 ### 3. Create worktree
 
