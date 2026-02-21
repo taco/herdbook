@@ -49,4 +49,5 @@ jobs:
             End with a single verdict:
             - ✅ if no issues found
             - ⚠️ with short bullet points if there are issues that should be fixed before merging
-          claude_args: "--model claude-sonnet-4-6 --max-turns 5"
+          model: claude-sonnet-4-6
+          claude_args: "--max-turns 5"
