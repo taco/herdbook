@@ -3,6 +3,10 @@ name: Claude Code Review
 on:
   pull_request:
     types: [opened, synchronize]
+  issue_comment:
+    types: [created]
+  pull_request_review_comment:
+    types: [created]
 
 jobs:
   review:
@@ -10,14 +14,39 @@ jobs:
     permissions:
       contents: read
       pull-requests: write
+      issues: write
       id-token: write
 
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 1
 
       - uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-          claude_args: "--max-turns 5"
+          prompt: |
+            Review this PR. CLAUDE.md has the project conventions — use them.
+
+            Focus on (in priority order):
+            1. Bugs and logic errors
+            2. Security:
+               - Missing auth checks (context.rider), data ownership leaks
+               - Secrets or credentials in committed code
+               - Raw SQL ($queryRaw/$executeRaw) without parameterization
+               - Unbounded GraphQL inputs (missing pagination limits, deep nesting)
+            3. Suspicious dependency additions in package.json
+            4. N+1 queries in nested GraphQL resolvers
+            5. schema.prisma ↔ schema.graphql out of sync
+
+            Skip:
+            - Formatting, style, and type hygiene (CI and linters handle that)
+            - Trivial nitpicks
+            - Suggestions that add complexity without clear value
+
+            Be direct. Only comment when something should change.
+
+            End with a single verdict:
+            - ✅ if no issues found
+            - ⚠️ with short bullet points if there are issues that should be fixed before merging
+          claude_args: "--model claude-sonnet-4-6 --max-turns 5"
