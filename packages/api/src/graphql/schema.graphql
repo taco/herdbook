@@ -7,6 +7,13 @@ enum RiderRole {
     TRAINER
 }
 
+type Barn {
+    id: ID!
+    name: String!
+    inviteCode: String
+    createdAt: DateTime!
+}
+
 type Rider {
     id: ID!
     name: String!
@@ -14,6 +21,7 @@ type Rider {
     role: RiderRole!
     createdAt: DateTime!
     sessions: [Session!]!
+    barn: Barn!
 }
 
 enum WorkType {
@@ -54,6 +62,7 @@ type Horse {
     sessions: [Session!]!
     summary: HorseSummary
     activity(weeks: Int): [WeeklyActivity!]!
+    barn: Barn!
 }
 
 type Session {

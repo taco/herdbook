@@ -5,16 +5,21 @@ import bcrypt from 'bcrypt';
 import { prisma } from '@/db';
 import { getJwtSecretOrThrow } from '@/config';
 import { createApiApp } from '@/server';
+import { seedBarn } from '@/test/setupWorld';
 import type { FastifyInstance } from 'fastify';
 
 describe('DataLoader batching', () => {
     let fastify: FastifyInstance;
     let testRiderId: string;
     let testToken: string;
+    let testBarnId: string;
     let horseIds: string[];
 
     beforeAll(async () => {
         fastify = await createApiApp();
+
+        const barn = await seedBarn('loader-test-barn');
+        testBarnId = barn.id;
 
         // Seed test data
         const hashedPassword = await bcrypt.hash('testpassword', 10);
@@ -23,6 +28,7 @@ describe('DataLoader batching', () => {
                 name: 'Test Rider',
                 email: `test-${Date.now()}@example.com`,
                 password: hashedPassword,
+                barnId: barn.id,
             },
         });
         testRiderId = rider.id;
@@ -34,9 +40,11 @@ describe('DataLoader batching', () => {
 
         // Create 3 horses
         const horses = await Promise.all([
-            prisma.horse.create({ data: { name: 'Beau' } }),
-            prisma.horse.create({ data: { name: 'Luna' } }),
-            prisma.horse.create({ data: { name: 'Shadow' } }),
+            prisma.horse.create({ data: { name: 'Beau', barnId: barn.id } }),
+            prisma.horse.create({ data: { name: 'Luna', barnId: barn.id } }),
+            prisma.horse.create({
+                data: { name: 'Shadow', barnId: barn.id },
+            }),
         ]);
         horseIds = horses.map((h) => h.id);
 
@@ -68,6 +76,9 @@ describe('DataLoader batching', () => {
         });
         await prisma.rider.delete({
             where: { id: testRiderId },
+        });
+        await prisma.barn.delete({
+            where: { id: testBarnId },
         });
 
         await fastify.close();

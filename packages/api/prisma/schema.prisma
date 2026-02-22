@@ -12,16 +12,29 @@ datasource db {
   provider = "postgresql"
 }
 
+model Barn {
+  id         String   @id @default(cuid())
+  name       String
+  inviteCode String   @unique
+  createdAt  DateTime @default(now()) @db.Timestamptz(3)
+  riders     Rider[]
+  horses     Horse[]
+}
+
 model Horse {
-  id                              String    @id @default(cuid())
-  name                            String
-  notes                           String?
-  isActive                        Boolean   @default(true)
-  createdAt                       DateTime  @default(now()) @db.Timestamptz(3)
-  updatedAt                       DateTime  @updatedAt @db.Timestamptz(3)
-  sessions                        Session[]
-  summaryContent    String?
+  id                 String    @id @default(cuid())
+  name               String
+  notes              String?
+  isActive           Boolean   @default(true)
+  createdAt          DateTime  @default(now()) @db.Timestamptz(3)
+  updatedAt          DateTime  @updatedAt @db.Timestamptz(3)
+  sessions           Session[]
+  summaryContent     String?
   summaryGeneratedAt DateTime? @db.Timestamptz(3)
+  barnId             String
+  barn               Barn      @relation(fields: [barnId], references: [id])
+
+  @@index([barnId])
 }
 
 enum RiderRole {
@@ -37,6 +50,10 @@ model Rider {
   createdAt DateTime  @default(now()) @db.Timestamptz(3)
   password  String
   sessions  Session[]
+  barnId    String
+  barn      Barn      @relation(fields: [barnId], references: [id])
+
+  @@index([barnId])
 }
 
 model Session {

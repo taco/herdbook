@@ -36,9 +36,18 @@ export type AuthPayload = {
     token: Scalars['String']['output'];
 };
 
+export type Barn = {
+    __typename?: 'Barn';
+    createdAt: Scalars['DateTime']['output'];
+    id: Scalars['ID']['output'];
+    inviteCode: Maybe<Scalars['String']['output']>;
+    name: Scalars['String']['output'];
+};
+
 export type Horse = {
     __typename?: 'Horse';
     activity: Array<WeeklyActivity>;
+    barn: Barn;
     createdAt: Scalars['DateTime']['output'];
     id: Scalars['ID']['output'];
     isActive: Scalars['Boolean']['output'];
@@ -163,6 +172,7 @@ export type QuerySessionsArgs = {
 
 export type Rider = {
     __typename?: 'Rider';
+    barn: Barn;
     createdAt: Scalars['DateTime']['output'];
     email: Scalars['String']['output'];
     id: Scalars['ID']['output'];

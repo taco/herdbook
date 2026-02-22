@@ -208,39 +208,39 @@ await prisma.$executeRawUnsafe(
 | **Barn settings** | Trainer-only: rename barn, regenerate invite code. Could be a section on Me page or separate page. |
 | **Apollo cache**  | No change — queries already return scoped data from the server.                                    |
 
-## Issues
+## Issues ([Barns: Multi-Tenancy milestone](https://github.com/taco/herdbook/milestone/7))
 
-### Issue 1: Add Barn model, RLS policies, and migrate existing data
+### [#84](https://github.com/taco/herdbook/issues/84): Add Barn model, RLS policies, and migrate existing data
 
 Schema change: new Barn model, barnId on Rider and Horse, migration to create default barn and backfill. Enable RLS on Horse, Rider, and Session tables with barn isolation policies. Update GraphQL schema and codegen. Update seed scripts (dev + E2E) to create a default barn and assign all seed data to it. Existing tests should still pass after this issue — barn exists but nothing enforces scoping yet.
 
 Skill: `/schema`
 
-### Issue 2: Scope all queries and mutations to barn
+### [#85](https://github.com/taco/herdbook/issues/85): Scope all queries and mutations to barn
 
 Set `app.current_barn_id` session variable in request middleware. Add `barnId` to context building. Update every resolver to filter by `context.rider.barnId`. Verify single-entity lookups check barn membership. Update all existing tests (API integration + E2E) to include barn context in setup. Add new cross-barn isolation tests that verify both resolver scoping and RLS independently. E2E smoke test for cross-barn isolation.
 
 Skill: `/test-api`, `/e2e`
 
-### Issue 3: Update signup to require invite code
+### [#86](https://github.com/taco/herdbook/issues/86): Update signup to require invite code
 
 Signup requires a valid invite code — look up barn by code, assign rider to that barn. Remove `ALLOWED_EMAILS` validation from signup. Role defaults to RIDER; first rider in a barn can be promoted to TRAINER manually.
 
 Skill: none (resolver logic + test)
 
-### Issue 4: Add barn query and management mutations
+### [#87](https://github.com/taco/herdbook/issues/87): Add barn query and management mutations
 
 `barn` query returns current barn. `updateBarn` (trainer-only) renames barn. `regenerateInviteCode` (trainer-only) replaces the invite code.
 
 Skill: `/test-api`
 
-### Issue 5: Barn UI on Me page
+### [#88](https://github.com/taco/herdbook/issues/88): Barn UI on Me page
 
 Show barn name and member count. Trainers see invite code with copy/share. Trainer-only section to rename barn and regenerate code.
 
 Skill: `/new-page`, `/mobile-ux`
 
-### Issue 6: Add invite code field to signup form
+### [#89](https://github.com/taco/herdbook/issues/89): Add invite code field to signup form
 
 Required invite code input on signup page. Error handling for invalid codes. Remove any `ALLOWED_EMAILS` UI references if they exist.
 
