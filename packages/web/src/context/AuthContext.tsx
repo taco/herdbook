@@ -4,8 +4,15 @@ interface AuthContextInterface {
     token: string | null;
     riderId: string | null;
     riderName: string | null;
+    riderRole: string | null;
     isAuthenticated: boolean;
-    login: (token: string, riderId: string, riderName: string) => void;
+    isTrainer: boolean;
+    login: (
+        token: string,
+        riderId: string,
+        riderName: string,
+        riderRole: string
+    ) => void;
     logout: () => void;
 }
 
@@ -29,14 +36,24 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [riderName, setRiderName] = useState<string | null>(
         localStorage.getItem('riderName') || null
     );
+    const [riderRole, setRiderRole] = useState<string | null>(
+        localStorage.getItem('riderRole') || null
+    );
 
-    const login = (token: string, riderId: string, riderName: string) => {
+    const login = (
+        token: string,
+        riderId: string,
+        riderName: string,
+        riderRole: string
+    ) => {
         setToken(token);
         localStorage.setItem('token', token);
         setRiderId(riderId);
         localStorage.setItem('riderId', riderId);
         setRiderName(riderName);
         localStorage.setItem('riderName', riderName);
+        setRiderRole(riderRole);
+        localStorage.setItem('riderRole', riderRole);
     };
 
     const logout = () => {
@@ -46,6 +63,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         localStorage.removeItem('riderId');
         setRiderName(null);
         localStorage.removeItem('riderName');
+        setRiderRole(null);
+        localStorage.removeItem('riderRole');
     };
 
     return (
@@ -54,7 +73,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 token,
                 riderId,
                 riderName,
+                riderRole,
                 isAuthenticated: !!token,
+                isTrainer: riderRole === 'TRAINER',
                 login,
                 logout,
             }}

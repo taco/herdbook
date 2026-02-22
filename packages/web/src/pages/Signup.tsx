@@ -17,6 +17,7 @@ const SIGNUP_MUTATION = gql`
             rider {
                 id
                 name
+                role
             }
         }
     }
@@ -44,7 +45,7 @@ export default function Signup() {
 
             if (result.data) {
                 const { token, rider } = result.data.signup;
-                login(token, rider.id, rider.name);
+                login(token, rider.id, rider.name, rider.role);
                 navigate('/');
             }
         } catch (err) {

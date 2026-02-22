@@ -35,6 +35,7 @@ interface LocationState {
 const CREATE_SESSION_MUTATION = gql`
     mutation CreateSession(
         $horseId: ID!
+        $riderId: ID
         $date: DateTime!
         $durationMinutes: Int!
         $workType: WorkType!
@@ -42,6 +43,7 @@ const CREATE_SESSION_MUTATION = gql`
     ) {
         createSession(
             horseId: $horseId
+            riderId: $riderId
             date: $date
             durationMinutes: $durationMinutes
             workType: $workType
@@ -55,7 +57,7 @@ const CREATE_SESSION_MUTATION = gql`
 export default function EditSession(): React.ReactNode {
     const location = useLocation();
     const { back, backTo } = useAppNavigate();
-    const { riderId: currentRiderId } = useAuth();
+    const { riderId: currentRiderId, isTrainer } = useAuth();
     const locationState = location.state as LocationState | null;
     const prefill = locationState?.prefill;
 
@@ -105,6 +107,7 @@ export default function EditSession(): React.ReactNode {
         await createSession({
             variables: {
                 horseId: values.horseId!,
+                riderId: isTrainer && values.riderId ? values.riderId : null,
                 date: new Date(values.dateTime).toISOString(),
                 durationMinutes: values.durationMinutes!,
                 workType: values.workType!,
@@ -134,6 +137,7 @@ export default function EditSession(): React.ReactNode {
             onBack={back}
             title="Log Session"
             saving={saving}
+            showRiderPicker={isTrainer}
         />
     );
 }

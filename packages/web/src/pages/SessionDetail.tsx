@@ -28,6 +28,7 @@ import {
 import SessionEditor from '@/components/session/SessionEditor';
 import type { SessionValues } from '@/components/session/SessionEditor';
 import { useAppNavigate } from '@/hooks/useAppNavigate';
+import { useAuth } from '@/context/AuthContext';
 import { cn } from '@/lib/utils';
 import {
     parseSessionDate,
@@ -103,6 +104,7 @@ const DELETE_SESSION_MUTATION = gql`
 export default function SessionDetail(): React.ReactNode {
     const { id } = useParams<{ id: string }>();
     const { back, backTo } = useAppNavigate();
+    const { riderId: currentRiderId, isTrainer } = useAuth();
     const [isEditing, setIsEditing] = useState(false);
     const [shouldMount, setShouldMount] = useState(false);
     const [formError, setFormError] = useState<string | null>(null);
@@ -223,6 +225,7 @@ export default function SessionDetail(): React.ReactNode {
         );
     } else {
         const dateObj = parseSessionDate(session.date);
+        const canEdit = isTrainer || session.rider.id === currentRiderId;
         const formattedDate = dateObj.toLocaleDateString('en-US', {
             weekday: 'long',
             year: 'numeric',
@@ -245,15 +248,17 @@ export default function SessionDetail(): React.ReactNode {
                         <ChevronLeft className="h-6 w-6" />
                     </Button>
                     <h1 className="text-lg font-semibold flex-1">Session</h1>
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setIsEditing(true)}
-                        className="text-primary"
-                    >
-                        <Edit className="mr-1.5 h-4 w-4" />
-                        Edit
-                    </Button>
+                    {canEdit && (
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setIsEditing(true)}
+                            className="text-primary"
+                        >
+                            <Edit className="mr-1.5 h-4 w-4" />
+                            Edit
+                        </Button>
+                    )}
                 </div>
 
                 <div className="flex-1 p-4">
@@ -335,6 +340,7 @@ export default function SessionDetail(): React.ReactNode {
                         onBack={() => setIsEditing(false)}
                         title="Edit Session"
                         saving={updateLoading}
+                        showRiderPicker={isTrainer}
                         extraActions={
                             <AlertDialog>
                                 <AlertDialogTrigger asChild>

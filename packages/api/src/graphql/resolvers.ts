@@ -1,6 +1,6 @@
 import { DateTimeResolver } from 'graphql-scalars';
 import { GraphQLError, type GraphQLResolveInfo } from 'graphql';
-import { WorkType, Intensity, type Prisma } from '@prisma/client';
+import { WorkType, Intensity, RiderRole, type Prisma } from '@prisma/client';
 import type { FastifyInstance, FastifyReply } from 'fastify';
 import bcrypt from 'bcrypt';
 import { isDevelopment } from '@/config';
@@ -85,6 +85,30 @@ async function enforceRateLimit(
                 http: { status: 429 },
                 rateLimit: { ttl: res.ttl, remaining: res.remaining },
             },
+        });
+    }
+}
+
+function requireTrainer(context: Context): void {
+    if (!context.rider || context.rider.role !== RiderRole.TRAINER) {
+        throw new GraphQLError('Only trainers can perform this action', {
+            extensions: { code: 'FORBIDDEN' },
+        });
+    }
+}
+
+function requireOwnerOrTrainer(context: Context, ownerId: string): void {
+    if (!context.rider) {
+        throw new GraphQLError('Not authenticated', {
+            extensions: { code: 'UNAUTHENTICATED' },
+        });
+    }
+    if (
+        context.rider.role !== RiderRole.TRAINER &&
+        context.rider.id !== ownerId
+    ) {
+        throw new GraphQLError('You can only modify your own sessions', {
+            extensions: { code: 'FORBIDDEN' },
         });
     }
 }
@@ -212,7 +236,8 @@ export const createResolvers = (app: FastifyInstance): Record<string, any> => {
         Mutation: {
             createHorse: wrapResolver(
                 'write',
-                async (_, args: { name: string; notes?: string }) => {
+                async (_, args: { name: string; notes?: string }, context) => {
+                    requireTrainer(context);
                     return prisma.horse.create({ data: args });
                 }
             ),
@@ -225,8 +250,10 @@ export const createResolvers = (app: FastifyInstance): Record<string, any> => {
                         name?: string;
                         notes?: string;
                         isActive?: boolean;
-                    }
+                    },
+                    context
                 ) => {
+                    requireTrainer(context);
                     const existing = await prisma.horse.findUnique({
                         where: { id: args.id },
                     });
@@ -256,6 +283,7 @@ export const createResolvers = (app: FastifyInstance): Record<string, any> => {
                     _,
                     args: {
                         horseId: string;
+                        riderId?: string;
                         date: Date;
                         durationMinutes: number;
                         workType: WorkType;
@@ -278,8 +306,25 @@ export const createResolvers = (app: FastifyInstance): Record<string, any> => {
                             { extensions: { code: 'BAD_USER_INPUT' } }
                         );
                     }
+                    // Riders can only create sessions for themselves;
+                    // trainers can specify any riderId
+                    if (
+                        args.riderId &&
+                        args.riderId !== context.rider.id &&
+                        context.rider.role !== RiderRole.TRAINER
+                    ) {
+                        throw new GraphQLError(
+                            'You can only create sessions for yourself',
+                            { extensions: { code: 'FORBIDDEN' } }
+                        );
+                    }
+                    const { riderId: _argRiderId, ...sessionData } = args;
+                    const riderId =
+                        context.rider.role === RiderRole.TRAINER && args.riderId
+                            ? args.riderId
+                            : context.rider.id;
                     return prisma.session.create({
-                        data: { ...args, riderId: context.rider.id },
+                        data: { ...sessionData, riderId },
                     });
                 }
             ),
@@ -323,6 +368,18 @@ export const createResolvers = (app: FastifyInstance): Record<string, any> => {
                             extensions: { code: 'NOT_FOUND' },
                         });
                     }
+                    requireOwnerOrTrainer(context, existing.riderId);
+                    // Only trainers can reassign a session to a different rider
+                    if (
+                        args.riderId !== undefined &&
+                        args.riderId !== existing.riderId &&
+                        context.rider.role !== RiderRole.TRAINER
+                    ) {
+                        throw new GraphQLError(
+                            'Only trainers can reassign sessions',
+                            { extensions: { code: 'FORBIDDEN' } }
+                        );
+                    }
                     const updateData: Prisma.SessionUpdateInput = {};
                     if (args.horseId !== undefined)
                         updateData.horse = { connect: { id: args.horseId } };
@@ -360,6 +417,7 @@ export const createResolvers = (app: FastifyInstance): Record<string, any> => {
                             extensions: { code: 'NOT_FOUND' },
                         });
                     }
+                    requireOwnerOrTrainer(context, existing.riderId);
                     await prisma.session.delete({ where: { id: args.id } });
                     return true;
                 }

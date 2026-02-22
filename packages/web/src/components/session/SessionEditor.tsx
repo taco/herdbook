@@ -46,6 +46,7 @@ interface SessionEditorProps {
     onBack: () => void;
     title: string;
     saving: boolean;
+    showRiderPicker?: boolean;
     extraActions?: React.ReactNode;
 }
 
@@ -57,6 +58,7 @@ export default function SessionEditor({
     onBack,
     title,
     saving,
+    showRiderPicker = true,
     extraActions,
 }: SessionEditorProps): React.ReactNode {
     const [values, setValues] = useState<SessionValues>(initialValues);
@@ -169,11 +171,13 @@ export default function SessionEditor({
                                 value={horseName}
                                 onClick={() => openSheet('horse')}
                             />
-                            <SummaryRow
-                                label="Rider"
-                                value={riderName}
-                                onClick={() => openSheet('rider')}
-                            />
+                            {showRiderPicker && (
+                                <SummaryRow
+                                    label="Rider"
+                                    value={riderName}
+                                    onClick={() => openSheet('rider')}
+                                />
+                            )}
                             <SummaryRow
                                 label="Work Type"
                                 value={workTypeLabel}

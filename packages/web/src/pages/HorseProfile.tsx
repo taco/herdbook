@@ -10,6 +10,7 @@ import { Heatmap } from '@/components/Heatmap';
 import ActivityCard from '@/components/ActivityCard';
 import HorseSummarySection from '@/components/HorseSummarySection';
 import { useAppNavigate } from '@/hooks/useAppNavigate';
+import { useAuth } from '@/context/AuthContext';
 import { parseSessionDate } from '@/lib/dateUtils';
 import { formatTimeAgo } from '@/lib/utils';
 import type {
@@ -56,6 +57,7 @@ const NOTES_COLLAPSE_THRESHOLD = 120;
 export default function HorseProfile(): React.ReactNode {
     const { id } = useParams<{ id: string }>();
     const { push, back } = useAppNavigate();
+    const { isTrainer } = useAuth();
     const [notesExpanded, setNotesExpanded] = useState(false);
 
     const { data, loading, refetch } = useQuery<
@@ -112,15 +114,17 @@ export default function HorseProfile(): React.ReactNode {
                 <h1 className="text-lg font-semibold flex-1 truncate">
                     {horse.name}
                 </h1>
-                <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => push(`/horses/${id}/edit`)}
-                    className="text-primary"
-                >
-                    <Edit className="mr-1.5 h-4 w-4" />
-                    Edit
-                </Button>
+                {isTrainer && (
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => push(`/horses/${id}/edit`)}
+                        className="text-primary"
+                    >
+                        <Edit className="mr-1.5 h-4 w-4" />
+                        Edit
+                    </Button>
+                )}
             </div>
 
             <div className="flex-1 p-4 pb-24">

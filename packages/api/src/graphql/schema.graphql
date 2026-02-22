@@ -2,10 +2,16 @@ scalar DateTime
 
 directive @public on FIELD_DEFINITION
 
+enum RiderRole {
+    RIDER
+    TRAINER
+}
+
 type Rider {
     id: ID!
     name: String!
     email: String!
+    role: RiderRole!
     createdAt: DateTime!
     sessions: [Session!]!
 }
@@ -91,6 +97,7 @@ type Mutation {
     updateHorse(id: ID!, name: String, notes: String, isActive: Boolean): Horse!
     createSession(
         horseId: ID!
+        riderId: ID
         date: DateTime!
         durationMinutes: Int!
         workType: WorkType!
