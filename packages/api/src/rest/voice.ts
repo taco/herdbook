@@ -1,6 +1,6 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import OpenAI from 'openai';
-import type { WorkType } from '@prisma/client';
+import type { WorkType, Intensity } from '@prisma/client';
 import { verifyToken } from '@/middleware/auth';
 import {
     VOICE_PARSE_PROMPTS,
@@ -22,6 +22,8 @@ export interface RawParsedSession {
     riderName: string | null;
     durationMinutes: number | null;
     workType: WorkType | null;
+    intensity?: Intensity | null;
+    rating?: number | null;
     formattedNotes?: string;
 }
 
@@ -31,6 +33,8 @@ export interface ParsedSession {
     riderId: string | null;
     durationMinutes: number | null;
     workType: WorkType | null;
+    intensity?: Intensity | null;
+    rating?: number | null;
     formattedNotes?: string;
 }
 
@@ -134,6 +138,8 @@ export async function parseTranscript(
         riderId: resolveNameToId(raw.riderName, context.riders),
         durationMinutes: raw.durationMinutes,
         workType: raw.workType,
+        intensity: raw.intensity,
+        rating: raw.rating,
         formattedNotes: raw.formattedNotes,
     };
 

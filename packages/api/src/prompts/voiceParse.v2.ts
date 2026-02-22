@@ -28,6 +28,11 @@ export const V2_SCHEMA = {
                         null,
                     ],
                 },
+                intensity: {
+                    type: ['string', 'null'],
+                    enum: ['LIGHT', 'MODERATE', 'HARD', 'VERY_HARD', null],
+                },
+                rating: { type: ['number', 'null'] },
                 formattedNotes: { type: 'string' },
             },
             required: [
@@ -35,6 +40,8 @@ export const V2_SCHEMA = {
                 'riderName',
                 'durationMinutes',
                 'workType',
+                'intensity',
+                'rating',
                 'formattedNotes',
             ],
             additionalProperties: false,
@@ -77,6 +84,12 @@ Rules:
   TRAIL: hacking, trail ride, outside ride
   OTHER: unclear
   When multiple types appear, pick the PRIMARY focus.
+- intensity: How hard the horse worked:
+  LIGHT: easy, light, recovery, walk-only, gentle
+  MODERATE: moderate, normal, steady, routine
+  HARD: hard, strong, demanding, pushed
+  VERY_HARD: very hard, intense, maximal effort, competition-level
+- rating: Overall session quality from 1 (poor) to 5 (excellent). Only extract if explicitly stated (e.g. "great session" → 4-5, "terrible ride" → 1-2, "it was okay" → 3).
 - Return null for any field you cannot confidently determine.
 
 == NOTES ORGANIZATION ==

@@ -19,6 +19,13 @@ enum WorkType {
     OTHER
 }
 
+enum Intensity {
+    LIGHT
+    MODERATE
+    HARD
+    VERY_HARD
+}
+
 type WeeklyActivity {
     weekStart: DateTime!
     count: Int!
@@ -50,6 +57,8 @@ type Session {
     date: DateTime!
     durationMinutes: Int!
     workType: WorkType!
+    intensity: Intensity
+    rating: Int
     notes: String!
     createdAt: DateTime!
     updatedAt: DateTime!
@@ -85,6 +94,8 @@ type Mutation {
         date: DateTime!
         durationMinutes: Int!
         workType: WorkType!
+        intensity: Intensity
+        rating: Int
         notes: String!
     ): Session!
     updateSession(
@@ -94,6 +105,8 @@ type Mutation {
         date: DateTime
         durationMinutes: Int
         workType: WorkType
+        intensity: Intensity
+        rating: Int
         notes: String
     ): Session!
     deleteSession(id: ID!): Boolean!

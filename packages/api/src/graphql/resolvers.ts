@@ -1,6 +1,6 @@
 import { DateTimeResolver } from 'graphql-scalars';
 import { GraphQLError, type GraphQLResolveInfo } from 'graphql';
-import { WorkType, type Prisma } from '@prisma/client';
+import { WorkType, Intensity, type Prisma } from '@prisma/client';
 import type { FastifyInstance, FastifyReply } from 'fastify';
 import bcrypt from 'bcrypt';
 import { isDevelopment } from '@/config';
@@ -259,12 +259,24 @@ export const createResolvers = (app: FastifyInstance): Record<string, any> => {
                         date: Date;
                         durationMinutes: number;
                         workType: WorkType;
+                        intensity?: Intensity;
+                        rating?: number;
                         notes: string;
                     },
                     context
                 ) => {
                     if (!context.rider) {
                         throw new GraphQLError('No rider found');
+                    }
+                    if (
+                        args.rating !== undefined &&
+                        args.rating !== null &&
+                        (args.rating < 1 || args.rating > 5)
+                    ) {
+                        throw new GraphQLError(
+                            'Rating must be between 1 and 5',
+                            { extensions: { code: 'BAD_USER_INPUT' } }
+                        );
                     }
                     return prisma.session.create({
                         data: { ...args, riderId: context.rider.id },
@@ -282,6 +294,8 @@ export const createResolvers = (app: FastifyInstance): Record<string, any> => {
                         date?: Date;
                         durationMinutes?: number;
                         workType?: WorkType;
+                        intensity?: Intensity;
+                        rating?: number;
                         notes?: string;
                     },
                     context
@@ -290,6 +304,16 @@ export const createResolvers = (app: FastifyInstance): Record<string, any> => {
                         throw new GraphQLError('Not authenticated', {
                             extensions: { code: 'UNAUTHENTICATED' },
                         });
+                    }
+                    if (
+                        args.rating !== undefined &&
+                        args.rating !== null &&
+                        (args.rating < 1 || args.rating > 5)
+                    ) {
+                        throw new GraphQLError(
+                            'Rating must be between 1 and 5',
+                            { extensions: { code: 'BAD_USER_INPUT' } }
+                        );
                     }
                     const existing = await prisma.session.findUnique({
                         where: { id: args.id },
@@ -309,6 +333,10 @@ export const createResolvers = (app: FastifyInstance): Record<string, any> => {
                         updateData.durationMinutes = args.durationMinutes;
                     if (args.workType !== undefined)
                         updateData.workType = args.workType;
+                    if (args.intensity !== undefined)
+                        updateData.intensity = args.intensity;
+                    if (args.rating !== undefined)
+                        updateData.rating = args.rating;
                     if (args.notes !== undefined) updateData.notes = args.notes;
                     return prisma.session.update({
                         where: { id: args.id },
