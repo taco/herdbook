@@ -32,6 +32,7 @@ export const UPDATE_HORSE = /* GraphQL */ `
 export const CREATE_SESSION = /* GraphQL */ `
     mutation CreateSession(
         $horseId: ID!
+        $riderId: ID
         $date: DateTime!
         $durationMinutes: Int!
         $workType: WorkType!
@@ -41,6 +42,7 @@ export const CREATE_SESSION = /* GraphQL */ `
     ) {
         createSession(
             horseId: $horseId
+            riderId: $riderId
             date: $date
             durationMinutes: $durationMinutes
             workType: $workType
