@@ -50,3 +50,4 @@ jobs:
             - ✅ if no issues found
             - ⚠️ with short bullet points if there are issues that should be fixed before merging
           claude_args: "--max-turns 5"
+          show_full_output: true
