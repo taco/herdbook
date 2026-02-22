@@ -24,11 +24,17 @@ model Horse {
   summaryGeneratedAt DateTime? @db.Timestamptz(3)
 }
 
+enum RiderRole {
+  RIDER
+  TRAINER
+}
+
 model Rider {
-  id        String   @id @default(cuid())
+  id        String    @id @default(cuid())
   name      String
-  email     String   @unique
-  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  email     String    @unique
+  role      RiderRole @default(RIDER)
+  createdAt DateTime  @default(now()) @db.Timestamptz(3)
   password  String
   sessions  Session[]
 }

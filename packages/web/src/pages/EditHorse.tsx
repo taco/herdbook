@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Navigate } from 'react-router-dom';
 import { gql } from '@apollo/client';
 import { useMutation, useQuery } from '@apollo/client/react';
 
+import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import {
     Card,
@@ -74,6 +75,11 @@ export default function EditHorse() {
     const { id } = useParams<{ id: string }>();
     const isEditMode = id !== undefined && id !== 'new';
     const { back, backTo } = useAppNavigate();
+    const { isTrainer } = useAuth();
+
+    if (!isTrainer) {
+        return <Navigate to="/horses" replace />;
+    }
 
     const [name, setName] = useState('');
     const [notes, setNotes] = useState('');

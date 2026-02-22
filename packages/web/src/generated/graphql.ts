@@ -91,6 +91,7 @@ export type MutationCreateSessionArgs = {
     intensity: InputMaybe<Intensity>;
     notes: Scalars['String']['input'];
     rating: InputMaybe<Scalars['Int']['input']>;
+    riderId: InputMaybe<Scalars['ID']['input']>;
     workType: WorkType;
 };
 
@@ -166,8 +167,14 @@ export type Rider = {
     email: Scalars['String']['output'];
     id: Scalars['ID']['output'];
     name: Scalars['String']['output'];
+    role: RiderRole;
     sessions: Array<Session>;
 };
+
+export enum RiderRole {
+    Rider = 'RIDER',
+    Trainer = 'TRAINER',
+}
 
 export type Session = {
     __typename?: 'Session';
@@ -274,6 +281,7 @@ export type UpdateHorseMutation = {
 
 export type CreateSessionMutationVariables = Exact<{
     horseId: Scalars['ID']['input'];
+    riderId: InputMaybe<Scalars['ID']['input']>;
     date: Scalars['DateTime']['input'];
     durationMinutes: Scalars['Int']['input'];
     workType: WorkType;
@@ -348,7 +356,12 @@ export type LoginMutation = {
     login: {
         __typename?: 'AuthPayload';
         token: string;
-        rider: { __typename?: 'Rider'; id: string; name: string };
+        rider: {
+            __typename?: 'Rider';
+            id: string;
+            name: string;
+            role: RiderRole;
+        };
     };
 };
 
@@ -435,7 +448,12 @@ export type SignupMutation = {
     signup: {
         __typename?: 'AuthPayload';
         token: string;
-        rider: { __typename?: 'Rider'; id: string; name: string };
+        rider: {
+            __typename?: 'Rider';
+            id: string;
+            name: string;
+            role: RiderRole;
+        };
     };
 };
 
