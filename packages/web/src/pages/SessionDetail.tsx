@@ -192,13 +192,26 @@ export default function SessionDetail(): React.ReactNode {
             await deleteSession({
                 variables: { id: id! },
                 update(cache) {
+                    cache.evict({
+                        id: cache.identify({
+                            __typename: 'Session',
+                            id: id!,
+                        }),
+                    });
+                    cache.evict({ fieldName: 'horse' });
+                    cache.evict({ fieldName: 'horses' });
                     cache.evict({ fieldName: 'sessions' });
                     cache.evict({ fieldName: 'session' });
                     cache.evict({ fieldName: 'lastSessionForHorse' });
                     cache.gc();
                 },
             });
-            backTo('/');
+            // React Router stores a 0-based index; idx > 0 means in-app history exists
+            if (window.history.state?.idx > 0) {
+                back();
+            } else {
+                backTo('/');
+            }
         } catch (err) {
             setFormError(
                 err instanceof Error ? err.message : 'An error occurred'
