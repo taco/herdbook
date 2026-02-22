@@ -69,7 +69,7 @@ export default function EditSession(): React.ReactNode {
     const { data: ridersData } = useQuery<
         GetRidersQuery,
         GetRidersQueryVariables
-    >(GET_RIDERS_QUERY);
+    >(GET_RIDERS_QUERY, { skip: !isTrainer });
 
     const horses = horsesData?.horses ?? [];
     const riders = ridersData?.riders ?? [];
