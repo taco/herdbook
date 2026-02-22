@@ -107,4 +107,4 @@ pnpm env:status     # Check which env is active
 
 ## License
 
-Private project
+[MIT](LICENSE)
