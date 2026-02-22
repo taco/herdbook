@@ -70,7 +70,7 @@ Display a brief summary (title + labels). Use the title and labels to derive nam
     - `chore` or `maintenance` → `chore/`
     - `refactor` → `refactor/`
     - No matching label → `feat/`
-- Branch: `<prefix><slug>` (e.g. `fix/login-crash`, `chore/add-sentry`)
+- Branch: `<prefix><issue-number>-<slug>` (e.g. `fix/42-login-crash`, `chore/15-add-sentry`)
 - Path: `../herdbook-<slug>`
 
 #### From a name (non-numeric argument)
@@ -87,7 +87,7 @@ If no recognized prefix, default to `feat/`:
 ### 3. Create worktree
 
 ```bash
-./worktree-setup.sh ../herdbook-<slug> feat/<slug>
+./worktree-setup.sh ../herdbook-<slug> feat/<issue-number>-<slug>
 ```
 
 The script symlinks env files, SSL certs, and Claude settings from the main worktree, then runs `pnpm install` and `prisma generate`.
