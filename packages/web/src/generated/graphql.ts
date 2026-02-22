@@ -61,6 +61,13 @@ export type HorseSummary = {
     stale: Scalars['Boolean']['output'];
 };
 
+export enum Intensity {
+    Hard = 'HARD',
+    Light = 'LIGHT',
+    Moderate = 'MODERATE',
+    VeryHard = 'VERY_HARD',
+}
+
 export type Mutation = {
     __typename?: 'Mutation';
     createHorse: Horse;
@@ -81,7 +88,9 @@ export type MutationCreateSessionArgs = {
     date: Scalars['DateTime']['input'];
     durationMinutes: Scalars['Int']['input'];
     horseId: Scalars['ID']['input'];
+    intensity: InputMaybe<Intensity>;
     notes: Scalars['String']['input'];
+    rating: InputMaybe<Scalars['Int']['input']>;
     workType: WorkType;
 };
 
@@ -112,7 +121,9 @@ export type MutationUpdateSessionArgs = {
     durationMinutes: InputMaybe<Scalars['Int']['input']>;
     horseId: InputMaybe<Scalars['ID']['input']>;
     id: Scalars['ID']['input'];
+    intensity: InputMaybe<Intensity>;
     notes: InputMaybe<Scalars['String']['input']>;
+    rating: InputMaybe<Scalars['Int']['input']>;
     riderId: InputMaybe<Scalars['ID']['input']>;
     workType: InputMaybe<WorkType>;
 };
@@ -165,7 +176,9 @@ export type Session = {
     durationMinutes: Scalars['Int']['output'];
     horse: Horse;
     id: Scalars['ID']['output'];
+    intensity: Maybe<Intensity>;
     notes: Scalars['String']['output'];
+    rating: Maybe<Scalars['Int']['output']>;
     rider: Rider;
     updatedAt: Scalars['DateTime']['output'];
     workType: WorkType;
