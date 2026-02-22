@@ -8,7 +8,9 @@ import NotesSection from '@/components/session/NotesSection';
 import FieldEditSheet, { FieldType } from '@/components/session/FieldEditSheet';
 import TextEditSheet from '@/components/TextEditSheet';
 import { formatSessionDateTime } from '@/lib/dateUtils';
-import { WorkType } from '@/generated/graphql';
+import { Intensity, WorkType } from '@/generated/graphql';
+import IntensitySelector from '@/components/session/IntensitySelector';
+import RatingSelector from '@/components/session/RatingSelector';
 
 const WORK_TYPE_LABELS: Record<WorkType, string> = {
     [WorkType.Flatwork]: 'Flatwork',
@@ -25,6 +27,8 @@ export interface SessionValues {
     dateTime: string; // datetime-local format
     durationMinutes: number | null;
     workType: WorkType | null;
+    intensity: Intensity | null;
+    rating: number | null;
     notes: string;
 }
 
@@ -192,6 +196,36 @@ export default function SessionEditor({
                                 label="Date & Time"
                                 value={dateDisplay}
                                 onClick={() => openSheet('dateTime')}
+                            />
+                        </div>
+
+                        <div className="mt-4">
+                            <span className="text-sm text-muted-foreground mb-2 block">
+                                Intensity
+                            </span>
+                            <IntensitySelector
+                                value={values.intensity}
+                                onChange={(intensity) =>
+                                    setValues((prev) => ({
+                                        ...prev,
+                                        intensity,
+                                    }))
+                                }
+                            />
+                        </div>
+
+                        <div className="mt-4">
+                            <span className="text-sm text-muted-foreground mb-2 block">
+                                Rating
+                            </span>
+                            <RatingSelector
+                                value={values.rating}
+                                onChange={(rating) =>
+                                    setValues((prev) => ({
+                                        ...prev,
+                                        rating,
+                                    }))
+                                }
                             />
                         </div>
 

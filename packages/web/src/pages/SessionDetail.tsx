@@ -6,6 +6,8 @@ import {
     Calendar,
     ChevronLeft,
     Clock,
+    Flame,
+    Star,
     User,
     Activity,
     Edit,
@@ -35,7 +37,7 @@ import {
     formatSessionTime,
     formatAsDateTimeLocalValue,
 } from '@/lib/dateUtils';
-import { getWorkTypeLabel } from '@/lib/constants';
+import { getIntensityLabel, getWorkTypeLabel } from '@/lib/constants';
 import { GET_HORSES_QUERY, GET_RIDERS_QUERY } from '@/lib/queries';
 import {
     WorkType,
@@ -66,6 +68,8 @@ const GET_SESSION = gql`
             date
             durationMinutes
             workType
+            intensity
+            rating
             notes
         }
     }
@@ -79,6 +83,8 @@ const UPDATE_SESSION_MUTATION = gql`
         $date: DateTime
         $durationMinutes: Int
         $workType: WorkType
+        $intensity: Intensity
+        $rating: Int
         $notes: String
     ) {
         updateSession(
@@ -88,6 +94,8 @@ const UPDATE_SESSION_MUTATION = gql`
             date: $date
             durationMinutes: $durationMinutes
             workType: $workType
+            intensity: $intensity
+            rating: $rating
             notes: $notes
         ) {
             id
@@ -160,6 +168,8 @@ export default function SessionDetail(): React.ReactNode {
                     date: new Date(values.dateTime).toISOString(),
                     durationMinutes: values.durationMinutes,
                     workType: values.workType,
+                    intensity: values.intensity,
+                    rating: values.rating,
                     notes: values.notes.trim(),
                 },
                 update(cache) {
@@ -205,6 +215,8 @@ export default function SessionDetail(): React.ReactNode {
               ),
               durationMinutes: session.durationMinutes,
               workType: session.workType as WorkType,
+              intensity: session.intensity ?? null,
+              rating: session.rating ?? null,
               notes: session.notes,
           }
         : null;
@@ -293,6 +305,34 @@ export default function SessionDetail(): React.ReactNode {
                                 <User className="w-5 h-5 text-muted-foreground" />
                                 <p>{session.rider.name}</p>
                             </div>
+
+                            {session.intensity && (
+                                <div className="flex items-center gap-3">
+                                    <Flame className="w-5 h-5 text-muted-foreground" />
+                                    <span className="inline-flex items-center rounded-full bg-secondary px-3 py-1 text-sm font-medium">
+                                        {getIntensityLabel(session.intensity)}
+                                    </span>
+                                </div>
+                            )}
+
+                            {session.rating != null && (
+                                <div className="flex items-center gap-3">
+                                    <Star className="w-5 h-5 text-muted-foreground" />
+                                    <div className="flex gap-0.5">
+                                        {[1, 2, 3, 4, 5].map((i) => (
+                                            <Star
+                                                key={i}
+                                                className={cn(
+                                                    'w-5 h-5',
+                                                    i <= session.rating!
+                                                        ? 'fill-foreground text-foreground'
+                                                        : 'text-muted-foreground/30'
+                                                )}
+                                            />
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
 
                             <Separator />
 

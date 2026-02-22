@@ -226,6 +226,7 @@ export type GetDashboardDataQuery = {
         date: any;
         durationMinutes: number;
         workType: WorkType;
+        intensity: Intensity | null;
         notes: string;
         horse: { __typename?: 'Horse'; name: string };
         rider: { __typename?: 'Rider'; name: string };
@@ -285,6 +286,8 @@ export type CreateSessionMutationVariables = Exact<{
     date: Scalars['DateTime']['input'];
     durationMinutes: Scalars['Int']['input'];
     workType: WorkType;
+    intensity: InputMaybe<Intensity>;
+    rating: InputMaybe<Scalars['Int']['input']>;
     notes: Scalars['String']['input'];
 }>;
 
@@ -323,6 +326,7 @@ export type GetHorseProfileQuery = {
             date: any;
             durationMinutes: number;
             workType: WorkType;
+            intensity: Intensity | null;
             notes: string;
             horse: { __typename?: 'Horse'; name: string };
             rider: { __typename?: 'Rider'; name: string };
@@ -384,6 +388,8 @@ export type GetSessionForEditQuery = {
         date: any;
         durationMinutes: number;
         workType: WorkType;
+        intensity: Intensity | null;
+        rating: number | null;
         notes: string;
         horse: { __typename?: 'Horse'; id: string; name: string };
         rider: { __typename?: 'Rider'; id: string; name: string };
@@ -397,6 +403,8 @@ export type UpdateSessionMutationVariables = Exact<{
     date: InputMaybe<Scalars['DateTime']['input']>;
     durationMinutes: InputMaybe<Scalars['Int']['input']>;
     workType: InputMaybe<WorkType>;
+    intensity: InputMaybe<Intensity>;
+    rating: InputMaybe<Scalars['Int']['input']>;
     notes: InputMaybe<Scalars['String']['input']>;
 }>;
 
@@ -431,6 +439,7 @@ export type GetSessionsQuery = {
         date: any;
         durationMinutes: number;
         workType: WorkType;
+        intensity: Intensity | null;
         notes: string;
         horse: { __typename?: 'Horse'; id: string; name: string };
         rider: { __typename?: 'Rider'; name: string };

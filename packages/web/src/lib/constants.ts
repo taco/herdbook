@@ -1,6 +1,6 @@
-// Re-export WorkType from generated GraphQL types (source: schema.graphql)
-export { WorkType } from '@/generated/graphql';
-import { WorkType } from '@/generated/graphql';
+// Re-export WorkType and Intensity from generated GraphQL types (source: schema.graphql)
+export { WorkType, Intensity } from '@/generated/graphql';
+import { Intensity, WorkType } from '@/generated/graphql';
 
 export const WORK_TYPE_LABELS: Record<WorkType, string> = {
     [WorkType.Flatwork]: 'Flatwork',
@@ -25,4 +25,22 @@ export const WORK_TYPE_OPTIONS: Array<{ value: WorkType; label: string }> = [
 
 export const getWorkTypeLabel = (workType: string): string => {
     return WORK_TYPE_LABELS[workType as WorkType] || workType;
+};
+
+export const INTENSITY_LABELS: Record<Intensity, string> = {
+    [Intensity.Light]: 'Light',
+    [Intensity.Moderate]: 'Mod',
+    [Intensity.Hard]: 'Hard',
+    [Intensity.VeryHard]: 'V.Hard',
+};
+
+export const INTENSITY_FULL_LABELS: Record<Intensity, string> = {
+    [Intensity.Light]: 'Light',
+    [Intensity.Moderate]: 'Moderate',
+    [Intensity.Hard]: 'Hard',
+    [Intensity.VeryHard]: 'Very Hard',
+};
+
+export const getIntensityLabel = (intensity: string): string => {
+    return INTENSITY_FULL_LABELS[intensity as Intensity] || intensity;
 };

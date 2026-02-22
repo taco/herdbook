@@ -42,6 +42,7 @@ const SESSIONS_QUERY = gql`
             date
             durationMinutes
             workType
+            intensity
             notes
             horse {
                 id

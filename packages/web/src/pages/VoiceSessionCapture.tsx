@@ -77,6 +77,8 @@ export default function VoiceSessionCapture() {
                         date: formatAsDateTimeLocalValue(new Date()),
                         durationMinutes: parsedFields.durationMinutes,
                         workType: parsedFields.workType,
+                        intensity: parsedFields.intensity ?? null,
+                        rating: parsedFields.rating ?? null,
                         notes:
                             parsedFields.formattedNotes ?? parsedFields.notes,
                     },

@@ -23,6 +23,7 @@ const DASHBOARD_QUERY = gql`
             date
             durationMinutes
             workType
+            intensity
             notes
             horse {
                 name
@@ -82,15 +83,7 @@ export default function Dashboard(): React.ReactNode {
                         {data?.sessions.map((session) => (
                             <ActivityCard
                                 key={session.id}
-                                session={{
-                                    id: session.id,
-                                    date: session.date,
-                                    durationMinutes: session.durationMinutes,
-                                    workType: session.workType,
-                                    horse: session.horse,
-                                    rider: session.rider,
-                                    notes: session.notes,
-                                }}
+                                session={session}
                                 onClick={() => push(`/sessions/${session.id}`)}
                             />
                         ))}
