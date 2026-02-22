@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { prisma } from '@/db';
 import type { World } from '@/test/setupWorld';
 import { setupWorld } from '@/test/setupWorld';
 import { UPDATE_HORSE } from '@/test/queries';
@@ -8,6 +9,11 @@ describe('updateHorse access', () => {
 
     beforeAll(async () => {
         world = await setupWorld('updateHorse');
+        // Promote userA to trainer
+        await prisma.rider.update({
+            where: { id: world.userA.riderId },
+            data: { role: 'TRAINER' },
+        });
     });
 
     afterAll(async () => {
@@ -24,7 +30,17 @@ describe('updateHorse access', () => {
         expect(res.errors![0].extensions?.code).toBe('UNAUTHENTICATED');
     });
 
-    it('allows authenticated user to update a horse', async () => {
+    it('rejects rider role', async () => {
+        const res = await world.userB.gql(UPDATE_HORSE, {
+            id: world.horse.id,
+            name: 'Rider Attempt',
+        });
+
+        expect(res.errors).toBeDefined();
+        expect(res.errors![0].extensions?.code).toBe('FORBIDDEN');
+    });
+
+    it('allows trainer to update a horse', async () => {
         const res = await world.userA.gql<{
             updateHorse: { id: string; name: string };
         }>(UPDATE_HORSE, {
