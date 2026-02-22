@@ -57,5 +57,4 @@ jobs:
             - ✅ if no issues found
             - ⚠️ with short bullet points if there are issues that should be fixed before merging
           claude_args: |
-            --max-turns 10
             --allowedTools "Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*)"
