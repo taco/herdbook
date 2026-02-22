@@ -294,7 +294,9 @@ export const createResolvers = (app: FastifyInstance): Record<string, any> => {
                     context
                 ) => {
                     if (!context.rider) {
-                        throw new GraphQLError('No rider found');
+                        throw new GraphQLError('Not authenticated', {
+                            extensions: { code: 'UNAUTHENTICATED' },
+                        });
                     }
                     if (
                         args.rating !== undefined &&
