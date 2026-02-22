@@ -40,6 +40,7 @@ const GET_HORSE_PROFILE = gql`
                 date
                 durationMinutes
                 workType
+                intensity
                 notes
                 horse {
                     name

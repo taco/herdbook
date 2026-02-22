@@ -10,6 +10,7 @@ import { useAuth } from '@/context/AuthContext';
 import { formatAsDateTimeLocalValue } from '@/lib/dateUtils';
 import { GET_HORSES_QUERY, GET_RIDERS_QUERY } from '@/lib/queries';
 import {
+    Intensity,
     WorkType,
     CreateSessionMutation,
     CreateSessionMutationVariables,
@@ -25,6 +26,8 @@ interface PrefillData {
     date?: string | null;
     durationMinutes?: number | null;
     workType?: WorkType | null;
+    intensity?: Intensity | null;
+    rating?: number | null;
     notes?: string | null;
 }
 
@@ -39,6 +42,8 @@ const CREATE_SESSION_MUTATION = gql`
         $date: DateTime!
         $durationMinutes: Int!
         $workType: WorkType!
+        $intensity: Intensity
+        $rating: Int
         $notes: String!
     ) {
         createSession(
@@ -47,6 +52,8 @@ const CREATE_SESSION_MUTATION = gql`
             date: $date
             durationMinutes: $durationMinutes
             workType: $workType
+            intensity: $intensity
+            rating: $rating
             notes: $notes
         ) {
             id
@@ -92,6 +99,8 @@ export default function EditSession(): React.ReactNode {
             durationMinutes:
                 prefill?.durationMinutes ?? persisted.durationMinutes ?? null,
             workType: prefill?.workType ?? persisted.workType ?? null,
+            intensity: prefill?.intensity ?? null,
+            rating: prefill?.rating ?? null,
             notes: prefill?.notes ?? '',
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -111,6 +120,8 @@ export default function EditSession(): React.ReactNode {
                 date: new Date(values.dateTime).toISOString(),
                 durationMinutes: values.durationMinutes!,
                 workType: values.workType!,
+                intensity: values.intensity,
+                rating: values.rating,
                 notes: values.notes.trim(),
             },
             update(cache) {

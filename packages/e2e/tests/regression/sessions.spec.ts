@@ -147,6 +147,97 @@ test.describe('Session Management', () => {
         await expect(page.getByText(uniqueNote)).not.toBeVisible();
     });
 
+    test('can log a session with intensity and rating', async ({ page }) => {
+        const uniqueNote = `Intensity and rating test ${Date.now()}`;
+
+        await page.goto('/sessions/new');
+
+        await selectFieldOption(page, 'Horse', TEST_HORSE_NAME);
+        await selectFieldOption(page, 'Work Type', 'Flatwork');
+        await setFieldValue(page, 'Duration', '40');
+
+        // Set intensity to Hard
+        await page.getByRole('radio', { name: 'Hard', exact: true }).click();
+
+        // Set rating to 4 stars
+        await page.getByRole('radio', { name: '4 stars' }).click();
+
+        await setNotes(page, uniqueNote);
+        await page.getByRole('button', { name: 'Save Session' }).click();
+        await page.waitForURL('/');
+
+        // Verify the session appears on dashboard with intensity chip
+        await expect(page.getByText(uniqueNote)).toBeVisible();
+
+        // Open session detail and verify intensity and rating display
+        await page.getByText(uniqueNote).first().click();
+        await expect(page).toHaveURL(/\/sessions\/[^/]+$/);
+        await expect(page.getByText('Hard', { exact: true })).toBeVisible();
+    });
+
+    test('can edit intensity and rating on an existing session', async ({
+        page,
+    }) => {
+        // Create a session with intensity/rating first
+        const uniqueNote = `Edit intensity test ${Date.now()}`;
+        await page.goto('/sessions/new');
+        await selectFieldOption(page, 'Horse', TEST_HORSE_NAME);
+        await selectFieldOption(page, 'Work Type', 'Groundwork');
+        await setFieldValue(page, 'Duration', '30');
+        await page.getByRole('radio', { name: 'Light', exact: true }).click();
+        await page.getByRole('radio', { name: '3 stars' }).click();
+        await setNotes(page, uniqueNote);
+        await page.getByRole('button', { name: 'Save Session' }).click();
+        await page.waitForURL('/');
+
+        // Navigate to session detail
+        await page.getByText(uniqueNote).first().click();
+        await expect(page).toHaveURL(/\/sessions\/[^/]+$/);
+        await expect(page.getByText('Light')).toBeVisible();
+
+        // Open edit overlay
+        await page.getByRole('button', { name: 'Edit' }).click();
+        await expect(
+            page.getByRole('heading', { name: 'Edit Session' })
+        ).toBeVisible();
+
+        // Change intensity from Light to V.Hard
+        await page.getByRole('radio', { name: 'V.Hard' }).click();
+
+        // Change rating to 5 stars
+        await page.getByRole('radio', { name: '5 stars' }).click();
+
+        await page.getByRole('button', { name: 'Save Session' }).click();
+
+        // Verify on detail page
+        await expect(page).toHaveURL(/\/sessions\/[^/]+$/);
+        await expect(page.getByText('Very Hard')).toBeVisible();
+    });
+
+    test('can deselect intensity and rating by tapping again', async ({
+        page,
+    }) => {
+        await page.goto('/sessions/new');
+
+        await selectFieldOption(page, 'Horse', TEST_HORSE_NAME);
+        await selectFieldOption(page, 'Work Type', 'Flatwork');
+        await setFieldValue(page, 'Duration', '30');
+
+        // Select intensity, then deselect by tapping same option
+        const modButton = page.getByRole('radio', { name: 'Mod' });
+        await modButton.click();
+        await expect(modButton).toHaveAttribute('aria-checked', 'true');
+        await modButton.click();
+        await expect(modButton).toHaveAttribute('aria-checked', 'false');
+
+        // Select rating, then deselect by tapping same star
+        const star3 = page.getByRole('radio', { name: '3 stars' });
+        await star3.click();
+        await expect(star3).toHaveAttribute('aria-checked', 'true');
+        await star3.click();
+        await expect(star3).toHaveAttribute('aria-checked', 'false');
+    });
+
     test('can filter sessions by work type and persist across navigation', async ({
         page,
     }) => {

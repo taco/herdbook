@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { WorkType } from '@/generated/graphql';
+import { Intensity, WorkType } from '@/generated/graphql';
 import { apiEndpoint } from '@/lib/api';
 
 export type RecordingState =
@@ -26,6 +26,8 @@ export interface ParsedSessionFields {
     riderId: string | null;
     durationMinutes: number | null;
     workType: WorkType | null;
+    intensity?: Intensity | null;
+    rating?: number | null;
     formattedNotes?: string;
 }
 
