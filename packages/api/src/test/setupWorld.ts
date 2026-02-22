@@ -5,6 +5,7 @@ import type { FastifyInstance } from 'fastify';
 import { prisma } from '@/db';
 import { getJwtSecretOrThrow } from '@/config';
 import { createApiApp } from '@/server';
+import { generateInviteCode } from '@/utils/inviteCode';
 
 // ── Types ────────────────────────────────────────────────────────────
 
@@ -73,7 +74,8 @@ function makeGql(
 
 async function seedRider(
     suiteId: string,
-    label: string
+    label: string,
+    barnId: string
 ): Promise<{ id: string; token: string }> {
     const email = `${suiteId}-${label}-${Date.now()}@test.herdbook`;
     const hashedPassword = await bcrypt.hash('testpassword', 10);
@@ -83,6 +85,7 @@ async function seedRider(
             name: `${suiteId} ${label}`,
             email,
             password: hashedPassword,
+            barnId,
         },
     });
 
@@ -93,18 +96,33 @@ async function seedRider(
     return { id: rider.id, token };
 }
 
+// ── Shared helpers ───────────────────────────────────────────────────
+
+export async function seedBarn(
+    name: string
+): Promise<{ id: string; name: string }> {
+    return prisma.barn.create({
+        data: {
+            name,
+            inviteCode: generateInviteCode(),
+        },
+    });
+}
+
 // ── Main ─────────────────────────────────────────────────────────────
 
 export async function setupWorld(suiteId: string): Promise<World> {
     const fastify = await createApiApp();
 
+    const barn = await seedBarn(`${suiteId}-barn`);
+
     // Seed two users
-    const riderA = await seedRider(suiteId, 'a');
-    const riderB = await seedRider(suiteId, 'b');
+    const riderA = await seedRider(suiteId, 'a', barn.id);
+    const riderB = await seedRider(suiteId, 'b', barn.id);
 
     // Seed a horse
     const horse = await prisma.horse.create({
-        data: { name: `${suiteId}-horse` },
+        data: { name: `${suiteId}-horse`, barnId: barn.id },
     });
 
     // Seed a session owned by userA
@@ -154,6 +172,9 @@ export async function setupWorld(suiteId: string): Promise<World> {
                 id: { in: [riderA.id, riderB.id] },
             },
         });
+
+        // Delete the test barn
+        await prisma.barn.delete({ where: { id: barn.id } });
 
         await fastify.close();
         await prisma.$disconnect();

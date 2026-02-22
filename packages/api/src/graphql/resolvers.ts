@@ -238,7 +238,9 @@ export const createResolvers = (app: FastifyInstance): Record<string, any> => {
                 'write',
                 async (_, args: { name: string; notes?: string }, context) => {
                     requireTrainer(context);
-                    return prisma.horse.create({ data: args });
+                    return prisma.horse.create({
+                        data: { ...args, barnId: context.rider!.barnId },
+                    });
                 }
             ),
             updateHorse: wrapResolver(
@@ -449,12 +451,15 @@ export const createResolvers = (app: FastifyInstance): Record<string, any> => {
                             extensions: { code: 'EMAIL_NOT_ALLOWED' },
                         });
                     }
+                    // TODO(#86): assign to first barn until invite code signup flow
+                    const barn = await prisma.barn.findFirstOrThrow();
                     const hashedPassword = await bcrypt.hash(args.password, 10);
                     const rider = await prisma.rider.create({
                         data: {
                             name: args.name,
                             email: args.email,
                             password: hashedPassword,
+                            barnId: barn.id,
                         },
                     });
                     const token = jwt.sign(
@@ -511,6 +516,8 @@ export const createResolvers = (app: FastifyInstance): Record<string, any> => {
         Horse: {
             sessions: (parent: { id: string }) =>
                 prisma.session.findMany({ where: { horseId: parent.id } }),
+            barn: (parent: { barnId: string }) =>
+                prisma.barn.findUniqueOrThrow({ where: { id: parent.barnId } }),
             summary: async (parent: {
                 id: string;
                 summaryContent: string | null;
@@ -591,9 +598,21 @@ export const createResolvers = (app: FastifyInstance): Record<string, any> => {
                 return activity;
             },
         },
+        Barn: {
+            inviteCode: (
+                parent: { inviteCode: string },
+                _: unknown,
+                context: Context
+            ) =>
+                context.rider?.role === RiderRole.TRAINER
+                    ? parent.inviteCode
+                    : null,
+        },
         Rider: {
             sessions: (parent: { id: string }) =>
                 prisma.session.findMany({ where: { riderId: parent.id } }),
+            barn: (parent: { barnId: string }) =>
+                prisma.barn.findUniqueOrThrow({ where: { id: parent.barnId } }),
         },
         Session: {
             horse: (

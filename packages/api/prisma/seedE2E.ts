@@ -1,14 +1,30 @@
 import bcrypt from 'bcrypt';
 import { prisma } from '../src/db';
+import { generateInviteCode } from '../src/utils/inviteCode';
 import {
     TEST_RIDER_EMAIL,
     TEST_RIDER_PASSWORD,
     TEST_RIDER_NAME,
     TEST_HORSE_NAME,
     TEST_SESSION_NOTE,
+    TEST_BARN_NAME,
 } from '../../e2e/tests/seedConstants';
 
 async function seedE2E() {
+    // Create or find a barn for test data
+    let barn = await prisma.barn.findFirst({
+        where: { name: TEST_BARN_NAME },
+    });
+
+    if (!barn) {
+        barn = await prisma.barn.create({
+            data: {
+                name: TEST_BARN_NAME,
+                inviteCode: generateInviteCode(),
+            },
+        });
+    }
+
     // Create a test rider with known credentials
     const testRiderEmail = TEST_RIDER_EMAIL;
     const testRiderPassword = TEST_RIDER_PASSWORD;
@@ -34,6 +50,7 @@ async function seedE2E() {
                 email: testRiderEmail,
                 password: hashedPassword,
                 role: 'TRAINER',
+                barnId: barn.id,
             },
         });
     }
@@ -49,6 +66,7 @@ async function seedE2E() {
             data: {
                 name: testHorseName,
                 notes: 'Test horse for E2E tests',
+                barnId: barn.id,
             },
         });
     }
@@ -72,6 +90,7 @@ async function seedE2E() {
     }
 
     console.log('E2E seed completed:');
+    console.log(`  Barn: ${barn.name} (${barn.id})`);
     console.log(`  Rider: ${rider.email} (${rider.id})`);
     console.log(`  Horse: ${horse.name} (${horse.id})`);
 }

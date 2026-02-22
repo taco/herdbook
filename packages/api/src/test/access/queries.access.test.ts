@@ -93,8 +93,7 @@ describe('read queries access', () => {
         expect(res.data!.horse!.id).toBe(world.horse.id);
     });
 
-    // Documents current behavior: sessions query is unscoped.
-    // PR #77 will scope to the requesting rider's data.
+    // TODO(#85): sessions query is unscoped — will be barn-scoped
     it('sessions returns other riders data (unscoped query)', async () => {
         const res = await world.userB.gql<{
             sessions: Array<{ id: string }>;

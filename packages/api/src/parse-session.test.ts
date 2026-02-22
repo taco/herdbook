@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 
 import { prisma } from '@/db';
 import { createApiApp } from '@/server';
+import { seedBarn } from '@/test/setupWorld';
 
 function buildMultipartPayload(
     fields: Record<string, string>,
@@ -39,6 +40,7 @@ describe('/api/parse-session', () => {
     let fastify: FastifyInstance;
     let validToken: string;
     let testRiderId: string;
+    let testBarnId: string;
     let prevOpenApiKey: string | undefined;
     const TEST_TIMEOUT_MS = 20_000;
 
@@ -53,11 +55,15 @@ describe('/api/parse-session', () => {
         prevOpenApiKey = process.env.OPENAI_API_KEY;
         fastify = await createApiApp();
 
+        const barn = await seedBarn('parse-session-test-barn');
+        testBarnId = barn.id;
+
         const testRider = await prisma.rider.create({
             data: {
                 name: 'Parse Session Test Rider',
                 email: `parse-session-test-${Date.now()}@example.com`,
                 password: 'hashedpassword',
+                barnId: barn.id,
             },
         });
         testRiderId = testRider.id;
@@ -70,6 +76,7 @@ describe('/api/parse-session', () => {
 
     afterAll(async () => {
         await prisma.rider.delete({ where: { id: testRiderId } });
+        await prisma.barn.delete({ where: { id: testBarnId } });
 
         if (prevOpenApiKey === undefined) {
             delete process.env.OPENAI_API_KEY;

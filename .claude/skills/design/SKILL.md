@@ -76,4 +76,12 @@ When writing a design doc, follow the existing format in `docs/design-*.md`:
 4. **Future** — things explicitly deferred
 5. **Verification** — how to confirm the design worked
 
-Reference: `docs/design-horse-profile-redesign.md`
+Reference: `docs/design-barns-multi-tenancy.md`
+
+## After Issues Are Created
+
+Once issues are created on GitHub, update the design doc:
+
+1. **Link the milestone** in the Issues section heading: `## Issues ([Milestone Name](url))`
+2. **Replace placeholder headings** with linked issue numbers: `### [#84](https://github.com/taco/herdbook/issues/84): Title`
+3. **Audit code TODOs** — any `TODO` referencing future work must use `TODO(#N)` with the real issue number

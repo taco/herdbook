@@ -53,6 +53,7 @@ Example:
 - Explicit return types for public functions
 - Files: `PascalCase.tsx` (components), `camelCase.ts` (utilities)
 - Types: `PascalCase` (no `I` prefix)
+- TODOs must use `TODO(#N)` format referencing a real GitHub issue — no bare `TODO`, `FIXME`, or placeholder issue numbers
 
 ## Backend (packages/api)
 
@@ -89,6 +90,12 @@ Example:
 - Do not add any co-author lines in commit messages
 - The top message should be short and easy to read without losing context
 - Seperate details should be order in terms for weight, most important at the top
+
+## Design Docs
+
+- After `/design` creates issues on GitHub, update the design doc's issue headings to use real issue numbers with full links: `### [#84](https://github.com/taco/herdbook/issues/84): Title`
+- Link the milestone in the Issues section heading
+- Code TODOs for future work must reference the real issue: `TODO(#84)`
 
 ## Testing Philosophy
 
