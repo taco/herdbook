@@ -62,13 +62,14 @@ pnpm run check
 
 ## Key Files
 
-| File                                      | Purpose                  |
-| ----------------------------------------- | ------------------------ |
-| `packages/api/prisma/schema.prisma`       | Data models              |
-| `packages/api/src/graphql/schema.graphql` | GraphQL type definitions |
-| `packages/api/src/graphql/resolvers.ts`   | Resolvers                |
-| `packages/api/src/graphql/loaders.ts`     | DataLoaders (N+1)        |
-| `packages/web/src/generated/graphql.ts`   | Generated TS types       |
+| File                                      | Purpose                                                  |
+| ----------------------------------------- | -------------------------------------------------------- |
+| `packages/api/prisma/schema.prisma`       | Data models                                              |
+| `packages/api/src/graphql/schema.graphql` | GraphQL type definitions                                 |
+| `packages/api/src/graphql/resolvers.ts`   | Resolvers                                                |
+| `packages/api/src/graphql/loaders.ts`     | DataLoaders (N+1)                                        |
+| `packages/web/src/generated/graphql.ts`   | Generated TS types                                       |
+| `packages/api/src/test/queries.ts`        | Shared test GraphQL strings (update when schema changes) |
 
 ## Removing Fields or Models
 

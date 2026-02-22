@@ -229,7 +229,9 @@ describe('/api/parse-session', () => {
                 details: string;
             };
             expect(body.error).toBe('Failed to parse session');
-            expect(body.details).toBe('OpenAI API key not configured');
+            expect(body.details).toBe(
+                'Something went wrong parsing your recording. Please try again.'
+            );
 
             await appWithoutKey.close();
         },
