@@ -10,6 +10,7 @@ import {
     type SummaryContext,
     type SummarySignals,
 } from '@/prompts';
+import * as Sentry from '@sentry/node';
 import { setupAiLimiters, withAiRateLimit } from './utils/aiRateLimit';
 import { computeSignals } from './utils/computeSignals';
 import {
@@ -231,6 +232,10 @@ export async function registerSummaryRoutes(
                     generatedAt: generatedAt.toISOString(),
                 };
             } catch (error) {
+                Sentry.captureException(error, {
+                    tags: { 'rest.route': '/api/horse-summary' },
+                    extra: { horseId },
+                });
                 console.error('[horse-summary] Generation error:', error);
                 return reply.status(500).send({
                     error: 'GENERATION_FAILED',

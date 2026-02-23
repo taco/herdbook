@@ -4,6 +4,7 @@ import { prisma } from '@/db';
 import { createLoaders } from '@/graphql/loaders';
 import { getJwtSecretOrThrow } from '@/config';
 import type { Context } from '@/graphql/resolvers';
+import { setSentryUser } from '@/lib/sentry';
 
 /**
  * Shared rate-limit key: rider ID from JWT, falling back to IP.
@@ -39,6 +40,9 @@ export async function buildContext(
             omit: { password: true },
         });
         context.rider = rider;
+        if (rider) {
+            setSentryUser(rider.id);
+        }
         const barnId = rider?.barnId ?? '';
         await prisma.$executeRaw`SELECT set_config('app.current_barn_id', ${barnId}, false)`;
         return context;
