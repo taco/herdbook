@@ -55,7 +55,7 @@ export default defineConfig({
     webServer: [
         {
             command: 'pnpm --filter api dev',
-            url: 'http://127.0.0.1:4099',
+            url: 'http://127.0.0.1:4099/health',
             reuseExistingServer: !process.env.CI,
             env: {
                 PORT: '4099',
