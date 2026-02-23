@@ -61,6 +61,7 @@ Example:
 - Throw `GraphQLError` with codes (`NOT_FOUND`, `UNAUTHENTICATED`) - don't return null
 - Update `schema.graphql` when `schema.prisma` changes
 - Watch for N+1 queries in nested resolvers
+- Do not add inline `if (!context.rider)` checks in resolver bodies — `secureByDefaultTransformer` rejects unauthenticated requests for all non-`@public` fields before resolvers run. Use shared helpers (`getBarnId`, `requireTrainer`, `requireOwnerOrTrainer`) which keep their null checks for TypeScript type narrowing. Only add role-based guards where needed.
 
 ## Frontend (packages/web)
 

@@ -42,6 +42,7 @@ export type Barn = {
     id: Scalars['ID']['output'];
     inviteCode: Maybe<Scalars['String']['output']>;
     name: Scalars['String']['output'];
+    riders: Array<Rider>;
 };
 
 export type Horse = {
@@ -83,7 +84,9 @@ export type Mutation = {
     createSession: Session;
     deleteSession: Scalars['Boolean']['output'];
     login: AuthPayload;
+    regenerateInviteCode: Barn;
     signup: AuthPayload;
+    updateBarn: Barn;
     updateHorse: Horse;
     updateSession: Session;
 };
@@ -120,6 +123,10 @@ export type MutationSignupArgs = {
     password: Scalars['String']['input'];
 };
 
+export type MutationUpdateBarnArgs = {
+    name: Scalars['String']['input'];
+};
+
 export type MutationUpdateHorseArgs = {
     id: Scalars['ID']['input'];
     isActive: InputMaybe<Scalars['Boolean']['input']>;
@@ -141,6 +148,7 @@ export type MutationUpdateSessionArgs = {
 
 export type Query = {
     __typename?: 'Query';
+    barn: Barn;
     horse: Maybe<Horse>;
     horses: Array<Horse>;
     lastSessionForHorse: Maybe<Session>;
