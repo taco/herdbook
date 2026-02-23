@@ -24,7 +24,7 @@ async function seedE2E() {
         const hashedPassword = await bcrypt.hash(testRiderPassword, 10);
         rider = await prisma.rider.update({
             where: { id: existingRider.id },
-            data: { password: hashedPassword },
+            data: { password: hashedPassword, role: 'TRAINER' },
         });
     } else {
         const hashedPassword = await bcrypt.hash(testRiderPassword, 10);
@@ -33,6 +33,7 @@ async function seedE2E() {
                 name: TEST_RIDER_NAME,
                 email: testRiderEmail,
                 password: hashedPassword,
+                role: 'TRAINER',
             },
         });
     }
