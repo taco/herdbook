@@ -17,6 +17,7 @@ import { secureByDefaultTransformer } from '@/graphql/directives';
 import { buildContext } from '@/middleware/auth';
 import { registerVoiceRoutes } from '@/rest/voice';
 import { registerSummaryRoutes } from '@/rest/horseSummary';
+import { registerHealthRoutes } from '@/rest/health';
 import { prisma } from '@/db';
 
 function readSchemaSDLOrThrow(): string {
@@ -63,12 +64,8 @@ export async function createApiApp(httpsOptions?: {
         global: false, // Don't apply globally, we'll use per-resolver limiters
     });
 
-    // Health check
-    app.get('/', async () => {
-        return { status: 'ok' };
-    });
-
     // REST routes
+    await registerHealthRoutes(app);
     await registerVoiceRoutes(app);
     await registerSummaryRoutes(app);
 
