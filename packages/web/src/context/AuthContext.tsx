@@ -1,4 +1,5 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
+import { setSentryUser } from '@/lib/sentry';
 
 interface AuthContextInterface {
     token: string | null;
@@ -39,6 +40,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [riderRole, setRiderRole] = useState<string | null>(
         localStorage.getItem('riderRole') || null
     );
+
+    useEffect(() => {
+        setSentryUser(riderId);
+    }, [riderId]);
 
     const login = (
         token: string,

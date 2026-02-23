@@ -2,6 +2,7 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import { VitePWA } from 'vite-plugin-pwa';
+import { sentryVitePlugin } from '@sentry/vite-plugin';
 import path from 'path';
 import fs from 'fs';
 
@@ -23,6 +24,9 @@ const apiTarget =
     (httpsConfig ? 'https://localhost:4000' : 'http://localhost:4000');
 
 export default defineConfig({
+    build: {
+        sourcemap: 'hidden',
+    },
     plugins: [
         react(),
         tailwindcss(),
@@ -46,6 +50,14 @@ export default defineConfig({
                         type: 'image/png',
                     },
                 ],
+            },
+        }),
+        sentryVitePlugin({
+            disable: !process.env.SENTRY_AUTH_TOKEN,
+            org: process.env.SENTRY_ORG,
+            project: process.env.SENTRY_PROJECT,
+            sourcemaps: {
+                filesToDeleteAfterUpload: ['./dist/**/*.map'],
             },
         }),
     ],
