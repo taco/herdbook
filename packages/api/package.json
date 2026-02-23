@@ -28,6 +28,7 @@
         "@graphql-tools/utils": "^10.11.0",
         "@prisma/adapter-pg": "^7.1.0",
         "@prisma/client": "^7.1.0",
+        "@sentry/node": "^10.39.0",
         "bcrypt": "^6.0.0",
         "dataloader": "^2.2.3",
         "dotenv": "^17.2.3",

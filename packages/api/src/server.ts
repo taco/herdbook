@@ -18,7 +18,9 @@ import { buildContext } from '@/middleware/auth';
 import { registerVoiceRoutes } from '@/rest/voice';
 import { registerSummaryRoutes } from '@/rest/horseSummary';
 import { registerHealthRoutes } from '@/rest/health';
+import * as Sentry from '@sentry/node';
 import { prisma } from '@/db';
+import { sentryApolloPlugin } from '@/lib/sentryApolloPlugin';
 
 function readSchemaSDLOrThrow(): string {
     // In dev/test, this file lives next to this module in `src/graphql/`.
@@ -77,7 +79,7 @@ export async function createApiApp(httpsOptions?: {
         })
     );
 
-    const plugins = [];
+    const plugins = [sentryApolloPlugin];
     if (isDevelopment()) {
         const rider = await prisma.rider.findFirst({
             select: { id: true, name: true },
@@ -115,6 +117,8 @@ export async function createApiApp(httpsOptions?: {
     await app.register(fastifyApollo(apollo), {
         context: (request, reply) => buildContext(request, reply),
     });
+
+    Sentry.setupFastifyErrorHandler(app);
 
     return app;
 }

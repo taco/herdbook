@@ -7,6 +7,7 @@ import {
     type VoiceParseVersion,
     resolveModel,
 } from '@/prompts';
+import * as Sentry from '@sentry/node';
 import { setupAiLimiters, withAiRateLimit } from './utils/aiRateLimit';
 
 // Types for parse-session endpoint
@@ -207,6 +208,9 @@ export async function registerVoiceRoutes(app: FastifyInstance): Promise<void> {
                     ...parsed,
                 };
             } catch (error) {
+                Sentry.captureException(error, {
+                    tags: { 'rest.route': '/api/parse-session' },
+                });
                 console.error('[voice] Parse session error:', error);
                 return reply.status(500).send({
                     error: 'Failed to parse session',

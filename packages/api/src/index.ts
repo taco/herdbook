@@ -1,4 +1,4 @@
-import 'dotenv/config';
+import './instrument';
 import { existsSync, readFileSync } from 'fs';
 import { resolve } from 'path';
 import { createApiApp } from '@/server';
