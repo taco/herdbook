@@ -193,8 +193,8 @@ describe('Rate limiting', () => {
                     },
                     payload: {
                         query: `
-                        mutation Signup($name: String!, $email: String!, $password: String!) {
-                            signup(name: $name, email: $email, password: $password) {
+                        mutation Signup($name: String!, $email: String!, $password: String!, $inviteCode: String!) {
+                            signup(name: $name, email: $email, password: $password, inviteCode: $inviteCode) {
                                 token
                             }
                         }
@@ -203,6 +203,7 @@ describe('Rate limiting', () => {
                             name: 'Test User',
                             email: 'signup-test@example.com',
                             password: 'password123',
+                            inviteCode: 'DOESNOTMATTER',
                         },
                     },
                 });

@@ -101,7 +101,7 @@ async function seedRider(
 
 export async function seedBarn(
     name: string
-): Promise<{ id: string; name: string }> {
+): Promise<{ id: string; name: string; inviteCode: string }> {
     return prisma.barn.create({
         data: {
             name,

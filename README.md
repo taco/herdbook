@@ -19,7 +19,7 @@ Deployed to production on Railway + Neon Postgres, used by real riders at a smal
 - Per-horse activity heatmaps (12-week view)
 - Dashboard with recent activity feed
 - Horse and rider management with soft-delete
-- JWT auth with email allowlist and tiered rate limiting
+- JWT auth with invite code signup and tiered rate limiting
 
 ## Architecture Highlights
 
@@ -71,7 +71,7 @@ herdbook/
 **Prerequisites**: Node.js (see `.node-version`), pnpm 10.4+, PostgreSQL
 
 ```bash
-cp .env.example .env.local    # Add your DATABASE_URL, JWT_SECRET, ALLOWED_EMAILS
+cp .env.example .env.local    # Add your DATABASE_URL, JWT_SECRET
 pnpm env:local                # Point API at local database
 pnpm run init                 # Install deps + generate Prisma client
 pnpm --filter api run prisma:migrate  # Run migrations
@@ -99,11 +99,10 @@ pnpm env:neon-prod  # Neon production
 pnpm env:status     # Check which env is active
 ```
 
-| Variable         | Description                                       |
-| ---------------- | ------------------------------------------------- |
-| `DATABASE_URL`   | PostgreSQL connection string                      |
-| `JWT_SECRET`     | Secret for signing JWTs (32+ chars in production) |
-| `ALLOWED_EMAILS` | Comma-separated email whitelist                   |
+| Variable       | Description                                       |
+| -------------- | ------------------------------------------------- |
+| `DATABASE_URL` | PostgreSQL connection string                      |
+| `JWT_SECRET`   | Secret for signing JWTs (32+ chars in production) |
 
 ## License
 

@@ -115,6 +115,7 @@ export type MutationLoginArgs = {
 
 export type MutationSignupArgs = {
     email: Scalars['String']['input'];
+    inviteCode: Scalars['String']['input'];
     name: Scalars['String']['input'];
     password: Scalars['String']['input'];
 };
@@ -460,6 +461,7 @@ export type SignupMutationVariables = Exact<{
     name: Scalars['String']['input'];
     email: Scalars['String']['input'];
     password: Scalars['String']['input'];
+    inviteCode: Scalars['String']['input'];
 }>;
 
 export type SignupMutation = {

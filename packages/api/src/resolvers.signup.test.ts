@@ -3,16 +3,29 @@ import type { FastifyInstance } from 'fastify';
 
 import { prisma } from '@/db';
 import { createApiApp } from '@/server';
+import { seedBarn } from '@/test/setupWorld';
+
+const SIGNUP_MUTATION = `
+    mutation Signup($name: String!, $email: String!, $password: String!, $inviteCode: String!) {
+        signup(name: $name, email: $email, password: $password, inviteCode: $inviteCode) {
+            token
+            rider { id name email }
+        }
+    }
+`;
 
 describe('Mutation.signup', () => {
     let fastify: FastifyInstance;
-    let prevAllowedEmails: string | undefined;
+    let barnId: string;
+    let inviteCode: string;
     const createdRiderEmails: string[] = [];
     const TEST_TIMEOUT_MS = 20_000;
 
     beforeAll(async () => {
-        prevAllowedEmails = process.env.ALLOWED_EMAILS;
         fastify = await createApiApp();
+        const barn = await seedBarn('signup-test-barn');
+        barnId = barn.id;
+        inviteCode = barn.inviteCode;
     });
 
     afterAll(async () => {
@@ -21,42 +34,27 @@ describe('Mutation.signup', () => {
                 where: { email: { in: createdRiderEmails } },
             });
         }
-
-        if (prevAllowedEmails === undefined) {
-            delete process.env.ALLOWED_EMAILS;
-        } else {
-            process.env.ALLOWED_EMAILS = prevAllowedEmails;
-        }
-
+        await prisma.barn.delete({ where: { id: barnId } });
         await fastify.close();
         await prisma.$disconnect();
     });
 
     it(
-        'rejects signup when email is not in ALLOWED_EMAILS',
+        'rejects invalid invite code',
         async () => {
-            process.env.ALLOWED_EMAILS = 'allowed@example.com';
-            const blockedEmail = `blocked-${Date.now()}@example.com`;
+            const email = `bad-code-${Date.now()}@example.com`;
 
             const response = await fastify.inject({
                 method: 'POST',
                 url: '/graphql',
-                headers: {
-                    'content-type': 'application/json',
-                },
+                headers: { 'content-type': 'application/json' },
                 payload: {
-                    query: `
-                    mutation Signup($name: String!, $email: String!, $password: String!) {
-                        signup(name: $name, email: $email, password: $password) {
-                            token
-                            rider { id name email }
-                        }
-                    }
-                `,
+                    query: SIGNUP_MUTATION,
                     variables: {
-                        name: 'Blocked Rider',
-                        email: blockedEmail,
+                        name: 'Bad Code Rider',
+                        email,
                         password: 'somepassword',
+                        inviteCode: 'INVALID',
                     },
                 },
             });
@@ -71,13 +69,13 @@ describe('Mutation.signup', () => {
             };
 
             expect(body.data).toBeNull();
-            expect(body.errors?.[0]?.message).toBe('Email not allowed');
+            expect(body.errors?.[0]?.message).toBe('Invalid invite code');
             expect(body.errors?.[0]?.extensions?.code).toBe(
-                'EMAIL_NOT_ALLOWED'
+                'INVALID_INVITE_CODE'
             );
 
             const created = await prisma.rider.findUnique({
-                where: { email: blockedEmail },
+                where: { email },
             });
             expect(created).toBeNull();
         },
@@ -85,30 +83,21 @@ describe('Mutation.signup', () => {
     );
 
     it(
-        'allows signup when email is in ALLOWED_EMAILS',
+        'creates rider in correct barn',
         async () => {
-            const allowedEmail = `allowed-${Date.now()}@example.com`;
-            process.env.ALLOWED_EMAILS = allowedEmail;
+            const email = `valid-${Date.now()}@example.com`;
 
             const response = await fastify.inject({
                 method: 'POST',
                 url: '/graphql',
-                headers: {
-                    'content-type': 'application/json',
-                },
+                headers: { 'content-type': 'application/json' },
                 payload: {
-                    query: `
-                    mutation Signup($name: String!, $email: String!, $password: String!) {
-                        signup(name: $name, email: $email, password: $password) {
-                            token
-                            rider { id name email }
-                        }
-                    }
-                `,
+                    query: SIGNUP_MUTATION,
                     variables: {
-                        name: 'Allowed Rider',
-                        email: allowedEmail,
+                        name: 'Valid Rider',
+                        email,
                         password: 'somepassword',
+                        inviteCode,
                     },
                 },
             });
@@ -129,18 +118,53 @@ describe('Mutation.signup', () => {
 
             expect(body.errors).toBeUndefined();
             expect(body.data?.signup?.token).toBeTruthy();
-            expect(body.data?.signup?.rider).toBeDefined();
-            expect(body.data?.signup?.rider.email).toBe(allowedEmail);
-            expect(body.data?.signup?.rider.name).toBe('Allowed Rider');
+            expect(body.data?.signup?.rider.email).toBe(email);
+            expect(body.data?.signup?.rider.name).toBe('Valid Rider');
 
-            createdRiderEmails.push(allowedEmail);
+            createdRiderEmails.push(email);
 
             const created = await prisma.rider.findUnique({
-                where: { email: allowedEmail },
+                where: { email },
                 omit: { password: true },
             });
             expect(created).not.toBeNull();
-            expect(created?.email).toBe(allowedEmail);
+            expect(created?.barnId).toBe(barnId);
+        },
+        TEST_TIMEOUT_MS
+    );
+
+    it(
+        'rejects duplicate email',
+        async () => {
+            const email = createdRiderEmails[0]!;
+
+            const response = await fastify.inject({
+                method: 'POST',
+                url: '/graphql',
+                headers: { 'content-type': 'application/json' },
+                payload: {
+                    query: SIGNUP_MUTATION,
+                    variables: {
+                        name: 'Duplicate Rider',
+                        email,
+                        password: 'somepassword',
+                        inviteCode,
+                    },
+                },
+            });
+
+            expect(response.statusCode).toBe(200);
+            const body = JSON.parse(response.body) as {
+                data?: unknown;
+                errors?: Array<{
+                    message: string;
+                    extensions?: { code?: string };
+                }>;
+            };
+
+            expect(body.data).toBeNull();
+            expect(body.errors?.[0]?.message).toBe('Email already in use');
+            expect(body.errors?.[0]?.extensions?.code).toBe('EMAIL_IN_USE');
         },
         TEST_TIMEOUT_MS
     );
