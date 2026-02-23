@@ -25,6 +25,7 @@ export async function buildContext(
         loaders: createLoaders(),
     };
     if (!auth || !auth.startsWith('Bearer ')) {
+        await prisma.$executeRaw`SELECT set_config('app.current_barn_id', '', false)`;
         return context;
     }
 
@@ -38,10 +39,13 @@ export async function buildContext(
             omit: { password: true },
         });
         context.rider = rider;
+        const barnId = rider?.barnId ?? '';
+        await prisma.$executeRaw`SELECT set_config('app.current_barn_id', ${barnId}, false)`;
         return context;
     } catch (error) {
         // Avoid failing the whole request if auth is invalid.
         console.error('Error verifying token:', error);
+        await prisma.$executeRaw`SELECT set_config('app.current_barn_id', '', false)`;
         return context;
     }
 }

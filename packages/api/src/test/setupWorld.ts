@@ -33,6 +33,7 @@ export type AnonActor = {
 };
 
 export type World = {
+    barnId: string;
     userA: Actor;
     userB: Actor;
     asAnon: AnonActor;
@@ -181,6 +182,7 @@ export async function setupWorld(suiteId: string): Promise<World> {
     }
 
     return {
+        barnId: barn.id,
         userA,
         userB,
         asAnon,

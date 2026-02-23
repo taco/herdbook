@@ -9,7 +9,7 @@ const DATABASE_URL = 'postgresql://postgres:test@127.0.0.1:5433/herdbook_test';
 
 export function resetDatabase(): void {
     execSync(
-        `psql "${DATABASE_URL}" -c 'TRUNCATE TABLE "Session", "Horse", "Rider" CASCADE'`,
+        `psql "${DATABASE_URL}" -c 'TRUNCATE TABLE "Session", "Horse", "Rider", "Barn" CASCADE'`,
         { stdio: 'pipe' }
     );
     execSync('pnpm --filter api prisma:seed:e2e', {

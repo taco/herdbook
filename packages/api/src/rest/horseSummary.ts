@@ -31,8 +31,18 @@ export async function registerSummaryRoutes(
             if (!authHeader || !authHeader.startsWith('Bearer ')) {
                 return reply.status(401).send({ error: 'Unauthorized' });
             }
-            if (!verifyToken(authHeader)) {
+            const auth = verifyToken(authHeader);
+            if (!auth) {
                 return reply.status(401).send({ error: 'Invalid token' });
+            }
+
+            // Resolve rider to get barnId
+            const rider = await prisma.rider.findUnique({
+                where: { id: auth.riderId },
+                select: { barnId: true },
+            });
+            if (!rider) {
+                return reply.status(401).send({ error: 'Unauthorized' });
             }
 
             const body = request.body as { horseId?: string } | null;
@@ -41,9 +51,9 @@ export async function registerSummaryRoutes(
                 return reply.status(400).send({ error: 'horseId is required' });
             }
 
-            // Validate horse exists
-            const horse = await prisma.horse.findUnique({
-                where: { id: horseId },
+            // Validate horse exists and belongs to rider's barn
+            const horse = await prisma.horse.findFirst({
+                where: { id: horseId, barnId: rider.barnId },
                 select: {
                     id: true,
                     name: true,

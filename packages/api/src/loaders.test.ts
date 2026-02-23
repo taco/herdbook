@@ -167,8 +167,8 @@ describe('DataLoader batching', () => {
             q.toUpperCase().includes('"RIDER"')
         );
 
-        // Should have exactly 1 horse query and 1 rider query (batched)
-        expect(horseQueries.length).toBe(1);
+        // 1 horse query for DataLoader batch + 1 from sessions WHERE horse.barnId (barn scoping)
+        expect(horseQueries.length).toBeLessThanOrEqual(2);
         expect(riderQueries.length).toBeLessThanOrEqual(2); // 1 for batch, possibly 1 for auth context
 
         // Verify the horse query uses IN clause (batching)
