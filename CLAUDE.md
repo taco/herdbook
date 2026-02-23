@@ -123,6 +123,7 @@ Use these skills for common workflows. Invoke with `/skillname` or the Skill too
 | Update docs after changes          | `/updatedocs`     |
 | Implement a GitHub issue           | `/gh-issue`       |
 | Write a well-scoped GitHub issue   | `/write-issue`    |
+| Pre-PR independent code review     | `/pre-review`     |
 | Fixup-squash into previous commits | `/fixup`          |
 | Design conversation before coding  | `/design`         |
 
@@ -135,4 +136,5 @@ Use these skills for common workflows. Invoke with `/skillname` or the Skill too
 4. Build UI and connect → `/new-page`
 5. Write tests → `/test-api`, `/test-web`, `/e2e`
 6. Pre-commit check → `/preflight`
-7. Update docs → `/updatedocs`
+7. Pre-PR review → `/pre-review`
+8. Update docs → `/updatedocs`
