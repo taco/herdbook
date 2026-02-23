@@ -99,7 +99,40 @@ export const DELETE_SESSION = /* GraphQL */ `
     }
 `;
 
+export const UPDATE_BARN = /* GraphQL */ `
+    mutation UpdateBarn($name: String!) {
+        updateBarn(name: $name) {
+            id
+            name
+        }
+    }
+`;
+
+export const REGENERATE_INVITE_CODE = /* GraphQL */ `
+    mutation RegenerateInviteCode {
+        regenerateInviteCode {
+            id
+            inviteCode
+        }
+    }
+`;
+
 // ── Queries ──────────────────────────────────────────────────────────
+
+export const GET_BARN = /* GraphQL */ `
+    query Barn {
+        barn {
+            id
+            name
+            inviteCode
+            riders {
+                id
+                name
+            }
+            createdAt
+        }
+    }
+`;
 
 export const GET_HORSES = /* GraphQL */ `
     query Horses {
