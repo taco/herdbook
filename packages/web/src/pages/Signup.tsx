@@ -11,8 +11,18 @@ import { Button } from '@/components/ui/button';
 import { SignupMutation, SignupMutationVariables } from '@/generated/graphql';
 
 const SIGNUP_MUTATION = gql`
-    mutation Signup($name: String!, $email: String!, $password: String!) {
-        signup(name: $name, email: $email, password: $password) {
+    mutation Signup(
+        $name: String!
+        $email: String!
+        $password: String!
+        $inviteCode: String!
+    ) {
+        signup(
+            name: $name
+            email: $email
+            password: $password
+            inviteCode: $inviteCode
+        ) {
             token
             rider {
                 id
@@ -27,6 +37,7 @@ export default function Signup() {
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [inviteCode, setInviteCode] = useState('');
     const [formError, setFormError] = useState('');
     const [signupMutation] = useMutation<
         SignupMutation,
@@ -40,7 +51,7 @@ export default function Signup() {
 
         try {
             const result = await signupMutation({
-                variables: { name, email, password },
+                variables: { name, email, password, inviteCode },
             });
 
             if (result.data) {
@@ -88,6 +99,15 @@ export default function Signup() {
                                 type="password"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
+                            />
+                        </div>
+                        <div>
+                            <Label htmlFor="inviteCode">Invite Code</Label>
+                            <Input
+                                id="inviteCode"
+                                type="text"
+                                value={inviteCode}
+                                onChange={(e) => setInviteCode(e.target.value)}
                             />
                         </div>
                         <div>

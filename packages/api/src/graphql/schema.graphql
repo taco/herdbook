@@ -127,6 +127,6 @@ type Mutation {
     ): Session!
     deleteSession(id: ID!): Boolean!
     login(email: String!, password: String!): AuthPayload! @public
-    signup(name: String!, email: String!, password: String!): AuthPayload!
+    signup(name: String!, email: String!, password: String!, inviteCode: String!): AuthPayload!
         @public
 }

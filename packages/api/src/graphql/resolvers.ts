@@ -516,9 +516,24 @@ export const createResolvers = (app: FastifyInstance): Record<string, any> => {
                 'auth',
                 async (
                     _,
-                    args: { name: string; email: string; password: string },
+                    args: {
+                        name: string;
+                        email: string;
+                        password: string;
+                        inviteCode: string;
+                    },
                     context
                 ) => {
+                    const barn = await prisma.barn.findUnique({
+                        where: {
+                            inviteCode: args.inviteCode.trim().toUpperCase(),
+                        },
+                    });
+                    if (!barn) {
+                        throw new GraphQLError('Invalid invite code', {
+                            extensions: { code: 'INVALID_INVITE_CODE' },
+                        });
+                    }
                     const existingRider = await prisma.rider.findUnique({
                         where: { email: args.email },
                         omit: { password: true },
@@ -528,17 +543,6 @@ export const createResolvers = (app: FastifyInstance): Record<string, any> => {
                             extensions: { code: 'EMAIL_IN_USE' },
                         });
                     }
-                    if (
-                        !process.env.ALLOWED_EMAILS?.split(',').includes(
-                            args.email
-                        )
-                    ) {
-                        throw new GraphQLError('Email not allowed', {
-                            extensions: { code: 'EMAIL_NOT_ALLOWED' },
-                        });
-                    }
-                    // TODO(#86): assign to first barn until invite code signup flow
-                    const barn = await prisma.barn.findFirstOrThrow();
                     const hashedPassword = await bcrypt.hash(args.password, 10);
                     const rider = await prisma.rider.create({
                         data: {
