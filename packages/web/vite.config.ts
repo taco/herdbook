@@ -53,7 +53,11 @@ export default defineConfig({
             },
         }),
         sentryVitePlugin({
-            disable: !process.env.SENTRY_AUTH_TOKEN,
+            authToken:
+                process.env.SENTRY_AUTH_TOKEN || process.env.SENTRY_TOKEN,
+            disable: !(
+                process.env.SENTRY_AUTH_TOKEN || process.env.SENTRY_TOKEN
+            ),
             org: process.env.SENTRY_ORG,
             project: process.env.SENTRY_PROJECT,
             sourcemaps: {
