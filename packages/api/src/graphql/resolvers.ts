@@ -89,6 +89,15 @@ async function enforceRateLimit(
     }
 }
 
+function requireAuth(context: Context): string {
+    if (!context.rider) {
+        throw new GraphQLError('Not authenticated', {
+            extensions: { code: 'UNAUTHENTICATED' },
+        });
+    }
+    return context.rider.barnId;
+}
+
 function requireTrainer(context: Context): void {
     if (!context.rider || context.rider.role !== RiderRole.TRAINER) {
         throw new GraphQLError('Only trainers can perform this action', {
@@ -175,11 +184,18 @@ export const createResolvers = (app: FastifyInstance): Record<string, any> => {
         DateTime: DateTimeResolver,
 
         Query: {
-            horses: wrapResolver('read', async () => {
-                return prisma.horse.findMany({ where: { isActive: true } });
+            horses: wrapResolver('read', async (_, __, context) => {
+                const barnId = requireAuth(context);
+                return prisma.horse.findMany({
+                    where: { isActive: true, barnId },
+                });
             }),
-            riders: wrapResolver('read', async () => {
-                return prisma.rider.findMany({ omit: { password: true } });
+            riders: wrapResolver('read', async (_, __, context) => {
+                const barnId = requireAuth(context);
+                return prisma.rider.findMany({
+                    where: { barnId },
+                    omit: { password: true },
+                });
             }),
             sessions: wrapResolver(
                 'read',
@@ -193,9 +209,12 @@ export const createResolvers = (app: FastifyInstance): Record<string, any> => {
                         workType?: WorkType;
                         dateFrom?: Date;
                         dateTo?: Date;
-                    }
+                    },
+                    context
                 ) => {
+                    const barnId = requireAuth(context);
                     const where: Prisma.SessionWhereInput = {
+                        horse: { barnId },
                         horseId: args.horseId,
                         riderId: args.riderId,
                         workType: args.workType,
@@ -216,21 +235,37 @@ export const createResolvers = (app: FastifyInstance): Record<string, any> => {
                     });
                 }
             ),
-            horse: wrapResolver('read', async (_, args: { id: string }) => {
-                return prisma.horse.findUnique({ where: { id: args.id } });
-            }),
+            horse: wrapResolver(
+                'read',
+                async (_, args: { id: string }, context) => {
+                    const barnId = requireAuth(context);
+                    return prisma.horse.findFirst({
+                        where: { id: args.id, barnId },
+                    });
+                }
+            ),
             lastSessionForHorse: wrapResolver(
                 'read',
-                async (_, args: { horseId: string }) => {
+                async (_, args: { horseId: string }, context) => {
+                    const barnId = requireAuth(context);
                     return prisma.session.findFirst({
-                        where: { horseId: args.horseId },
+                        where: {
+                            horseId: args.horseId,
+                            horse: { barnId },
+                        },
                         orderBy: { date: 'desc' },
                     });
                 }
             ),
-            session: wrapResolver('read', async (_, args: { id: string }) => {
-                return prisma.session.findUnique({ where: { id: args.id } });
-            }),
+            session: wrapResolver(
+                'read',
+                async (_, args: { id: string }, context) => {
+                    const barnId = requireAuth(context);
+                    return prisma.session.findFirst({
+                        where: { id: args.id, horse: { barnId } },
+                    });
+                }
+            ),
         },
 
         Mutation: {
@@ -256,8 +291,9 @@ export const createResolvers = (app: FastifyInstance): Record<string, any> => {
                     context
                 ) => {
                     requireTrainer(context);
-                    const existing = await prisma.horse.findUnique({
-                        where: { id: args.id },
+                    const barnId = context.rider!.barnId;
+                    const existing = await prisma.horse.findFirst({
+                        where: { id: args.id, barnId },
                     });
                     if (!existing) {
                         throw new GraphQLError('Horse not found', {
@@ -310,6 +346,16 @@ export const createResolvers = (app: FastifyInstance): Record<string, any> => {
                             { extensions: { code: 'BAD_USER_INPUT' } }
                         );
                     }
+                    // Verify horse belongs to rider's barn
+                    const barnId = context.rider.barnId;
+                    const horse = await prisma.horse.findFirst({
+                        where: { id: args.horseId, barnId },
+                    });
+                    if (!horse) {
+                        throw new GraphQLError('Horse not found', {
+                            extensions: { code: 'NOT_FOUND' },
+                        });
+                    }
                     // Riders can only create sessions for themselves;
                     // trainers can specify any riderId
                     if (
@@ -321,6 +367,18 @@ export const createResolvers = (app: FastifyInstance): Record<string, any> => {
                             'You can only create sessions for yourself',
                             { extensions: { code: 'FORBIDDEN' } }
                         );
+                    }
+                    // Verify target rider is in same barn (when trainer assigns)
+                    if (args.riderId && args.riderId !== context.rider.id) {
+                        const targetRider = await prisma.rider.findFirst({
+                            where: { id: args.riderId, barnId },
+                            omit: { password: true },
+                        });
+                        if (!targetRider) {
+                            throw new GraphQLError('Rider not found', {
+                                extensions: { code: 'NOT_FOUND' },
+                            });
+                        }
                     }
                     const { riderId: _argRiderId, ...sessionData } = args;
                     const riderId =
@@ -364,8 +422,9 @@ export const createResolvers = (app: FastifyInstance): Record<string, any> => {
                             { extensions: { code: 'BAD_USER_INPUT' } }
                         );
                     }
-                    const existing = await prisma.session.findUnique({
-                        where: { id: args.id },
+                    const barnId = context.rider.barnId;
+                    const existing = await prisma.session.findFirst({
+                        where: { id: args.id, horse: { barnId } },
                     });
                     if (!existing) {
                         throw new GraphQLError('Session not found', {
@@ -383,6 +442,32 @@ export const createResolvers = (app: FastifyInstance): Record<string, any> => {
                             'Only trainers can reassign sessions',
                             { extensions: { code: 'FORBIDDEN' } }
                         );
+                    }
+                    // Verify new horse is in same barn
+                    if (args.horseId !== undefined) {
+                        const newHorse = await prisma.horse.findFirst({
+                            where: { id: args.horseId, barnId },
+                        });
+                        if (!newHorse) {
+                            throw new GraphQLError('Horse not found', {
+                                extensions: { code: 'NOT_FOUND' },
+                            });
+                        }
+                    }
+                    // Verify new rider is in same barn
+                    if (
+                        args.riderId !== undefined &&
+                        args.riderId !== existing.riderId
+                    ) {
+                        const newRider = await prisma.rider.findFirst({
+                            where: { id: args.riderId, barnId },
+                            omit: { password: true },
+                        });
+                        if (!newRider) {
+                            throw new GraphQLError('Rider not found', {
+                                extensions: { code: 'NOT_FOUND' },
+                            });
+                        }
                     }
                     const updateData: Prisma.SessionUpdateInput = {};
                     if (args.horseId !== undefined)
@@ -413,8 +498,9 @@ export const createResolvers = (app: FastifyInstance): Record<string, any> => {
                             extensions: { code: 'UNAUTHENTICATED' },
                         });
                     }
-                    const existing = await prisma.session.findUnique({
-                        where: { id: args.id },
+                    const barnId = context.rider.barnId;
+                    const existing = await prisma.session.findFirst({
+                        where: { id: args.id, horse: { barnId } },
                     });
                     if (!existing) {
                         throw new GraphQLError('Session not found', {

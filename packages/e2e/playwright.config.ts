@@ -44,11 +44,13 @@ export default defineConfig({
             name: 'regression-chrome',
             testDir: './tests/regression',
             use: { ...devices['Pixel 5'] },
+            dependencies: ['smoke-chrome'],
         },
         {
             name: 'regression-safari',
             testDir: './tests/regression',
             use: { ...devices['iPhone 12'] },
+            dependencies: ['smoke-chrome'],
         },
     ],
 

@@ -93,8 +93,7 @@ describe('read queries access', () => {
         expect(res.data!.horse!.id).toBe(world.horse.id);
     });
 
-    // TODO(#85): sessions query is unscoped — will be barn-scoped
-    it('sessions returns other riders data (unscoped query)', async () => {
+    it('sessions returns same-barn rider data (barn-scoped)', async () => {
         const res = await world.userB.gql<{
             sessions: Array<{ id: string }>;
         }>(GET_SESSIONS, { limit: 100 });

@@ -140,6 +140,18 @@ export const GET_HORSE = /* GraphQL */ `
     }
 `;
 
+export const GET_LAST_SESSION_FOR_HORSE = /* GraphQL */ `
+    query LastSessionForHorse($horseId: ID!) {
+        lastSessionForHorse(horseId: $horseId) {
+            id
+            date
+            durationMinutes
+            workType
+            notes
+        }
+    }
+`;
+
 export const GET_SESSION = /* GraphQL */ `
     query Session($id: ID!) {
         session(id: $id) {
