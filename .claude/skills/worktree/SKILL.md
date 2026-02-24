@@ -71,7 +71,7 @@ Display a brief summary (title + labels). Use the title and labels to derive nam
     - `refactor` → `refactor/`
     - No matching label → `feat/`
 - Branch: `<prefix><issue-number>-<slug>` (e.g. `fix/42-login-crash`, `chore/15-add-sentry`)
-- Path: `../herdbook-<slug>`
+- Path: `../herdbook-<issue-number>-<slug>` (e.g. `../herdbook-42-login-crash`)
 
 #### From a name (non-numeric argument)
 
@@ -87,7 +87,7 @@ If no recognized prefix, default to `feat/`:
 ### 3. Create worktree
 
 ```bash
-./worktree-setup.sh ../herdbook-<slug> feat/<issue-number>-<slug>
+./worktree-setup.sh ../herdbook-<issue-number>-<slug> feat/<issue-number>-<slug>
 ```
 
 The script symlinks env files, SSL certs, and Claude settings from the main worktree, then runs `pnpm install` and `prisma generate`.
@@ -95,7 +95,7 @@ The script symlinks env files, SSL certs, and Claude settings from the main work
 ### 4. Store tracking state
 
 ```bash
-WORKTREE=$(cd ../herdbook-<slug> && pwd)
+WORKTREE=$(cd ../herdbook-<issue-number>-<slug> && pwd)
 ```
 
 Write `.state` file. Include `ISSUE` only if an issue number was provided:
@@ -110,7 +110,7 @@ Print a message like:
 ```
 Worktree is ready. Here is the launch command:
 
-cd ../herdbook-<slug> && claude
+cd ../herdbook-<issue-number>-<slug> && claude
 ```
 
 **Stop here.** Do not continue with implementation. The user will launch a new Claude session in the worktree.
