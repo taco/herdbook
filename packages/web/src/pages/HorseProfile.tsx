@@ -64,7 +64,11 @@ export default function HorseProfile(): React.ReactNode {
     const { data, loading, refetch } = useQuery<
         GetHorseProfileQuery,
         GetHorseProfileQueryVariables
-    >(GET_HORSE_PROFILE, { variables: { id: id! } });
+    >(GET_HORSE_PROFILE, {
+        variables: { id: id! },
+        fetchPolicy: 'cache-and-network',
+        nextFetchPolicy: 'cache-first',
+    });
 
     if (loading && !data) {
         return (

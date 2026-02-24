@@ -40,9 +40,12 @@ export default function Dashboard(): React.ReactNode {
     const { data, loading, error } = useQuery<
         GetDashboardDataQuery,
         GetDashboardDataQueryVariables
-    >(DASHBOARD_QUERY);
+    >(DASHBOARD_QUERY, {
+        fetchPolicy: 'cache-and-network',
+        nextFetchPolicy: 'cache-first',
+    });
 
-    if (loading)
+    if (loading && !data)
         return <div className="p-4 text-center">Loading activity...</div>;
     if (error)
         return (
