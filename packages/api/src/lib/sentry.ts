@@ -75,11 +75,16 @@ export function initSentry(): void {
     const dsn = process.env.SENTRY_DSN;
     if (!dsn) return;
 
+    const tracesSampleRate = parseFloat(
+        process.env.SENTRY_TRACES_SAMPLE_RATE ?? '0'
+    );
+
     Sentry.init({
         dsn,
         sendDefaultPii: false,
         environment: process.env.NODE_ENV ?? 'development',
         beforeSend,
+        tracesSampleRate: isNaN(tracesSampleRate) ? 0 : tracesSampleRate,
     });
 }
 
