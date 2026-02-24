@@ -1,4 +1,11 @@
 import * as Sentry from '@sentry/react';
+import { useEffect } from 'react';
+import {
+    useLocation,
+    useNavigationType,
+    createRoutesFromChildren,
+    matchRoutes,
+} from 'react-router-dom';
 
 const SENSITIVE_KEY_PATTERN =
     /token|authorization|password|secret|credential|session/i;
@@ -49,15 +56,49 @@ export function beforeSend(event: Sentry.ErrorEvent): Sentry.ErrorEvent {
     return event;
 }
 
+/** Header name used to pass the GraphQL operation name to Sentry span enrichment. */
+export const GRAPHQL_OP_HEADER = 'x-graphql-operation-name';
+
+function buildTracePropagationTargets(): (string | RegExp)[] {
+    const targets: (string | RegExp)[] = [/^\/graphql/, /^\/api\//];
+    const apiUrl = import.meta.env.VITE_API_URL;
+    if (apiUrl) {
+        targets.push(apiUrl);
+    }
+    return targets;
+}
+
 export function initSentry(): void {
     const dsn = import.meta.env.VITE_SENTRY_DSN;
     if (!dsn) return;
+
+    const tracesSampleRate = parseFloat(
+        import.meta.env.VITE_SENTRY_TRACES_SAMPLE_RATE ?? '0'
+    );
 
     Sentry.init({
         dsn,
         sendDefaultPii: false,
         environment: import.meta.env.MODE,
         beforeSend,
+        integrations: [
+            Sentry.reactRouterV7BrowserTracingIntegration({
+                useEffect,
+                useLocation,
+                useNavigationType,
+                createRoutesFromChildren,
+                matchRoutes,
+                onRequestSpanStart(span, { headers }) {
+                    const opName = headers?.get?.(GRAPHQL_OP_HEADER);
+                    if (opName) {
+                        span.updateName(`POST /graphql (${opName})`);
+                        span.setAttribute('graphql.operation', opName);
+                    }
+                },
+            }),
+        ],
+        tracesSampleRate: isNaN(tracesSampleRate) ? 0 : tracesSampleRate,
+        tracePropagationTargets: buildTracePropagationTargets(),
     });
 }
 

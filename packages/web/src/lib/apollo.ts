@@ -3,18 +3,21 @@ import { SetContextLink } from '@apollo/client/link/context';
 import { ErrorLink } from '@apollo/client/link/error';
 import { CombinedGraphQLErrors } from '@apollo/client/errors';
 import { GRAPHQL_URL } from './api';
-import { captureGraphQLError } from './sentry';
+import { captureGraphQLError, GRAPHQL_OP_HEADER } from './sentry';
 
 const httpLink = new HttpLink({
     uri: GRAPHQL_URL,
 });
 
-const authLink = new SetContextLink(({ headers }, _) => {
+const authLink = new SetContextLink(({ headers }, request) => {
     const token = localStorage.getItem('token');
     return {
         headers: {
             ...headers,
             authorization: token ? `Bearer ${token}` : '',
+            ...(request.operationName && {
+                [GRAPHQL_OP_HEADER]: request.operationName,
+            }),
         },
     };
 });
