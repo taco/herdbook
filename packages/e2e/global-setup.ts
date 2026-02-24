@@ -2,6 +2,7 @@ import { execSync } from 'child_process';
 import net from 'net';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import { getTestPrisma, disconnectTestPrisma } from './tests/utils/db';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -31,13 +32,13 @@ function tcpReady(port: number, timeoutMs = 1000): Promise<boolean> {
     });
 }
 
-function testRiderExists(): boolean {
+async function testRiderExists(): Promise<boolean> {
     try {
-        const result = execSync(
-            `psql "${DATABASE_URL}" -tAc "SELECT 1 FROM \\"Rider\\" WHERE email = 'test@herdbook.test' LIMIT 1"`,
-            { stdio: 'pipe', encoding: 'utf-8' }
-        ).trim();
-        return result === '1';
+        const prisma = getTestPrisma();
+        const rider = await prisma.rider.findUnique({
+            where: { email: 'test@herdbook.test' },
+        });
+        return rider !== null;
     } catch {
         return false;
     }
@@ -74,7 +75,8 @@ async function globalSetup(): Promise<void> {
 
         // If Postgres is already up and seeded (e.g. via e2e-dev.mjs), skip setup
         const pgUp = await tcpReady(5433);
-        if (pgUp && testRiderExists()) {
+        if (pgUp && (await testRiderExists())) {
+            await disconnectTestPrisma();
             console.log('E2E infra already running, skipping setup');
             return;
         }
