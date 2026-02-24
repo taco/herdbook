@@ -143,6 +143,8 @@ export default function Sessions(): React.ReactNode {
                 offset: 0,
                 ...filters.queryVariables,
             },
+            fetchPolicy: 'cache-and-network',
+            nextFetchPolicy: 'cache-first',
         }
     );
 
@@ -211,7 +213,7 @@ export default function Sessions(): React.ReactNode {
                 />
             </div>
 
-            {loading ? (
+            {loading && !data ? (
                 <div className="space-y-3">
                     <SessionSkeleton />
                     <SessionSkeleton />
