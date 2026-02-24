@@ -225,6 +225,41 @@ export enum WorkType {
     Trail = 'TRAIL',
 }
 
+export type GetBarnQueryVariables = Exact<{ [key: string]: never }>;
+
+export type GetBarnQuery = {
+    __typename?: 'Query';
+    barn: {
+        __typename?: 'Barn';
+        id: string;
+        name: string;
+        inviteCode: string | null;
+        riders: Array<{ __typename?: 'Rider'; id: string }>;
+    };
+};
+
+export type UpdateBarnMutationVariables = Exact<{
+    name: Scalars['String']['input'];
+}>;
+
+export type UpdateBarnMutation = {
+    __typename?: 'Mutation';
+    updateBarn: { __typename?: 'Barn'; id: string; name: string };
+};
+
+export type RegenerateInviteCodeMutationVariables = Exact<{
+    [key: string]: never;
+}>;
+
+export type RegenerateInviteCodeMutation = {
+    __typename?: 'Mutation';
+    regenerateInviteCode: {
+        __typename?: 'Barn';
+        id: string;
+        inviteCode: string | null;
+    };
+};
+
 export type GetDashboardDataQueryVariables = Exact<{ [key: string]: never }>;
 
 export type GetDashboardDataQuery = {
