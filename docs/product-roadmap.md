@@ -6,7 +6,7 @@ _February 2026_
 
 1. **Real users first** — Deploy early, get feedback from actual riders. Polish follows validation.
 2. **Define work when it's next** — Future features stay loose. Detail comes with context.
-3. **Production thinking at small scale** — Architecture that could scale, but built for 4 riders and 3 horses.
+3. **Production thinking at small scale** — Architecture that could scale, but built for one barn.
 4. **AI as training companion** — Not a bolt-on demo. AI earns its place by helping riders train better.
 
 ---
@@ -18,24 +18,26 @@ The core loop works: **Record session (voice or manual) -> Track per horse -> Vi
 | Feature                                                  | Status   |
 | -------------------------------------------------------- | -------- |
 | Auth (login/signup, JWT, rate limiting, email allowlist) | Complete |
+| Barn multi-tenancy (barn model, invite codes, roles)     | Complete |
 | Horse CRUD (create, edit, soft-delete)                   | Complete |
 | Session CRUD (create, edit, delete)                      | Complete |
 | Manual session entry with form persistence               | Complete |
 | Voice session capture (Whisper + GPT-5.2)                | Complete |
 | Field-level voice-to-text (notes)                        | Complete |
 | Dashboard with recent activity feed                      | Complete |
-| 12-week activity heatmaps per horse                      | Complete |
+| Horse profile with 12-week heatmap and session history   | Complete |
+| Session filtering (horse, work type, date range)         | Complete |
 | Session detail with view/edit cascade                    | Complete |
 | Mobile navigation (bottom tab bar, view transitions)     | Complete |
 | Previous session context on new entry                    | Complete |
-| Rider list (read-only)                                   | Complete |
 | Security hardening (rate limiting, CORS, JWT expiry)     | Complete |
-| E2E tests (auth, nav, horses, sessions)                  | Complete |
-| Deployed to production (Railway + Neon)                  | Complete |
 | N+1 resolution (DataLoader pattern)                      | Complete |
 | AI horse training summaries (GPT-5-mini)                 | Complete |
 | Versioned prompt registry                                | Complete |
 | Unified AI rate limiting (GraphQL + REST)                | Complete |
+| Error telemetry (Sentry, API + web)                      | Complete |
+| E2E tests (auth, nav, horses, sessions)                  | Complete |
+| Deployed to production (Railway + Neon)                  | Complete |
 
 ### Differentiator
 
@@ -47,64 +49,62 @@ Voice-to-text session parsing is the standout feature. It solves a real problem:
 
 **"I logged sessions... now what?"**
 
-Riders can't answer basic questions:
+Riders can't answer:
 
-- "How many times did I ride Luna this month?"
-- "What did we work on last Tuesday?"
+- "What did we work on last time? What did Sarah work on with this horse?"
+- "How is shoulder-in progressing — is it getting easier?"
 - "Am I riding consistently enough?"
-- "What should I work on next ride?"
+- "What should I focus on next ride?"
 
-Data goes in but can't be meaningfully retrieved or acted on. The app is at the **retention cliff** — functional for logging, but no reason to come back and review.
+Data goes in but can't be meaningfully retrieved or acted on. The core problem is twofold: the data isn't visible enough (no stats, no trends), and the data isn't structured enough (free-text notes contain rich training detail that's locked in prose).
 
 ---
 
 ## What's Next
 
-The next work follows a single arc: **make logged data visible, then meaningful, then actionable.** Each layer makes the next one more valuable. AI features weave into data visibility work rather than living as a separate phase.
+The next work follows a single arc: **make logged data visible, then structured, then actionable.** The enrichment pipeline is the validated foundation that connects all three layers.
 
 ### Layer 1: Make the data visible
 
-Horse profiles, session filtering, calendar view. Riders need to browse and find their data. This is the foundation everything else builds on.
+Quick wins that give riders a reason to come back and review. No schema changes needed.
 
-- **Horse profile page redesign** — At-a-glance chips, intensity/rating fields, 14-day chart, work type mix. See [design-horse-profile-redesign.md](design-horse-profile-redesign.md).
-- **Session filtering** — Filter by horse, date range, work type. Dashboard becomes write-only at 50+ sessions without this.
-- **Calendar view** — Equestrians think in weeks. Show which days had sessions, for which horses. Helps riders see gaps and plan.
-- **Data ownership** — Any rider can currently edit any session. Fix before more users are active.
+- **Horse profile improvements** — At-a-glance chips, 14-day chart, training frequency stats. See [design-horse-profile-redesign.md](design-horse-profile-redesign.md).
+- **Session rating in activity cards** — Surface the rating field in the feed so riders can scan quality at a glance.
+- **Calendar view** — Equestrians think in weeks. Show which days had sessions, for which horses.
 
-No schema changes needed. New queries and frontend pages.
+### Layer 2: Make the data structured — the enrichment pipeline
 
-### Layer 2: Make the data meaningful
+This is the foundation. Free-text session notes contain rich training detail — movements worked, quality signals, physical observations, progression — but it's locked in prose. The enrichment pipeline extracts structured metadata from notes at save time, making that data queryable and actionable.
 
-Stats, trends, and AI summaries. The app starts telling riders something they didn't already know.
+**Validated.** Ran the extraction prompt against all 20 production sessions. Results: 21 unique canonical movement names, accurate physical observation capture, reliable progression signal detection, graceful degradation on thin notes. Cost: ~$0.002/session on gpt-4o-mini.
 
-- **Training stats** — Sessions per week trend, hours this month vs last, work type distribution, streak tracking.
-- **~~AI session summaries~~** — Shipped. Horse profile shows AI-generated training summaries with workload signals, focus areas, and narrative insight.
-- **Pagination** — API supports it, UI only shows last 20. Add infinite scroll or load-more.
+The pipeline enables:
+
+- **Handoff context** — "Luna lately: Sarah rode her Saturday, focused on canter transitions. She was stiff tracking right." This is the north star feature: when a rider selects a horse, they see a synthesized view of recent activity from all riders. Not just a session list — a concise summary of what's been happening.
+- **Movement progression view** — For a given horse, show the quality arc of a specific skill over time, in the rider's own words. "Shoulder-in: struggled → needed work → coming easily in warmup."
+- **Horse workload & variety view** — Work type distribution, rider distribution, gap detection. Richer than heatmaps because it draws on enriched metadata.
+
+Schema change: `aiMetadata` JSONB column on Session, with `confirmed` boolean and optional `confirmedAt` timestamp.
 
 ### Layer 3: Make the data actionable — AI as training guide
 
-This is where Herdbook becomes a training companion. AI features progress naturally:
+This is where Herdbook becomes a training companion. Each feature builds on the enrichment data.
 
-**Next-ride suggestions** — _"It's been 5 days since Luna's last jump school. Based on your recent sessions, consider working on her right-lead canter before your next jumping day."_ Shows up when starting a new session or on the horse profile. Needs session history + equestrian training knowledge the LLM already has.
-
-**Training program structure** — _"For Luna, I'd suggest 4 rides per week: 2 flatwork focusing on suppleness, 1 jumping, 1 trail or light hack for mental break."_ The AI moves from reactive to proactive, incorporating training principles like periodization, variety, and recovery.
-
-**Goal-oriented planning** — _"You want to take Beau to the May 15th show, jumpers division. That's 4 weeks out. He hasn't done a full course at 3' in three weeks. Here's a plan that builds back to competition readiness..."_ Requires a new `goals` concept in the data model (horse, target date, description, discipline/level). AI works backward from the goal and accounts for current training state.
-
-**Progress tracking** — After each logged session, compare actual vs plan. _"You're behind on jumping this week"_ or _"On track — good flatwork session today."_ Hooks into session creation flow.
+- **Pre-ride briefing** — When starting a session, show handoff context plus the rider's own history. Present the AI extraction for confirmation ("Sounds like you worked on X — right?"). One tap to confirm, raising data confidence for downstream features.
+- **Consolidation nudges** — "Shoulder-in has been coming easily for the last three weeks. Thinking about what to introduce next?" Question-based, not prescriptive.
+- **Adaptive weekly check-in** — Periodic reflection prompt that adapts to engagement level. Active riders get light summaries. Quiet riders get catch-up context.
+- **Next-ride suggestions** — Synthesizes movement lifecycle, recent history, and workload balance into a grounded suggestion. The capstone feature — only viable after trust in the data layer is established.
 
 ### Later: Quality of life & growth
 
-Driven by real user friction, not pre-planned. Some possibilities:
+Driven by real user friction, not pre-planned.
 
-| Feature                            | Trigger                                  |
-| ---------------------------------- | ---------------------------------------- |
-| Google SSO                         | If password login becomes annoying       |
-| Rider invitations                  | If adding barn members is needed         |
-| Media attachments                  | If riders want photos/videos per session |
-| Data export (CSV)                  | If users ask for it                      |
-| Error telemetry (Sentry)           | If production debugging becomes painful  |
-| Observability (structured logging) | Before scaling beyond current users      |
+| Feature           | Trigger                            |
+| ----------------- | ---------------------------------- |
+| Google SSO        | If password login becomes annoying |
+| Rider invitations | If adding barn members is needed   |
+| Media attachments | If riders want photos/videos       |
+| Data export (CSV) | If users ask for it                |
 
 ---
 
@@ -113,31 +113,32 @@ Driven by real user friction, not pre-planned. Some possibilities:
 - **Desktop support** — Mobile-at-the-barn is the right context
 - **Offline mode** — Hard to build, most barns have cell service
 - **Multi-agent orchestration** — Engineering showcase without product value at this scale
-- **Agent infrastructure as a standalone milestone** — Build infra when a specific feature needs it, not ahead of time
+- **Agent infrastructure as a standalone milestone** — Build infra when a specific feature needs it
 
 ---
 
 ## Data Model Outlook
 
-| Layer                     | Schema changes                                                   |
-| ------------------------- | ---------------------------------------------------------------- |
-| 1 (data visibility)       | None — existing queries with new filters                         |
-| 2 (stats + summaries)     | `summaryContent`, `summaryGeneratedAt` on Horse                  |
-| 3 (suggestions, programs) | Possibly `training_plans` table to persist generated plans       |
-| 3 (goal planning)         | `goals` table: horse, target date, description, discipline/level |
-| 3 (progress tracking)     | Links between goals, plans, and sessions                         |
+| Layer                 | Schema changes                                                   |
+| --------------------- | ---------------------------------------------------------------- |
+| 1 (data visibility)   | None — new queries and frontend                                  |
+| 2 (enrichment)        | `aiMetadata` JSONB on Session, `confirmed`, `confirmedAt`        |
+| 2 (summaries)         | `summaryContent`, `summaryGeneratedAt` on Horse (shipped)        |
+| 3 (goal planning)     | `goals` table: horse, target date, description, discipline/level |
+| 3 (progress tracking) | Links between goals, plans, and sessions                         |
 
 ---
 
 ## Resolved Questions
 
-1. **Multi-tenancy**: Single barn, no tenant isolation. All authenticated riders see all data (shared context is the point).
-2. **Public signup**: Disabled. Accounts are seeded. Revisit if adding Google SSO with whitelist.
+1. **Multi-tenancy**: Barn model with invite codes and trainer/rider roles. Data scoped to barn.
+2. **Public signup**: Disabled. Invite code required. Revisit if adding Google SSO.
 3. **JWT expiry**: 30 days. No refresh token needed at this scale.
-4. **AI approach**: Product-first, not engineering-showcase. Build the simplest thing that works at each step. Upgrade to structured tool use / agent patterns only when prompts get too complex for a single call.
+4. **AI approach**: Product-first. Build the simplest thing that works at each step.
+5. **Enrichment pipeline viability**: Validated against real data. Prompt-level normalization produces queryable movement names without a vocabulary table.
 
 ## Open Questions
 
-1. **AI cost management** — Probably irrelevant for 4 users, but worth monitoring once summaries and suggestions are live.
-2. **Plan persistence** — Should generated training plans be stored and versioned, or regenerated on demand?
+1. **AI cost management** — Probably irrelevant for one barn, but worth monitoring once enrichment and suggestions are live.
+2. **Extraction confirmation rate** — Will riders confirm AI extractions? At what rate do coaching features become viable with unconfirmed data?
 3. **Goal UX** — Standalone goal entry form, or conversational ("tell the AI what you're training for")?
