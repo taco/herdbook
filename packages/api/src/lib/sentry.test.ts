@@ -1,10 +1,15 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import type { ErrorEvent, Breadcrumb } from '@sentry/node';
 import {
     beforeSend,
     redactSensitiveValues,
     EXPECTED_ERROR_CODES,
 } from './sentry';
+
+vi.mock('@sentry/node', async (importOriginal) => {
+    const actual = await importOriginal<typeof import('@sentry/node')>();
+    return { ...actual, init: vi.fn(), setUser: vi.fn() };
+});
 
 function makeEvent(overrides: Partial<ErrorEvent> = {}): ErrorEvent {
     return { ...overrides } as ErrorEvent;
@@ -191,6 +196,61 @@ describe('beforeSend', () => {
 describe('redactSensitiveValues', () => {
     it('returns undefined for undefined input', () => {
         expect(redactSensitiveValues(undefined)).toBeUndefined();
+    });
+});
+
+describe('initSentry', () => {
+    const originalEnv = process.env;
+    let sentryInit: ReturnType<typeof vi.fn>;
+    let initSentry: () => void;
+
+    beforeEach(async () => {
+        process.env = { ...originalEnv };
+        const Sentry = await import('@sentry/node');
+        sentryInit = Sentry.init as ReturnType<typeof vi.fn>;
+        sentryInit.mockClear();
+        const sentry = await import('./sentry');
+        initSentry = sentry.initSentry;
+    });
+
+    afterEach(() => {
+        process.env = originalEnv;
+    });
+
+    it('does not call Sentry.init when SENTRY_DSN is unset', () => {
+        delete process.env.SENTRY_DSN;
+        initSentry();
+        expect(sentryInit).not.toHaveBeenCalled();
+    });
+
+    it('passes parsed SENTRY_TRACES_SAMPLE_RATE to Sentry.init', () => {
+        process.env.SENTRY_DSN =
+            'https://examplePublicKey@o0.ingest.sentry.io/0';
+        process.env.SENTRY_TRACES_SAMPLE_RATE = '0.25';
+        initSentry();
+        expect(sentryInit).toHaveBeenCalledWith(
+            expect.objectContaining({ tracesSampleRate: 0.25 })
+        );
+    });
+
+    it('defaults tracesSampleRate to 0 when env var is unset', () => {
+        process.env.SENTRY_DSN =
+            'https://examplePublicKey@o0.ingest.sentry.io/0';
+        delete process.env.SENTRY_TRACES_SAMPLE_RATE;
+        initSentry();
+        expect(sentryInit).toHaveBeenCalledWith(
+            expect.objectContaining({ tracesSampleRate: 0 })
+        );
+    });
+
+    it('falls back to 0 when env var is not a number', () => {
+        process.env.SENTRY_DSN =
+            'https://examplePublicKey@o0.ingest.sentry.io/0';
+        process.env.SENTRY_TRACES_SAMPLE_RATE = 'notanumber';
+        initSentry();
+        expect(sentryInit).toHaveBeenCalledWith(
+            expect.objectContaining({ tracesSampleRate: 0 })
+        );
     });
 });
 
