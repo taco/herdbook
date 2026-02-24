@@ -114,9 +114,21 @@ importers:
       '@playwright/test':
         specifier: ^1.57.0
         version: 1.57.0
+      '@prisma/adapter-pg':
+        specifier: ^7.1.0
+        version: 7.1.0
+      '@prisma/client':
+        specifier: ^7.1.0
+        version: 7.1.0(prisma@7.1.0(@types/react@19.2.7)(react-dom@19.2.1(react@19.2.1))(react@19.2.1)(typescript@5.9.3))(typescript@5.9.3)
       '@types/node':
         specifier: ^24.10.2
         version: 24.10.2
+      '@types/pg':
+        specifier: ^8.15.6
+        version: 8.15.6
+      pg:
+        specifier: ^8.16.3
+        version: 8.16.3
       typescript:
         specifier: ^5.9.3
         version: 5.9.3

@@ -7,8 +7,8 @@ import {
 } from '@/seedConstants';
 import { resetDatabase } from '../utils/resetDatabase';
 
-test.beforeAll(() => {
-    resetDatabase();
+test.beforeAll(async () => {
+    await resetDatabase();
 });
 
 /** Helper: open the field edit drawer, select an option, and wait for it to close */

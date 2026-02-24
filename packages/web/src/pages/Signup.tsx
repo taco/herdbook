@@ -79,6 +79,7 @@ export default function Signup() {
                             <Input
                                 id="name"
                                 type="text"
+                                required
                                 value={name}
                                 onChange={(e) => setName(e.target.value)}
                             />
@@ -88,6 +89,7 @@ export default function Signup() {
                             <Input
                                 id="email"
                                 type="email"
+                                required
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                             />
@@ -97,6 +99,7 @@ export default function Signup() {
                             <Input
                                 id="password"
                                 type="password"
+                                required
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                             />
@@ -106,6 +109,7 @@ export default function Signup() {
                             <Input
                                 id="inviteCode"
                                 type="text"
+                                required
                                 value={inviteCode}
                                 onChange={(e) => setInviteCode(e.target.value)}
                             />
