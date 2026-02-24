@@ -31,23 +31,17 @@ echo ""
 echo "Symlinking env files..."
 for envfile in "$MAIN_WORKTREE"/.env.*; do
   basename="$(basename "$envfile")"
-  [ "$basename" = ".env.example" ] && continue
   ln -sf "$envfile" "$WORKTREE_ROOT/$basename"
   echo "  $basename"
 done
 
-if [ -f "$MAIN_WORKTREE/.env.local" ]; then
-  ln -sf "$MAIN_WORKTREE/.env.local" "$WORKTREE_ROOT/.env.local"
-  echo "  .env.local"
-fi
-
-if [ -f "$MAIN_WORKTREE/packages/web/.env.local" ]; then
-  ln -sf "$MAIN_WORKTREE/packages/web/.env.local" "$WORKTREE_ROOT/packages/web/.env.local"
-  echo "  packages/web/.env.local"
+if [ -f "$MAIN_WORKTREE/packages/web/.env" ]; then
+  ln -sf "$MAIN_WORKTREE/packages/web/.env" "$WORKTREE_ROOT/packages/web/.env"
+  echo "  packages/web/.env"
 fi
 
 # packages/api/.env (match main worktree's symlink target)
-API_ENV_TARGET="$(readlink "$MAIN_WORKTREE/packages/api/.env" 2>/dev/null || echo "../../.env.local")"
+API_ENV_TARGET="$(readlink "$MAIN_WORKTREE/packages/api/.env" 2>/dev/null || echo "../../.env.api.local")"
 ln -sf "$API_ENV_TARGET" "$WORKTREE_ROOT/packages/api/.env"
 echo "  packages/api/.env -> $API_ENV_TARGET"
 

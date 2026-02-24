@@ -5,9 +5,9 @@
  *
  * 1. Check neonctl is installed
  * 2. Reset (or create) the dev branch from production
- * 3. Get connection string and update .env.neon-dev
+ * 3. Get connection string and update .env.api.neon-dev
  * 4. Apply pending Prisma migrations to handle schema drift
- * 5. Switch the API env symlink to .env.neon-dev
+ * 5. Switch the API env symlink to .env.api.neon-dev
  */
 
 import { execSync } from 'node:child_process';
@@ -95,8 +95,8 @@ try {
     );
 
     // 4. Update .env.neon-dev (before migrations so it's available for manual debugging)
-    const envPath = resolve(ROOT, '.env.neon-dev');
-    const prodEnvPath = resolve(ROOT, '.env.neon-prod');
+    const envPath = resolve(ROOT, '.env.api.neon-dev');
+    const prodEnvPath = resolve(ROOT, '.env.api.neon-prod');
 
     if (existsSync(envPath)) {
         let content = readFileSync(envPath, 'utf-8');
@@ -105,7 +105,7 @@ try {
             `DATABASE_URL="${connectionString}"`
         );
         writeFileSync(envPath, content);
-        log('Updated DATABASE_URL in .env.neon-dev');
+        log('Updated DATABASE_URL in .env.api.neon-dev');
     } else if (existsSync(prodEnvPath)) {
         let content = readFileSync(prodEnvPath, 'utf-8');
         content = content.replace(
@@ -113,10 +113,10 @@ try {
             `DATABASE_URL="${connectionString}"`
         );
         writeFileSync(envPath, content);
-        log('Created .env.neon-dev from .env.neon-prod template');
+        log('Created .env.api.neon-dev from .env.api.neon-prod template');
     } else {
         writeFileSync(envPath, `DATABASE_URL="${connectionString}"\n`);
-        log('Created .env.neon-dev (no .env.neon-prod template found)');
+        log('Created .env.api.neon-dev (no .env.api.neon-prod template found)');
     }
 
     // 5. Apply pending migrations
@@ -128,19 +128,19 @@ try {
         });
     } catch {
         error('Migration failed. You may need to fix the migration manually.');
-        error('Connection string is saved in .env.neon-dev');
+        error('Connection string is saved in .env.api.neon-dev');
         process.exit(1);
     }
 
     // 6. Switch env symlink
-    run('ln -sf ../../.env.neon-dev packages/api/.env', { cwd: ROOT });
+    run('ln -sf ../../.env.api.neon-dev packages/api/.env', { cwd: ROOT });
 
     // 7. Summary
     console.log('');
     success('Dev branch is ready with fresh production data!');
     console.log(`${DIM}  Branch:     ${BRANCH_NAME}`);
     console.log(`  Parent:     ${PARENT_BRANCH}`);
-    console.log(`  Env file:   .env.neon-dev`);
+    console.log(`  Env file:   .env.api.neon-dev`);
     console.log(`  Next step:  pnpm run dev${RESET}`);
     console.log('');
 } catch (err) {

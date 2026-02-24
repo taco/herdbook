@@ -71,7 +71,7 @@ herdbook/
 **Prerequisites**: Node.js (see `.node-version`), pnpm 10.4+, PostgreSQL
 
 ```bash
-cp .env.example .env.local    # Add your DATABASE_URL, JWT_SECRET
+cp packages/api/.env.example .env.api.local  # Add your DATABASE_URL, JWT_SECRET
 pnpm env:local                # Point API at local database
 pnpm run init                 # Install deps + generate Prisma client
 pnpm --filter api run prisma:migrate  # Run migrations
@@ -90,7 +90,7 @@ E2E tests are split into **smoke** (fast, PR-blocking) and **regression** (full 
 
 ## Environment Management
 
-Environment config lives at the repo root as `.env.*` files (gitignored), symlinked into `packages/api/.env`:
+Environment config lives at the repo root as `.env.api.*` files (gitignored), symlinked into `packages/api/.env`:
 
 ```bash
 pnpm env:local      # Local PostgreSQL (default)

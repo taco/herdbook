@@ -5,7 +5,7 @@
  *
  * 1. Check if dev branch exists (exit cleanly if not)
  * 2. Delete the branch
- * 3. Switch the API env symlink back to .env.local
+ * 3. Switch the API env symlink back to .env.api.local
  */
 
 import { execSync } from 'node:child_process';
@@ -70,12 +70,12 @@ try {
     });
 
     // 3. Switch env to local
-    run('ln -sf ../../.env.local packages/api/.env', { cwd: ROOT });
+    run('ln -sf ../../.env.api.local packages/api/.env', { cwd: ROOT });
 
     // 4. Confirmation
     console.log('');
     success(`Branch "${BRANCH_NAME}" deleted.`);
-    console.log(`${DIM}  Env switched to: .env.local`);
+    console.log(`${DIM}  Env switched to: .env.api.local`);
     console.log(`  Next step:       pnpm run dev${RESET}`);
     console.log('');
 } catch (err) {
