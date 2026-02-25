@@ -47,6 +47,13 @@ Example:
 - **Web**: React/Vite, Tailwind CSS (mobile-only)
 - **Testing**: Vitest, React Testing Library
 
+## Cleanup Principle
+
+Leave the codebase slightly better than you found it. When a change reveals nearby issues — stale mocks, dead code, misleading names, missing cache invalidation — fix them in the same PR rather than deferring. The context cost of "fix it later" (tracking issues, reloading mental state) almost always exceeds the cost of doing it now.
+
+**Belongs in the PR:** cleanup in the same domain as your change — the files you're touching, plus closely related code in the same feature area (e.g., auth flow, data model, shared types).
+**Separate PR:** unrelated refactors in files you happened to read.
+
 ## Code Style
 
 - No `any` types in TypeScript
