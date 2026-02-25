@@ -599,7 +599,7 @@ export const createResolvers = (app: FastifyInstance): Record<string, any> => {
                     );
                     const { password: _password, ...safeRider } = rider;
                     context.rider = safeRider;
-                    return { token, rider: safeRider };
+                    return { token };
                 }
             ),
             login: wrapResolver(
@@ -637,7 +637,7 @@ export const createResolvers = (app: FastifyInstance): Record<string, any> => {
                     );
                     const { password: _password, ...safeRider } = rider;
                     context.rider = safeRider;
-                    return { token, rider: safeRider };
+                    return { token };
                 }
             ),
         },
