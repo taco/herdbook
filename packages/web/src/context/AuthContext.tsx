@@ -80,6 +80,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setRiderId(null);
         setRiderName(null);
         setRiderRole(null);
+        client.clearStore();
     };
 
     return (

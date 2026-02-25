@@ -24,11 +24,6 @@ const SIGNUP_MUTATION = gql`
             inviteCode: $inviteCode
         ) {
             token
-            rider {
-                id
-                name
-                role
-            }
         }
     }
 `;
