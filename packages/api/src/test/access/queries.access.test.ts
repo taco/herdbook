@@ -2,6 +2,7 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import type { World } from '@/test/setupWorld';
 import { setupWorld } from '@/test/setupWorld';
 import {
+    GET_ME,
     GET_HORSES,
     GET_RIDERS,
     GET_SESSIONS,
@@ -21,6 +22,12 @@ describe('read queries access', () => {
     });
 
     // ── Unauthenticated ──────────────────────────────────────────────
+
+    it('me rejects unauthenticated requests', async () => {
+        const res = await world.asAnon.gql(GET_ME);
+        expect(res.errors).toBeDefined();
+        expect(res.errors![0].extensions?.code).toBe('UNAUTHENTICATED');
+    });
 
     it('horses rejects unauthenticated requests', async () => {
         const res = await world.asAnon.gql(GET_HORSES);
@@ -55,6 +62,16 @@ describe('read queries access', () => {
     });
 
     // ── Authenticated ────────────────────────────────────────────────
+
+    it('me returns own identity for authenticated user', async () => {
+        const res = await world.userA.gql<{
+            me: { id: string; name: string; role: string };
+        }>(GET_ME);
+
+        expect(res.errors).toBeUndefined();
+        expect(res.data!.me.id).toBe(world.userA.riderId);
+        expect(res.data!.me.name).toBeTruthy();
+    });
 
     it('horses returns data for authenticated user', async () => {
         const res = await world.userA.gql<{
