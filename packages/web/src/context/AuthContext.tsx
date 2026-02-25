@@ -84,6 +84,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }, [token, syncIdentity]);
 
     const login = (token: string): void => {
+        setIsHydrated(false);
         setToken(token);
         localStorage.setItem('token', token);
     };
