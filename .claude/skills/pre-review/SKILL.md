@@ -97,7 +97,8 @@ a. **Bug scanner** — Read the diff line by line. Look for:
 - **Web-specific**: Apollo cache — mutations must `cache.evict()` the right fields; schema changes can silently break existing evictions
 - **Web-specific**: Loading states — new pages with queries must handle `loading && !data` (first load) vs refetch
 - **Web-specific**: Error display — user-facing errors should be specific, not generic "Error loading data"
-- Focus on new/changed code only. Ignore pre-existing issues.
+- **Domain cleanup**: Flag dead code, stale mocks, misleading names, or missing cache invalidation in the same domain as the PR's changes — not just touched files, but closely related code in the same feature area. These belong in the same PR per the cleanup principle.
+- Focus on new/changed code and its related domain. Ignore pre-existing issues in unrelated files.
 
 b. **Security reviewer** — Check for:
 
@@ -160,37 +161,44 @@ Each scoring agent receives the issue description, the relevant diff section, an
 
 ### 5. Filter and report
 
-**Filter out** issues scoring below 80.
+**Drop** issues scoring 10 or below (false positives).
 
-**False positive examples** (do not flag these):
+**Report all issues scoring > 10** in a single table, sorted by score descending. This includes both blocking issues and cleanup opportunities — the score communicates severity.
 
-- Pre-existing issues on unchanged lines
+**False positive examples** (score 0, drop entirely):
+
+- Pre-existing issues in untouched files
 - Formatting, style, and type hygiene (CI and linters handle that)
 - Trivial nitpicks
 - Suggestions that add complexity without clear value
 - General code quality opinions not backed by CLAUDE.md
 - Changes in behavior that are clearly intentional
 
+**Cleanup items** (typically score 50–79):
+
+Issues that are cleanup opportunities in the same domain as the change (dead code, stale mocks, missing cache clears, misleading names) should be included in the table. Domain means the feature area being changed, not just the files touched. These are not blockers but should be addressed in the same PR per the cleanup principle.
+
 #### Output format
 
-If issues found (score >= 80):
+Always use a table with descending score, regardless of whether blocking issues exist:
 
 ```
 ## Pre-PR Review
 
-Found N issues:
-
-1. **[category]** description
-   `file/path.ts:NN` — explanation and evidence
-
-2. **[category]** description
-   `file/path.ts:NN` — explanation and evidence
-
----
 Reviewed N files, M commits against main.
+
+| # | Score | Fix? | Issue | Impact |
+|---|-------|------|-------|--------|
+| 1 | 85 | Yes | `file.ts:NN` — description of the issue | What breaks or what risk it creates |
+| 2 | 70 | Yes | `file.ts:NN` — description of cleanup item | Why it matters |
+| 3 | 45 | No | `file.ts:NN` — description of minor item | Low-probability scenario |
+
+Fix? = recommendation. Score >= 80 always Yes. Score 50-79 Yes if it's in the same domain as the change (cleanup principle). Below 50 typically No.
+
+**Action needed:** N issues recommended to fix. Reply with row numbers to override (e.g. "include 3" or "skip 2").
 ```
 
-If no issues:
+If no issues above 10:
 
 ```
 ## Pre-PR Review
@@ -202,7 +210,10 @@ schema sync, migration safety, cache invalidation, test coverage, E2E compatibil
 
 ### 6. Next steps
 
-- If issues found: fix them, re-run `/preflight`, then re-run `/pre-review`
+- Present the table and wait for the user to confirm or override recommendations
+- User can reply with row numbers to change (e.g. "include 3" or "skip 2")
+- Fix all confirmed items, re-run `/preflight`
+- If any score >= 80 items were fixed, re-run `/pre-review`
 - If clean: proceed to push and PR creation
 
 ## Key Rules
