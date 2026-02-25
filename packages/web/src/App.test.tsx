@@ -12,7 +12,11 @@ vi.mock('./context/AuthContext', async () => {
             isAuthenticated: false,
             login: vi.fn(),
             logout: vi.fn(),
-            user: null,
+            syncIdentity: vi.fn(),
+            riderId: null,
+            riderName: null,
+            riderRole: null,
+            isTrainer: false,
             token: null,
         }),
     };

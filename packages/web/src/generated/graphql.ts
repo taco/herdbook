@@ -268,6 +268,20 @@ export type MeQuery = {
     me: { __typename?: 'Rider'; id: string; name: string; role: RiderRole };
 };
 
+export type GetHorsesQueryVariables = Exact<{ [key: string]: never }>;
+
+export type GetHorsesQuery = {
+    __typename?: 'Query';
+    horses: Array<{ __typename?: 'Horse'; id: string; name: string }>;
+};
+
+export type GetRidersQueryVariables = Exact<{ [key: string]: never }>;
+
+export type GetRidersQuery = {
+    __typename?: 'Query';
+    riders: Array<{ __typename?: 'Rider'; id: string; name: string }>;
+};
+
 export type GetDashboardDataQueryVariables = Exact<{ [key: string]: never }>;
 
 export type GetDashboardDataQuery = {
@@ -419,23 +433,7 @@ export type LoginMutationVariables = Exact<{
 
 export type LoginMutation = {
     __typename?: 'Mutation';
-    login: {
-        __typename?: 'AuthPayload';
-        token: string;
-        rider: {
-            __typename?: 'Rider';
-            id: string;
-            name: string;
-            role: RiderRole;
-        };
-    };
-};
-
-export type GetRidersQueryVariables = Exact<{ [key: string]: never }>;
-
-export type GetRidersQuery = {
-    __typename?: 'Query';
-    riders: Array<{ __typename?: 'Rider'; id: string; name: string }>;
+    login: { __typename?: 'AuthPayload'; token: string };
 };
 
 export type GetSessionForEditQueryVariables = Exact<{
@@ -517,21 +515,5 @@ export type SignupMutationVariables = Exact<{
 
 export type SignupMutation = {
     __typename?: 'Mutation';
-    signup: {
-        __typename?: 'AuthPayload';
-        token: string;
-        rider: {
-            __typename?: 'Rider';
-            id: string;
-            name: string;
-            role: RiderRole;
-        };
-    };
-};
-
-export type GetHorsesQueryVariables = Exact<{ [key: string]: never }>;
-
-export type GetHorsesQuery = {
-    __typename?: 'Query';
-    horses: Array<{ __typename?: 'Horse'; id: string; name: string }>;
+    signup: { __typename?: 'AuthPayload'; token: string };
 };
