@@ -86,6 +86,7 @@ type AuthPayload {
 }
 
 type Query {
+    me: Rider!
     barn: Barn!
     horses: [Horse!]!
     riders: [Rider!]!

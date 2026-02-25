@@ -55,8 +55,7 @@ export default function Signup() {
             });
 
             if (result.data) {
-                const { token, rider } = result.data.signup;
-                login(token, rider.id, rider.name, rider.role);
+                login(result.data.signup.token);
                 navigate('/');
             }
         } catch (err) {

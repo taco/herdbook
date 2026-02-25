@@ -185,6 +185,9 @@ export const createResolvers = (app: FastifyInstance): Record<string, any> => {
         DateTime: DateTimeResolver,
 
         Query: {
+            me: wrapResolver('read', async (_, __, context) => {
+                return context.rider;
+            }),
             barn: wrapResolver('read', async (_, __, context) => {
                 return prisma.barn.findUniqueOrThrow({
                     where: { id: context.rider!.barnId },
