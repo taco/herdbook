@@ -119,6 +119,16 @@ export const REGENERATE_INVITE_CODE = /* GraphQL */ `
 
 // ── Queries ──────────────────────────────────────────────────────────
 
+export const GET_ME = /* GraphQL */ `
+    query Me {
+        me {
+            id
+            name
+            role
+        }
+    }
+`;
+
 export const GET_BARN = /* GraphQL */ `
     query Barn {
         barn {
