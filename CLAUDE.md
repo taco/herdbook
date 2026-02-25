@@ -58,10 +58,10 @@ Example:
 ## Backend (packages/api)
 
 - Direct-to-Prisma in resolvers (no service layer)
-- Throw `GraphQLError` with codes (`NOT_FOUND`, `UNAUTHENTICATED`) - don't return null
+- Throw `GraphQLError` with codes (`NOT_FOUND`, `BAD_USER_INPUT`, `FORBIDDEN`) for data lookup failures and validation — don't return null for non-nullable fields
+- Auth is handled by `secureByDefaultTransformer`, which rejects unauthenticated requests for all non-`@public` fields before resolvers run. Do not add inline `if (!context.rider)` checks — use `context.rider!` (non-null assertion) for TypeScript. Use shared helpers (`getBarnId`, `requireTrainer`, `requireOwnerOrTrainer`) for role-based guards and type narrowing.
 - Update `schema.graphql` when `schema.prisma` changes
 - Watch for N+1 queries in nested resolvers
-- Do not add inline `if (!context.rider)` checks in resolver bodies — `secureByDefaultTransformer` rejects unauthenticated requests for all non-`@public` fields before resolvers run. Use shared helpers (`getBarnId`, `requireTrainer`, `requireOwnerOrTrainer`) which keep their null checks for TypeScript type narrowing. Only add role-based guards where needed.
 
 ## Frontend (packages/web)
 
