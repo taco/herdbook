@@ -32,7 +32,6 @@ export type Scalars = {
 
 export type AuthPayload = {
     __typename?: 'AuthPayload';
-    rider: Rider;
     token: Scalars['String']['output'];
 };
 

@@ -9,7 +9,6 @@ const SIGNUP_MUTATION = `
     mutation Signup($name: String!, $email: String!, $password: String!, $inviteCode: String!) {
         signup(name: $name, email: $email, password: $password, inviteCode: $inviteCode) {
             token
-            rider { id name email }
         }
     }
 `;
@@ -105,10 +104,7 @@ describe('Mutation.signup', () => {
             expect(response.statusCode).toBe(200);
             const body = JSON.parse(response.body) as {
                 data?: {
-                    signup?: {
-                        token: string;
-                        rider: { id: string; name: string; email: string };
-                    };
+                    signup?: { token: string };
                 } | null;
                 errors?: Array<{
                     message: string;
@@ -118,8 +114,6 @@ describe('Mutation.signup', () => {
 
             expect(body.errors).toBeUndefined();
             expect(body.data?.signup?.token).toBeTruthy();
-            expect(body.data?.signup?.rider.email).toBe(email);
-            expect(body.data?.signup?.rider.name).toBe('Valid Rider');
 
             createdRiderEmails.push(email);
 

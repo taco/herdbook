@@ -82,7 +82,6 @@ type Session {
 
 type AuthPayload {
     token: String!
-    rider: Rider!
 }
 
 type Query {
