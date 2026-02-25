@@ -186,7 +186,7 @@ export const createResolvers = (app: FastifyInstance): Record<string, any> => {
 
         Query: {
             me: wrapResolver('read', async (_, __, context) => {
-                return context.rider;
+                return context.rider!;
             }),
             barn: wrapResolver('read', async (_, __, context) => {
                 return prisma.barn.findUniqueOrThrow({
