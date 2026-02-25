@@ -152,6 +152,7 @@ export type Query = {
     horse: Maybe<Horse>;
     horses: Array<Horse>;
     lastSessionForHorse: Maybe<Session>;
+    me: Rider;
     riders: Array<Rider>;
     session: Maybe<Session>;
     sessions: Array<Session>;
@@ -258,6 +259,13 @@ export type RegenerateInviteCodeMutation = {
         id: string;
         inviteCode: string | null;
     };
+};
+
+export type MeQueryVariables = Exact<{ [key: string]: never }>;
+
+export type MeQuery = {
+    __typename?: 'Query';
+    me: { __typename?: 'Rider'; id: string; name: string; role: RiderRole };
 };
 
 export type GetDashboardDataQueryVariables = Exact<{ [key: string]: never }>;

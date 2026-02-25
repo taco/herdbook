@@ -1,13 +1,28 @@
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@apollo/client/react';
 import { useAuth } from '@/context/AuthContext';
+import { ME_QUERY } from '@/lib/queries';
+import type { MeQuery, MeQueryVariables } from '@/generated/graphql';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { LogOut } from 'lucide-react';
 import BarnSection from '@/components/BarnSection';
 
 export default function Profile() {
-    const { riderName, logout } = useAuth();
+    const { riderName, syncIdentity, logout } = useAuth();
     const navigate = useNavigate();
+
+    const { data } = useQuery<MeQuery, MeQueryVariables>(ME_QUERY, {
+        fetchPolicy: 'cache-and-network',
+        nextFetchPolicy: 'cache-first',
+    });
+
+    useEffect(() => {
+        if (data) {
+            syncIdentity(data.me.name, data.me.role);
+        }
+    }, [data, syncIdentity]);
 
     const handleLogout = () => {
         logout();

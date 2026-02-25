@@ -53,8 +53,7 @@ export default function Login() {
             })
                 .then((result) => {
                     if (result.data) {
-                        const { token, rider } = result.data.login;
-                        login(token, rider.id, rider.name, rider.role);
+                        login(result.data.login.token);
                         navigate('/');
                     }
                 })
@@ -73,8 +72,7 @@ export default function Login() {
             });
 
             if (result.data) {
-                const { token, rider } = result.data.login;
-                login(token, rider.id, rider.name, rider.role);
+                login(result.data.login.token);
                 navigate('/');
             }
         } catch (err) {
