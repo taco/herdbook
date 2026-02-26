@@ -62,6 +62,15 @@ Leave the codebase slightly better than you found it. When a change reveals near
 - Types: `PascalCase` (no `I` prefix)
 - TODOs must use `TODO(#N)` format referencing a real GitHub issue — no bare `TODO`, `FIXME`, or placeholder issue numbers
 
+## AI Features
+
+- **Model selection**: see [docs/ai-guidelines.md](docs/ai-guidelines.md) for model tiers, pricing, and patterns
+- Floor tier (`gpt-5-mini`) is the default — only upgrade with real data showing it's insufficient
+- Every AI prompt lives in `packages/api/src/prompts/` as a versioned `PromptConfig`
+- Every AI feature gets a `<FEATURE>_MODEL` env var override
+- All AI endpoints must use `withAiRateLimit()`
+- **When adding or changing AI features**, update the "Current feature assignments" table in `docs/ai-guidelines.md`
+
 ## Backend (packages/api)
 
 - Direct-to-Prisma in resolvers (no service layer)
