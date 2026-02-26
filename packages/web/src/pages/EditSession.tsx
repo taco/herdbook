@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { gql } from '@apollo/client';
 import { useMutation, useQuery } from '@apollo/client/react';
@@ -8,6 +8,7 @@ import type { SessionValues } from '@/components/session/SessionEditor';
 import { useAppNavigate } from '@/hooks/useAppNavigate';
 import { useAuth } from '@/context/AuthContext';
 import { formatAsDateTimeLocalValue } from '@/lib/dateUtils';
+import { getUserErrorMessage } from '@/lib/utils';
 import { GET_HORSES_QUERY, GET_RIDERS_QUERY } from '@/lib/queries';
 import {
     Intensity,
@@ -86,6 +87,8 @@ export default function EditSession(): React.ReactNode {
         CreateSessionMutationVariables
     >(CREATE_SESSION_MUTATION);
 
+    const [formError, setFormError] = useState<string | null>(null);
+
     // Build initial values from prefill → localStorage → defaults
     const initialValues = useMemo((): SessionValues => {
         const persisted = JSON.parse(
@@ -107,36 +110,42 @@ export default function EditSession(): React.ReactNode {
     }, []);
 
     const handleSave = async (values: SessionValues): Promise<void> => {
-        const persistedVariables = {
-            horseId: values.horseId,
-            durationMinutes: values.durationMinutes,
-            workType: values.workType,
-        };
+        setFormError(null);
+        try {
+            const persistedVariables = {
+                horseId: values.horseId,
+                durationMinutes: values.durationMinutes,
+                workType: values.workType,
+            };
 
-        await createSession({
-            variables: {
-                horseId: values.horseId!,
-                riderId: isTrainer && values.riderId ? values.riderId : null,
-                date: new Date(values.dateTime).toISOString(),
-                durationMinutes: values.durationMinutes!,
-                workType: values.workType!,
-                intensity: values.intensity,
-                rating: values.rating,
-                notes: values.notes.trim(),
-            },
-            update(cache) {
-                cache.evict({ fieldName: 'sessions' });
-                cache.evict({ fieldName: 'lastSessionForHorse' });
-                cache.gc();
-            },
-        });
+            await createSession({
+                variables: {
+                    horseId: values.horseId!,
+                    riderId:
+                        isTrainer && values.riderId ? values.riderId : null,
+                    date: new Date(values.dateTime).toISOString(),
+                    durationMinutes: values.durationMinutes!,
+                    workType: values.workType!,
+                    intensity: values.intensity,
+                    rating: values.rating,
+                    notes: values.notes.trim(),
+                },
+                update(cache) {
+                    cache.evict({ fieldName: 'sessions' });
+                    cache.evict({ fieldName: 'lastSessionForHorse' });
+                    cache.gc();
+                },
+            });
 
-        localStorage.setItem(
-            'createSession',
-            JSON.stringify(persistedVariables)
-        );
+            localStorage.setItem(
+                'createSession',
+                JSON.stringify(persistedVariables)
+            );
 
-        backTo('/');
+            backTo('/');
+        } catch (err) {
+            setFormError(getUserErrorMessage(err));
+        }
     };
 
     return (
@@ -149,6 +158,7 @@ export default function EditSession(): React.ReactNode {
             title="Log Session"
             saving={saving}
             showRiderPicker={isTrainer}
+            error={formError}
         />
     );
 }

@@ -5,6 +5,16 @@ export function cn(...inputs: ClassValue[]): string {
     return twMerge(clsx(inputs));
 }
 
+export function getUserErrorMessage(err: unknown): string {
+    if (err instanceof Error) {
+        if (err.message === 'Failed to fetch') {
+            return 'Network error — check your connection and try again';
+        }
+        return err.message;
+    }
+    return 'An error occurred';
+}
+
 export function formatTimeAgo(date: Date): string {
     const now = new Date();
     const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);

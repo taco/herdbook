@@ -19,6 +19,7 @@ import {
 import SummaryRow from '@/components/session/SummaryRow';
 import BarnNameEditSheet from '@/components/BarnNameEditSheet';
 import { useAuth } from '@/context/AuthContext';
+import { getUserErrorMessage } from '@/lib/utils';
 import type {
     GetBarnQuery,
     UpdateBarnMutation,
@@ -61,6 +62,7 @@ export default function BarnSection(): React.ReactNode {
     const { isTrainer } = useAuth();
     const [editOpen, setEditOpen] = useState(false);
     const [copied, setCopied] = useState(false);
+    const [formError, setFormError] = useState<string | null>(null);
 
     const { data, loading, error } = useQuery<GetBarnQuery>(GET_BARN);
 
@@ -73,29 +75,43 @@ export default function BarnSection(): React.ReactNode {
         useMutation<RegenerateInviteCodeMutation>(REGENERATE_INVITE_CODE);
 
     const handleSaveName = async (name: string): Promise<void> => {
-        await updateBarn({
-            variables: { name },
-            update(cache) {
-                cache.evict({ fieldName: 'barn' });
-                cache.gc();
-            },
-        });
-        setEditOpen(false);
+        setFormError(null);
+        try {
+            await updateBarn({
+                variables: { name },
+                update(cache) {
+                    cache.evict({ fieldName: 'barn' });
+                    cache.gc();
+                },
+            });
+            setEditOpen(false);
+        } catch (err) {
+            setFormError(getUserErrorMessage(err));
+        }
     };
 
     const handleRegenerate = async (): Promise<void> => {
-        await regenerateInviteCode({
-            update(cache) {
-                cache.evict({ fieldName: 'barn' });
-                cache.gc();
-            },
-        });
+        setFormError(null);
+        try {
+            await regenerateInviteCode({
+                update(cache) {
+                    cache.evict({ fieldName: 'barn' });
+                    cache.gc();
+                },
+            });
+        } catch (err) {
+            setFormError(getUserErrorMessage(err));
+        }
     };
 
     const handleCopy = async (code: string): Promise<void> => {
-        await navigator.clipboard.writeText(code);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
+        try {
+            await navigator.clipboard.writeText(code);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        } catch {
+            // Silently degrade — clipboard may not be available
+        }
     };
 
     const handleShare = async (code: string): Promise<void> => {
@@ -104,9 +120,14 @@ export default function BarnSection(): React.ReactNode {
             text: `Use this invite code to join my barn: ${code}`,
         };
 
-        if (navigator.share) {
-            await navigator.share(shareData);
-        } else {
+        try {
+            if (navigator.share) {
+                await navigator.share(shareData);
+            } else {
+                await handleCopy(code);
+            }
+        } catch (err) {
+            if (err instanceof Error && err.name === 'AbortError') return;
             await handleCopy(code);
         }
     };
@@ -151,7 +172,10 @@ export default function BarnSection(): React.ReactNode {
                 <SummaryRow
                     label="Name"
                     value={barn.name}
-                    onClick={() => setEditOpen(true)}
+                    onClick={() => {
+                        setFormError(null);
+                        setEditOpen(true);
+                    }}
                 />
 
                 <div className="flex items-center justify-between py-3 px-1 border-b border-border min-h-[52px]">
@@ -227,15 +251,25 @@ export default function BarnSection(): React.ReactNode {
                                 </AlertDialogFooter>
                             </AlertDialogContent>
                         </AlertDialog>
+
+                        {formError && (
+                            <p className="text-sm text-red-500 mt-2">
+                                {formError}
+                            </p>
+                        )}
                     </div>
                 )}
 
                 <BarnNameEditSheet
                     open={editOpen}
-                    onOpenChange={setEditOpen}
+                    onOpenChange={(open) => {
+                        setEditOpen(open);
+                        setFormError(null);
+                    }}
                     currentName={barn.name}
                     onSave={handleSaveName}
                     saving={updating}
+                    error={formError}
                 />
             </section>
         );

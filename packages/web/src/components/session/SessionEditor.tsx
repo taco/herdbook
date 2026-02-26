@@ -52,6 +52,7 @@ interface SessionEditorProps {
     saving: boolean;
     showRiderPicker?: boolean;
     extraActions?: React.ReactNode;
+    error?: string | null;
 }
 
 export default function SessionEditor({
@@ -64,6 +65,7 @@ export default function SessionEditor({
     saving,
     showRiderPicker = true,
     extraActions,
+    error,
 }: SessionEditorProps): React.ReactNode {
     const [values, setValues] = useState<SessionValues>(initialValues);
     const [sheetOpen, setSheetOpen] = useState(false);
@@ -238,6 +240,9 @@ export default function SessionEditor({
                             <p className="text-sm text-red-500 mt-4">
                                 {formError}
                             </p>
+                        )}
+                        {error && (
+                            <p className="text-sm text-red-500 mt-4">{error}</p>
                         )}
 
                         <div className="mt-6 space-y-3">

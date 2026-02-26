@@ -91,9 +91,10 @@ Apply feedback, re-format, and ask the user to verify again. Repeat until they'r
 Once the user approves:
 
 1. Run `/preflight` to check formatting + types
-2. Ask the user for final go-ahead to commit
-3. Run `/commit` to create the commit
-4. Ask if the user wants to push and create a PR
+2. Run `/pre-review` for independent code review
+3. Ask the user for final go-ahead to commit
+4. Run `/commit` to create the commit
+5. Ask if the user wants to push and create a PR
 
 ## Notes
 
