@@ -15,6 +15,7 @@ interface BarnNameEditSheetProps {
     currentName: string;
     onSave: (name: string) => void;
     saving: boolean;
+    error?: string | null;
 }
 
 export default function BarnNameEditSheet({
@@ -23,6 +24,7 @@ export default function BarnNameEditSheet({
     currentName,
     onSave,
     saving,
+    error,
 }: BarnNameEditSheetProps): React.ReactNode {
     const [name, setName] = useState(currentName);
 
@@ -53,6 +55,7 @@ export default function BarnNameEditSheet({
                         autoFocus
                         placeholder="Barn name"
                     />
+                    {error && <p className="text-sm text-red-500">{error}</p>}
                     <Button
                         className="w-full"
                         disabled={!canSave}

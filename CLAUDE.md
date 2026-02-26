@@ -78,6 +78,7 @@ Leave the codebase slightly better than you found it. When a change reveals near
 - Local state preferred (`useState`/`useReducer`)
 - Touch targets: minimum 44x44px
 - **Navigation & layouts**: see [docs/design-navigation.md](docs/design-navigation.md) for layout types, sub-page overlay system, view/edit cascade, drawer-based editing, animation standards, and the new page checklist
+- **Error handling**: `useState<string | null>(null)` for `formError`, try/catch with `setFormError(err instanceof Error ? err.message : 'An error occurred')`, display with `<p className="text-sm text-red-500">`. Browser APIs (clipboard, share) silently degrade — no error display
 
 ## Security
 

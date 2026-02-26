@@ -31,7 +31,7 @@ import SessionEditor from '@/components/session/SessionEditor';
 import type { SessionValues } from '@/components/session/SessionEditor';
 import { useAppNavigate } from '@/hooks/useAppNavigate';
 import { useAuth } from '@/context/AuthContext';
-import { cn } from '@/lib/utils';
+import { cn, getUserErrorMessage } from '@/lib/utils';
 import {
     parseSessionDate,
     formatSessionTime,
@@ -181,9 +181,7 @@ export default function SessionDetail(): React.ReactNode {
             setIsEditing(false);
             refetch();
         } catch (err) {
-            setFormError(
-                err instanceof Error ? err.message : 'An error occurred'
-            );
+            setFormError(getUserErrorMessage(err));
         }
     };
 
@@ -213,9 +211,7 @@ export default function SessionDetail(): React.ReactNode {
                 backTo('/');
             }
         } catch (err) {
-            setFormError(
-                err instanceof Error ? err.message : 'An error occurred'
-            );
+            setFormError(getUserErrorMessage(err));
         }
     };
 
@@ -394,6 +390,7 @@ export default function SessionDetail(): React.ReactNode {
                         title="Edit Session"
                         saving={updateLoading}
                         showRiderPicker={isTrainer}
+                        error={formError}
                         extraActions={
                             <AlertDialog>
                                 <AlertDialogTrigger asChild>
