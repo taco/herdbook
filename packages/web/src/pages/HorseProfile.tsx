@@ -9,6 +9,7 @@ import { Separator } from '@/components/ui/separator';
 import { Heatmap } from '@/components/Heatmap';
 import ActivityCard from '@/components/ActivityCard';
 import HorseSummarySection from '@/components/HorseSummarySection';
+import HandoffSection from '@/components/HandoffSection';
 import { useAppNavigate } from '@/hooks/useAppNavigate';
 import { useAuth } from '@/context/AuthContext';
 import { parseSessionDate } from '@/lib/dateUtils';
@@ -28,6 +29,10 @@ const GET_HORSE_PROFILE = gql`
             activity(weeks: 12) {
                 weekStart
                 count
+            }
+            handoff {
+                content
+                generatedAt
             }
             summary {
                 content
@@ -161,6 +166,14 @@ export default function HorseProfile(): React.ReactNode {
                             </p>
                         </div>
                     </section>
+
+                    {/* Handoff Context */}
+                    {horse.handoff && (
+                        <>
+                            <Separator />
+                            <HandoffSection handoff={horse.handoff} />
+                        </>
+                    )}
 
                     {/* Training Summary */}
                     <Separator />

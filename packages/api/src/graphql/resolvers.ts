@@ -1,4 +1,4 @@
-import { DateTimeResolver } from 'graphql-scalars';
+import { DateTimeResolver, JSONResolver } from 'graphql-scalars';
 import { GraphQLError, type GraphQLResolveInfo } from 'graphql';
 import { WorkType, Intensity, RiderRole, Prisma } from '@prisma/client';
 import type { FastifyInstance, FastifyReply } from 'fastify';
@@ -10,6 +10,8 @@ import { getJwtExpiration, getJwtSecretOrThrow, getRateLimits } from '@/config';
 import { rateLimitKey } from '@/middleware/auth';
 import { getRefreshCooldownHours } from '@/rest/utils/summaryUtils';
 import { generateInviteCode } from '@/utils/inviteCode';
+import { triggerEnrichment } from '@/enrichment/enrichSession';
+import { triggerHandoff } from '@/enrichment/regenerateHandoff';
 import type { Loaders } from './loaders';
 
 export type RiderSafe = Prisma.RiderGetPayload<{ omit: { password: true } }>;
@@ -183,6 +185,7 @@ export const createResolvers = (app: FastifyInstance): Record<string, any> => {
 
     return {
         DateTime: DateTimeResolver,
+        JSON: JSONResolver,
 
         Query: {
             me: wrapResolver('read', async (_, __, context) => {
@@ -390,9 +393,16 @@ export const createResolvers = (app: FastifyInstance): Record<string, any> => {
                         args.riderId
                             ? args.riderId
                             : context.rider!.id;
-                    return prisma.session.create({
+                    const session = await prisma.session.create({
                         data: { ...sessionData, riderId },
                     });
+                    triggerEnrichment(
+                        session.id,
+                        session.notes,
+                        session.workType
+                    );
+                    triggerHandoff(session.horseId);
+                    return session;
                 }
             ),
             updateSession: wrapResolver(
@@ -469,6 +479,9 @@ export const createResolvers = (app: FastifyInstance): Record<string, any> => {
                             });
                         }
                     }
+                    const notesChanged =
+                        args.notes !== undefined &&
+                        args.notes !== existing.notes;
                     const updateData: Prisma.SessionUpdateInput = {};
                     if (args.horseId !== undefined)
                         updateData.horse = { connect: { id: args.horseId } };
@@ -484,10 +497,25 @@ export const createResolvers = (app: FastifyInstance): Record<string, any> => {
                     if (args.rating !== undefined)
                         updateData.rating = args.rating;
                     if (args.notes !== undefined) updateData.notes = args.notes;
-                    return prisma.session.update({
+                    // Clear aiMetadata when notes are emptied; re-enrich after save when changed
+                    if (notesChanged && args.notes!.trim().length === 0) {
+                        updateData.aiMetadata = Prisma.DbNull;
+                    }
+                    const updated = await prisma.session.update({
                         where: { id: args.id },
                         data: updateData,
                     });
+                    if (notesChanged && updated.notes.trim().length > 0) {
+                        triggerEnrichment(
+                            updated.id,
+                            updated.notes,
+                            updated.workType
+                        );
+                    }
+                    if (notesChanged) {
+                        triggerHandoff(updated.horseId);
+                    }
+                    return updated;
                 }
             ),
             updateBarn: wrapResolver(
@@ -536,6 +564,7 @@ export const createResolvers = (app: FastifyInstance): Record<string, any> => {
                     }
                     requireOwnerOrTrainer(context, existing.riderId);
                     await prisma.session.delete({ where: { id: args.id } });
+                    triggerHandoff(existing.horseId);
                     return true;
                 }
             ),
@@ -687,6 +716,17 @@ export const createResolvers = (app: FastifyInstance): Record<string, any> => {
                     generatedAt: parent.summaryGeneratedAt,
                     stale,
                     refreshAvailableAt,
+                };
+            },
+            handoff: (parent: {
+                handoffContent: string | null;
+                handoffGeneratedAt: Date | null;
+            }) => {
+                if (!parent.handoffContent || !parent.handoffGeneratedAt)
+                    return null;
+                return {
+                    content: parent.handoffContent,
+                    generatedAt: parent.handoffGeneratedAt,
                 };
             },
             activity: async (

@@ -28,6 +28,7 @@ export type Scalars = {
     Int: { input: number; output: number };
     Float: { input: number; output: number };
     DateTime: { input: any; output: any };
+    JSON: { input: any; output: any };
 };
 
 export type AuthPayload = {
@@ -44,11 +45,18 @@ export type Barn = {
     riders: Array<Rider>;
 };
 
+export type HandoffContext = {
+    __typename?: 'HandoffContext';
+    content: Scalars['String']['output'];
+    generatedAt: Scalars['DateTime']['output'];
+};
+
 export type Horse = {
     __typename?: 'Horse';
     activity: Array<WeeklyActivity>;
     barn: Barn;
     createdAt: Scalars['DateTime']['output'];
+    handoff: Maybe<HandoffContext>;
     id: Scalars['ID']['output'];
     isActive: Scalars['Boolean']['output'];
     name: Scalars['String']['output'];
@@ -197,6 +205,7 @@ export enum RiderRole {
 
 export type Session = {
     __typename?: 'Session';
+    aiMetadata: Maybe<Scalars['JSON']['output']>;
     createdAt: Scalars['DateTime']['output'];
     date: Scalars['DateTime']['output'];
     durationMinutes: Scalars['Int']['output'];
@@ -388,6 +397,11 @@ export type GetHorseProfileQuery = {
             weekStart: any;
             count: number;
         }>;
+        handoff: {
+            __typename?: 'HandoffContext';
+            content: string;
+            generatedAt: any;
+        } | null;
         summary: {
             __typename?: 'HorseSummary';
             content: string;

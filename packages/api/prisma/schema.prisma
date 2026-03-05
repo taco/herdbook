@@ -31,6 +31,8 @@ model Horse {
   sessions           Session[]
   summaryContent     String?
   summaryGeneratedAt DateTime? @db.Timestamptz(3)
+  handoffContent     String?
+  handoffGeneratedAt DateTime? @db.Timestamptz(3)
   barnId             String
   barn               Barn      @relation(fields: [barnId], references: [id])
 
@@ -68,6 +70,7 @@ model Session {
   intensity       Intensity?
   rating          Int?
   notes           String   @default("")
+  aiMetadata      Json?    @db.JsonB
   createdAt       DateTime @default(now()) @db.Timestamptz(3)
   updatedAt       DateTime @updatedAt @db.Timestamptz(3)
 }

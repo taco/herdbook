@@ -53,6 +53,11 @@ type HorseSummary {
     refreshAvailableAt: DateTime
 }
 
+type HandoffContext {
+    content: String!
+    generatedAt: DateTime!
+}
+
 type Horse {
     id: ID!
     name: String!
@@ -62,9 +67,12 @@ type Horse {
     updatedAt: DateTime!
     sessions: [Session!]!
     summary: HorseSummary
+    handoff: HandoffContext
     activity(weeks: Int): [WeeklyActivity!]!
     barn: Barn!
 }
+
+scalar JSON
 
 type Session {
     id: ID!
@@ -76,6 +84,7 @@ type Session {
     intensity: Intensity
     rating: Int
     notes: String!
+    aiMetadata: JSON
     createdAt: DateTime!
     updatedAt: DateTime!
 }
