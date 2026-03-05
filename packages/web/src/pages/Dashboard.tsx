@@ -3,6 +3,7 @@ import { gql } from '@apollo/client';
 import ActivityCard from '@/components/ActivityCard';
 import { HorseCard } from '@/components/HorseCard';
 import { useAppNavigate } from '@/hooks/useAppNavigate';
+import { EnvBanner } from '@/components/EnvBanner';
 import type {
     GetDashboardDataQuery,
     GetDashboardDataQueryVariables,
@@ -55,8 +56,9 @@ export default function Dashboard(): React.ReactNode {
         );
 
     return (
-        <div className="p-4">
-            <div className="space-y-6">
+        <div>
+            <EnvBanner />
+            <div className="p-4 space-y-6">
                 {/* Herd Activity Section */}
                 <section>
                     <h2 className="text-sm font-medium text-muted-foreground mb-3 px-1">
