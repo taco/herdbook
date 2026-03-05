@@ -10,6 +10,8 @@ export { resolveModel, logPrompt } from './types';
 import { prompt as voiceParseV1 } from './voiceParse.v1';
 import { prompt as voiceParseV2 } from './voiceParse.v2';
 import { prompt as horseSummaryV1 } from './horseSummary.v1';
+import { prompt as enrichmentV1 } from './enrichment.v1';
+import { prompt as handoffV1 } from './handoff.v1';
 export { ORIGINAL_SCHEMA } from './voiceParse.v1';
 export { V2_SCHEMA } from './voiceParse.v2';
 
@@ -20,6 +22,14 @@ export const VOICE_PARSE_PROMPTS = {
 
 export const HORSE_SUMMARY_PROMPTS = {
     v1: horseSummaryV1,
+} as const;
+
+export const ENRICHMENT_PROMPTS = {
+    v1: enrichmentV1,
+} as const;
+
+export const HANDOFF_PROMPTS = {
+    v1: handoffV1,
 } as const;
 
 export type VoiceParseVersion = keyof typeof VOICE_PARSE_PROMPTS;

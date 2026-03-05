@@ -16,7 +16,10 @@
         "prisma:seed:e2e": "tsx prisma/seedE2E.ts",
         "test": "vitest run",
         "test:watch": "vitest",
-        "test:voice": "tsx scripts/test-voice-parse.ts"
+        "test:voice": "tsx scripts/test-voice-parse.ts",
+        "enrich:backfill": "tsx scripts/enrichBackfill.ts",
+        "enrich:eval": "tsx scripts/enrichEval.ts",
+        "enrich:clear": "tsx scripts/enrichClear.ts"
     },
     "dependencies": {
         "@apollo/server": "^5.4.0",
