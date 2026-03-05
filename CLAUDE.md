@@ -142,7 +142,6 @@ Use these skills for common workflows. Invoke with `/skillname` or the Skill too
 | Implement a GitHub issue           | `/gh-issue`       |
 | Write a well-scoped GitHub issue   | `/write-issue`    |
 | Pre-PR independent code review     | `/pre-review`     |
-| Fixup-squash into previous commits | `/fixup`          |
 | Design conversation before coding  | `/design`         |
 
 ## New Feature Workflow

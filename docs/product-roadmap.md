@@ -1,6 +1,6 @@
 # Herdbook Product Roadmap
 
-_February 2026_
+_March 2026_
 
 ## Guiding Principles
 

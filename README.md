@@ -15,25 +15,26 @@ Deployed to production on Railway + Neon Postgres, used by real riders at a smal
 
 **Core loop**
 
-- Manual session entry with form persistence and field-level voice input
+- Manual session entry with draft saving and field-level voice input
 - Per-horse activity heatmaps (12-week view)
 - Dashboard with recent activity feed
-- Horse and rider management with soft-delete
-- JWT auth with invite code signup and tiered rate limiting
+- Barn multi-tenancy — invite codes, trainer/rider roles, shared horse roster
+- Horse and rider profiles with archive support
+- Invite-only signup with JWT auth
 
-## Architecture Highlights
+## Architecture
 
-This is a pnpm monorepo with three packages: `api`, `web`, and `e2e`.
+React SPA → Fastify GraphQL API → PostgreSQL. AI features call OpenAI (Whisper + GPT) from the API server. Organized as a pnpm monorepo with three packages: `api`, `web`, and `e2e`.
 
-| What                   | Where                          | Why it's interesting                                                                                                                           |
-| ---------------------- | ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| Voice parsing pipeline | `api/src/rest/voice.ts`        | Whisper transcription → structured extraction via JSON Schema. LLM resolves horse/rider names from context, infers work type, parses duration. |
-| Prompt registry        | `api/src/prompts/`             | Versioned prompt configs with model resolution from env vars. Each prompt is a typed config object, not a string.                              |
-| Training summaries     | `api/src/rest/horseSummary.ts` | Computes workload signals from session history, feeds them to an LLM for narrative synthesis. Validates and caches output.                     |
-| AI rate limiting       | `api/src/rest/utils/`          | Per-user burst + daily rate limiters shared across all AI endpoints. Prevents runaway costs.                                                   |
-| GraphQL + DataLoader   | `api/src/graphql/`             | Schema-first GraphQL with Prisma resolvers and DataLoader for N+1 resolution.                                                                  |
-| Navigation system      | `web/src/hooks/useAppNavigate` | View Transitions API for native-feeling page animations. Two layout types: tab bar and full-screen overlay.                                    |
-| E2E test tiers         | `e2e/tests/`                   | Smoke (auth, nav) runs on PRs. Full regression (all features, Chrome + Safari) runs on main and nightly cron.                                  |
+| What                   | Where                                                                      | Why it's interesting                                                                                                                           |
+| ---------------------- | -------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| Voice parsing pipeline | [`api/src/rest/voice.ts`](packages/api/src/rest/voice.ts)                  | Whisper transcription → structured extraction via JSON Schema. LLM resolves horse/rider names from context, infers work type, parses duration. |
+| Prompt registry        | [`api/src/prompts/`](packages/api/src/prompts/)                            | Versioned prompt configs with model resolution from env vars. Each prompt is a typed config object, not a string.                              |
+| Training summaries     | [`api/src/rest/horseSummary.ts`](packages/api/src/rest/horseSummary.ts)    | Computes workload signals from session history, feeds them to an LLM for narrative synthesis. Validates and caches output.                     |
+| AI rate limiting       | [`api/src/rest/utils/`](packages/api/src/rest/utils/)                      | Per-user burst + daily rate limiters shared across all AI endpoints. Prevents runaway costs.                                                   |
+| GraphQL + DataLoader   | [`api/src/graphql/`](packages/api/src/graphql/)                            | Schema-first GraphQL with Prisma resolvers and DataLoader for N+1 resolution.                                                                  |
+| Navigation system      | [`web/src/hooks/useAppNavigate`](packages/web/src/hooks/useAppNavigate.ts) | View Transitions API for native-feeling page animations. Two layout types: tab bar and full-screen overlay.                                    |
+| E2E test tiers         | [`e2e/tests/`](packages/e2e/tests/)                                        | Smoke (auth, nav) runs on PRs. Full regression (Pixel 5 + iPhone 12) runs on main and nightly cron.                                            |
 
 ## Tech Stack
 
@@ -43,6 +44,7 @@ This is a pnpm monorepo with three packages: `api`, `web`, and `e2e`.
 | Web     | React, Vite, Apollo Client, Tailwind + Shadcn UI, TypeScript |
 | Testing | Vitest, Playwright, Docker (isolated test Postgres)          |
 | Infra   | Railway (hosting), Neon (database branching), GitHub Actions |
+| Ops     | Sentry (error + performance tracing, API + web)              |
 
 ## Project Structure
 
@@ -71,7 +73,7 @@ herdbook/
 **Prerequisites**: Node.js (see `.node-version`), pnpm 10.4+, PostgreSQL
 
 ```bash
-cp packages/api/.env.example .env.api.local  # Add your DATABASE_URL, JWT_SECRET
+cp packages/api/.env.example .env.api.local  # Add DATABASE_URL, JWT_SECRET, OPENAI_API_KEY
 pnpm env:local                # Point API at local database
 pnpm run init                 # Install deps + generate Prisma client
 pnpm --filter api run prisma:migrate  # Run migrations
@@ -99,10 +101,11 @@ pnpm env:neon-prod  # Neon production
 pnpm env:status     # Check which env is active
 ```
 
-| Variable       | Description                                       |
-| -------------- | ------------------------------------------------- |
-| `DATABASE_URL` | PostgreSQL connection string                      |
-| `JWT_SECRET`   | Secret for signing JWTs (32+ chars in production) |
+| Variable         | Description                                       |
+| ---------------- | ------------------------------------------------- |
+| `DATABASE_URL`   | PostgreSQL connection string                      |
+| `JWT_SECRET`     | Secret for signing JWTs (32+ chars in production) |
+| `OPENAI_API_KEY` | Required for voice capture and AI summaries       |
 
 ## License
 
