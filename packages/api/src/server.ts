@@ -18,6 +18,7 @@ import { buildContext } from '@/middleware/auth';
 import { registerVoiceRoutes } from '@/rest/voice';
 import { registerSummaryRoutes } from '@/rest/horseSummary';
 import { registerHealthRoutes } from '@/rest/health';
+import { registerEnvBannerRoutes } from '@/rest/envBanner';
 import * as Sentry from '@sentry/node';
 import { prisma } from '@/db';
 import { sentryApolloPlugin } from '@/lib/sentryApolloPlugin';
@@ -68,6 +69,7 @@ export async function createApiApp(httpsOptions?: {
 
     // REST routes
     await registerHealthRoutes(app);
+    await registerEnvBannerRoutes(app);
     await registerVoiceRoutes(app);
     await registerSummaryRoutes(app);
 
