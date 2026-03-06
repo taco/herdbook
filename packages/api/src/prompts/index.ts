@@ -4,7 +4,7 @@ export type {
     SummarySignals,
     WorkloadLevel,
     Trend,
-} from './types';
+} from './horseSummary.v1';
 export { resolveModel, logPrompt } from './types';
 
 import { prompt as voiceParseV1 } from './voiceParse.v1';

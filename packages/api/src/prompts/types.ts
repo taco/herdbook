@@ -1,31 +1,3 @@
-// --- Summary types ---
-
-export type WorkloadLevel = 'light' | 'moderate' | 'heavy';
-export type Trend = 'up' | 'steady' | 'down';
-
-export interface SummarySignals {
-    workload14d: WorkloadLevel;
-    workloadTrend: Trend;
-    recentPattern: string;
-    recentFocus: string[];
-    longestBreak: string;
-    riders: string | null;
-    flags: string[];
-    notesCoverage: string;
-}
-
-export interface SummaryContext {
-    horseName: string;
-    signals: SummarySignals;
-    rides: Array<{
-        date: Date;
-        workType: string;
-        durationMinutes: number;
-        riderName: string;
-        notes: string;
-    }>;
-}
-
 // --- Prompt config ---
 
 export interface PromptConfig<TContext> {
