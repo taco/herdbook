@@ -1,7 +1,7 @@
 import * as Sentry from '@sentry/node';
 import type { ApolloServerPlugin } from '@apollo/server';
-import type { Context } from '@/graphql/resolvers';
-import { EXPECTED_ERROR_CODES } from '@/lib/sentry';
+import type { Context } from './authGuard';
+import { EXPECTED_ERROR_CODES } from '@/utils/sentry';
 
 export const sentryApolloPlugin: ApolloServerPlugin<Context> = {
     async requestDidStart() {

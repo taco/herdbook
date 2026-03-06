@@ -1,6 +1,6 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { getRateLimits } from '@/config';
-import { rateLimitKey } from '@/middleware/auth';
+import { rateLimitKey } from '@/utils/auth';
 
 export type RateLimitResult =
     | { isAllowed: true; key: string }

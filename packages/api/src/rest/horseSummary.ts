@@ -1,7 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import OpenAI from 'openai';
 import { isDevelopment } from '@/config';
-import { verifyToken } from '@/middleware/auth';
 import { prisma } from '@/db';
 import {
     HORSE_SUMMARY_PROMPTS,
@@ -12,12 +11,14 @@ import {
 } from '@/prompts';
 import * as Sentry from '@sentry/node';
 import { setupAiLimiters, withAiRateLimit } from './utils/aiRateLimit';
+import { getOpenAI } from './utils/openai';
 import { computeSignals } from './utils/computeSignals';
 import {
     validateSummary,
     stripFormattingArtifacts,
 } from './utils/validateSummary';
 import { getRefreshCooldownHours } from './utils/summaryUtils';
+import { authenticateRequest } from './utils/restAuth';
 
 export async function registerSummaryRoutes(
     app: FastifyInstance
@@ -27,19 +28,11 @@ export async function registerSummaryRoutes(
     app.post(
         '/api/horse-summary',
         withAiRateLimit(limiters, 'ai', async (request, reply) => {
-            // Auth
-            const authHeader = request.headers.authorization;
-            if (!authHeader || !authHeader.startsWith('Bearer ')) {
-                return reply.status(401).send({ error: 'Unauthorized' });
-            }
-            const auth = verifyToken(authHeader);
-            if (!auth) {
-                return reply.status(401).send({ error: 'Invalid token' });
-            }
+            if (authenticateRequest(request, reply)) return;
 
             // Resolve rider to get barnId
             const rider = await prisma.rider.findUnique({
-                where: { id: auth.riderId },
+                where: { id: request.auth!.riderId },
                 select: { barnId: true },
             });
             if (!rider) {
@@ -164,12 +157,7 @@ export async function registerSummaryRoutes(
             logPrompt(promptConfig, model, systemPrompt, userMessage);
 
             try {
-                const openaiApiKey = process.env.OPENAI_API_KEY;
-                if (!openaiApiKey) {
-                    throw new Error('OpenAI API key not configured');
-                }
-
-                const openai = new OpenAI({ apiKey: openaiApiKey });
+                const openai = getOpenAI();
 
                 // Generate with single retry on validation failure
                 let content: string | null = null;
