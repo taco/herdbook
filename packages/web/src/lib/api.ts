@@ -6,7 +6,7 @@
  */
 
 function getApiUrl(): string {
-    // In dev, use relative URLs — Vite proxies /graphql and /api to the API server.
+    // In dev, use relative URLs — Vite proxies API routes to the API server.
     // This avoids CORS and certificate issues when testing from LAN devices.
     if (import.meta.env.DEV) {
         return '';

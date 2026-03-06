@@ -9,7 +9,7 @@ import {
 import * as Sentry from '@sentry/node';
 import { setupAiLimiters, withAiRateLimit } from './utils/aiRateLimit';
 import { getOpenAI } from './utils/openai';
-import { authenticateRequest } from './utils/restAuth';
+import { requireAuth } from './utils/restAuth';
 
 // Types for parse-session endpoint
 export interface ParseSessionContext {
@@ -130,13 +130,15 @@ export async function parseTranscript(
 /**
  * Register voice-related REST routes
  */
-export async function registerVoiceRoutes(app: FastifyInstance): Promise<void> {
+export async function registerParseSessionRoutes(
+    app: FastifyInstance
+): Promise<void> {
     const limiters = setupAiLimiters(app);
 
     app.post(
         '/api/parse-session',
         withAiRateLimit(limiters, 'ai', async (request, reply) => {
-            if (authenticateRequest(request, reply)) return;
+            requireAuth(request);
 
             const parts = request.parts();
             let audioBuffer: Buffer | null = null;

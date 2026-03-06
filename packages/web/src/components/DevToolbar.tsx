@@ -1,14 +1,14 @@
 import { useEffect, useState } from 'react';
 import { apiEndpoint } from '@/lib/api';
 
-export function EnvBanner(): React.ReactNode {
+export function DevToolbar(): React.ReactNode {
     const [banner, setBanner] = useState<{
         dbLabel: string;
         bgColor: string;
     } | null>(null);
 
     useEffect(() => {
-        fetch(apiEndpoint('/api/env-banner'))
+        fetch(apiEndpoint('/api/dev/toolbar'))
             .then((res) => {
                 if (!res.ok) return null;
                 return res.json() as Promise<{
@@ -20,7 +20,7 @@ export function EnvBanner(): React.ReactNode {
                 if (data?.dbLabel) setBanner(data);
             })
             .catch(() => {
-                // Silently ignore — production returns 404
+                // Silently ignore — production has no /api/dev routes
             });
     }, []);
 

@@ -75,11 +75,15 @@ export default defineConfig({
         https: httpsConfig || undefined,
         host: true,
         proxy: {
+            '/api': {
+                target: apiTarget,
+                secure: false,
+            },
             '/graphql': {
                 target: apiTarget,
                 secure: false,
             },
-            '/api': {
+            '/health': {
                 target: apiTarget,
                 secure: false,
             },

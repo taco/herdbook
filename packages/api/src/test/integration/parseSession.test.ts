@@ -112,8 +112,8 @@ describe('/api/parse-session', () => {
             });
 
             expect(response.statusCode).toBe(401);
-            const body = JSON.parse(response.body) as { error: string };
-            expect(body.error).toBe('Unauthorized');
+            const body = JSON.parse(response.body) as { message: string };
+            expect(body.message).toBe('Unauthorized');
         },
         TEST_TIMEOUT_MS
     );
@@ -139,8 +139,8 @@ describe('/api/parse-session', () => {
             });
 
             expect(response.statusCode).toBe(401);
-            const body = JSON.parse(response.body) as { error: string };
-            expect(body.error).toBe('Invalid token');
+            const body = JSON.parse(response.body) as { message: string };
+            expect(body.message).toBe('Invalid token');
         },
         TEST_TIMEOUT_MS
     );

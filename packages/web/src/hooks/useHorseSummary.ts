@@ -43,7 +43,7 @@ export function useHorseSummary(): UseHorseSummaryReturn {
 
             try {
                 const response = await fetch(
-                    apiEndpoint('/api/horse-summary'),
+                    apiEndpoint('/api/generate-summary'),
                     {
                         method: 'POST',
                         headers: {

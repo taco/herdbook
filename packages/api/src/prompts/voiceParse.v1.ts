@@ -1,4 +1,4 @@
-import type { ParseSessionContext } from '@/rest/voice';
+import type { ParseSessionContext } from '@/rest/parseSession';
 import type { PromptConfig } from './types';
 
 function formatNameList(items: Array<{ name: string }>): string {
