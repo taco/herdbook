@@ -21,6 +21,7 @@ function workTypeLabel(wt: string): string {
     return WORK_TYPE_LABELS[wt] ?? wt.toLowerCase();
 }
 
+/** Derive workload, trend, focus, and flag signals from a horse's session history for the AI prompt. */
 export function computeSignals(sessions: SessionRow[]): SummarySignals {
     const now = new Date();
     const dates = sessions.map((s) => new Date(s.date));

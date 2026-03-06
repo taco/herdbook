@@ -17,6 +17,7 @@ export interface ValidationResult {
     issues: string[];
 }
 
+/** Check AI-generated summary for formatting violations, advice leakage, and chronological replay. */
 export function validateSummary(text: string): ValidationResult {
     const issues: string[] = [];
 
