@@ -1,7 +1,6 @@
-import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
+import type { FastifyInstance } from 'fastify';
 import OpenAI from 'openai';
 import type { WorkType, Intensity } from '@prisma/client';
-import { verifyToken } from '@/middleware/auth';
 import {
     VOICE_PARSE_PROMPTS,
     type VoiceParseVersion,
@@ -9,6 +8,8 @@ import {
 } from '@/prompts';
 import * as Sentry from '@sentry/node';
 import { setupAiLimiters, withAiRateLimit } from './utils/aiRateLimit';
+import { getOpenAI } from './utils/openai';
+import { authenticateRequest } from './utils/restAuth';
 
 // Types for parse-session endpoint
 export interface ParseSessionContext {
@@ -56,10 +57,7 @@ export async function transcribeAudio(
     audioBuffer: Buffer,
     mimeType: string = 'audio/webm'
 ): Promise<string> {
-    const openaiApiKey = process.env.OPENAI_API_KEY;
-    if (!openaiApiKey) {
-        throw new Error('OpenAI API key not configured');
-    }
+    const openai = getOpenAI();
 
     const extension = mimeType.includes('mp4')
         ? 'mp4'
@@ -67,30 +65,17 @@ export async function transcribeAudio(
           ? 'wav'
           : 'webm';
 
-    const formData = new FormData();
-    const blob = new Blob([audioBuffer], { type: mimeType });
-    formData.append('file', blob, `audio.${extension}`);
-    formData.append('model', 'whisper-1');
-    formData.append('language', 'en');
+    const file = new File([audioBuffer], `audio.${extension}`, {
+        type: mimeType,
+    });
 
-    const response = await fetch(
-        'https://api.openai.com/v1/audio/transcriptions',
-        {
-            method: 'POST',
-            headers: {
-                Authorization: `Bearer ${openaiApiKey}`,
-            },
-            body: formData,
-        }
-    );
+    const response = await openai.audio.transcriptions.create({
+        model: 'whisper-1',
+        file,
+        language: 'en',
+    });
 
-    if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Transcription failed: ${errorText}`);
-    }
-
-    const result = (await response.json()) as { text: string };
-    return result.text;
+    return response.text;
 }
 
 /**
@@ -105,12 +90,7 @@ export async function parseTranscript(
     raw: RawParsedSession;
     usage: OpenAI.CompletionUsage | undefined;
 }> {
-    const openaiApiKey = process.env.OPENAI_API_KEY;
-    if (!openaiApiKey) {
-        throw new Error('OpenAI API key not configured');
-    }
-
-    const openai = new OpenAI({ apiKey: openaiApiKey });
+    const openai = getOpenAI();
     const promptVersion = options?.promptVersion ?? 'v2';
     const promptConfig = VOICE_PARSE_PROMPTS[promptVersion];
     const model = resolveModel(promptConfig);
@@ -156,14 +136,7 @@ export async function registerVoiceRoutes(app: FastifyInstance): Promise<void> {
     app.post(
         '/api/parse-session',
         withAiRateLimit(limiters, 'ai', async (request, reply) => {
-            // Authenticate user
-            const authHeader = request.headers.authorization;
-            if (!authHeader || !authHeader.startsWith('Bearer ')) {
-                return reply.status(401).send({ error: 'Unauthorized' });
-            }
-            if (!verifyToken(authHeader)) {
-                return reply.status(401).send({ error: 'Invalid token' });
-            }
+            if (authenticateRequest(request, reply)) return;
 
             const parts = request.parts();
             let audioBuffer: Buffer | null = null;

@@ -14,14 +14,14 @@ import jwt from 'jsonwebtoken';
 import { getJwtSecretOrThrow, getCorsOrigin, isDevelopment } from '@/config';
 import { createResolvers, type Context } from '@/graphql/resolvers';
 import { secureByDefaultTransformer } from '@/graphql/directives';
-import { buildContext } from '@/middleware/auth';
+import { buildContext } from '@/graphql/utils/buildContext';
 import { registerVoiceRoutes } from '@/rest/voice';
 import { registerSummaryRoutes } from '@/rest/horseSummary';
 import { registerHealthRoutes } from '@/rest/health';
 import { registerEnvBannerRoutes } from '@/rest/envBanner';
 import * as Sentry from '@sentry/node';
 import { prisma } from '@/db';
-import { sentryApolloPlugin } from '@/lib/sentryApolloPlugin';
+import { sentryApolloPlugin } from '@/graphql/utils/sentryApolloPlugin';
 
 function readSchemaSDLOrThrow(): string {
     // In dev/test, this file lives next to this module in `src/graphql/`.
