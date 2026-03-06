@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { getRefreshCooldownHours, getSummaryStatus } from './summaryStatus';
 
 const mockSessionCount = vi.fn();
@@ -16,6 +16,10 @@ vi.mock('@/db', () => ({
 vi.mock('@/config', () => ({
     isDevelopment: () => false,
 }));
+
+afterEach(() => {
+    vi.useRealTimers();
+});
 
 describe('getRefreshCooldownHours', () => {
     beforeEach(() => {

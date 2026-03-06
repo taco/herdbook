@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { getWeeklyActivity } from './weeklyActivity';
 
 const mockFindMany = vi.fn();
@@ -10,6 +10,10 @@ vi.mock('@/db', () => ({
         },
     },
 }));
+
+afterEach(() => {
+    vi.useRealTimers();
+});
 
 describe('getWeeklyActivity', () => {
     beforeEach(() => {
