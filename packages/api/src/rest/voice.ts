@@ -51,7 +51,7 @@ function resolveNameToId(
 }
 
 /**
- * Transcribe audio using OpenAI Whisper
+ * Transcribe audio using OpenAI Whisper SDK
  */
 export async function transcribeAudio(
     audioBuffer: Buffer,
@@ -69,13 +69,13 @@ export async function transcribeAudio(
         type: mimeType,
     });
 
-    const response = await openai.audio.transcriptions.create({
+    const transcription = await openai.audio.transcriptions.create({
         model: 'whisper-1',
         file,
         language: 'en',
     });
 
-    return response.text;
+    return transcription.text;
 }
 
 /**

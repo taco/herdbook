@@ -1,6 +1,5 @@
 import type { FastifyInstance } from 'fastify';
 import OpenAI from 'openai';
-import { isDevelopment } from '@/config';
 import { prisma } from '@/db';
 import {
     HORSE_SUMMARY_PROMPTS,
@@ -12,12 +11,12 @@ import {
 import * as Sentry from '@sentry/node';
 import { setupAiLimiters, withAiRateLimit } from './utils/aiRateLimit';
 import { getOpenAI } from './utils/openai';
-import { computeSignals } from './utils/computeSignals';
+import { computeSignals } from '@/utils/sessionSignals';
 import {
     validateSummary,
     stripFormattingArtifacts,
-} from './utils/validateSummary';
-import { getRefreshCooldownHours } from './utils/summaryUtils';
+} from '@/utils/summaryValidation';
+import { getSummaryStatus } from '@/utils/summaryStatus';
 import { authenticateRequest } from './utils/restAuth';
 
 export async function registerSummaryRoutes(
@@ -71,43 +70,28 @@ export async function registerSummaryRoutes(
             }
 
             // Check existing summary staleness and cooldown (skip in dev)
-            if (!isDevelopment() && horse.summaryGeneratedAt) {
-                const newSessions = await prisma.session.count({
-                    where: {
-                        horseId,
-                        createdAt: { gt: horse.summaryGeneratedAt },
-                    },
-                });
+            if (horse.summaryGeneratedAt) {
+                const { stale, refreshAvailableAt } = await getSummaryStatus(
+                    horseId,
+                    horse.summaryGeneratedAt
+                );
 
-                if (newSessions === 0) {
+                if (!stale) {
                     return reply.status(400).send({
                         error: 'NOT_STALE',
                         message: 'Summary is already up to date.',
                     });
                 }
 
-                const latestSession = await prisma.session.findFirst({
-                    where: { horseId },
-                    orderBy: { date: 'desc' },
-                    select: { date: true },
-                });
-                if (latestSession) {
-                    const cooldownHours = getRefreshCooldownHours(
-                        latestSession.date
-                    );
-                    const refreshAvailableAt = new Date(
-                        horse.summaryGeneratedAt.getTime() +
-                            cooldownHours * 60 * 60 * 1000
-                    );
-
-                    if (Date.now() < refreshAvailableAt.getTime()) {
-                        return reply.status(400).send({
-                            error: 'COOLDOWN_ACTIVE',
-                            message: `Summary can be refreshed after ${refreshAvailableAt.toISOString()}.`,
-                            refreshAvailableAt:
-                                refreshAvailableAt.toISOString(),
-                        });
-                    }
+                if (
+                    refreshAvailableAt &&
+                    Date.now() < refreshAvailableAt.getTime()
+                ) {
+                    return reply.status(400).send({
+                        error: 'COOLDOWN_ACTIVE',
+                        message: `Summary can be refreshed after ${refreshAvailableAt.toISOString()}.`,
+                        refreshAvailableAt: refreshAvailableAt.toISOString(),
+                    });
                 }
             }
 
