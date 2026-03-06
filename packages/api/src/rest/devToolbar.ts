@@ -1,5 +1,4 @@
 import type { FastifyInstance } from 'fastify';
-import { isDevelopment } from '@/config';
 
 function parseDbName(): string {
     try {
@@ -10,14 +9,10 @@ function parseDbName(): string {
     }
 }
 
-export async function registerEnvBannerRoutes(
+export async function registerDevToolbarRoutes(
     app: FastifyInstance
 ): Promise<void> {
-    app.get('/api/env-banner', async (_request, reply) => {
-        if (!isDevelopment()) {
-            return reply.status(404).send();
-        }
-
+    app.get('/toolbar', async () => {
         const dbLabel = process.env.DATABASE_LABEL || parseDbName();
         const bgColor = process.env.DATABASE_LABEL_COLOR || '#facc15';
         return { dbLabel, bgColor };

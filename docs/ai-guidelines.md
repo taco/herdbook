@@ -25,12 +25,12 @@ Every AI feature must specify a model tier. Choose the cheapest tier that handle
 
 ### Current feature assignments
 
-| Feature               | Tier  | Model        | Env Override        | Prompt                           | Endpoint                   |
-| --------------------- | ----- | ------------ | ------------------- | -------------------------------- | -------------------------- |
-| Voice transcription   | —     | `whisper-1`  | —                   | —                                | `src/rest/voice.ts`        |
-| Voice parse           | Full  | `gpt-5.2`    | `VOICE_PARSE_MODEL` | `src/prompts/voiceParse.v2.ts`   | `src/rest/voice.ts`        |
-| Horse summary         | Floor | `gpt-5-mini` | `SUMMARY_MODEL`     | `src/prompts/horseSummary.v1.ts` | `src/rest/horseSummary.ts` |
-| Enrichment extraction | Floor | `gpt-5-mini` | `ENRICHMENT_MODEL`  | TBD                              | TBD                        |
+| Feature               | Tier  | Model        | Env Override        | Prompt                           | Endpoint                      |
+| --------------------- | ----- | ------------ | ------------------- | -------------------------------- | ----------------------------- |
+| Voice transcription   | —     | `whisper-1`  | —                   | —                                | `src/rest/parseSession.ts`    |
+| Voice parse           | Full  | `gpt-5.2`    | `VOICE_PARSE_MODEL` | `src/prompts/voiceParse.v2.ts`   | `src/rest/parseSession.ts`    |
+| Horse summary         | Floor | `gpt-5-mini` | `SUMMARY_MODEL`     | `src/prompts/horseSummary.v1.ts` | `src/rest/generateSummary.ts` |
+| Enrichment extraction | Floor | `gpt-5-mini` | `ENRICHMENT_MODEL`  | TBD                              | TBD                           |
 
 All paths relative to `packages/api/`.
 

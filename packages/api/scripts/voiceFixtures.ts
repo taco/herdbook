@@ -1,4 +1,4 @@
-import type { ParseSessionContext } from '../src/rest/voice';
+import type { ParseSessionContext } from '../src/rest/parseSession';
 
 export const TEST_CONTEXT: ParseSessionContext = {
     horses: [

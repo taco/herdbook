@@ -17,21 +17,21 @@ import {
     stripFormattingArtifacts,
 } from '@/utils/summaryValidation';
 import { getSummaryStatus } from '@/utils/summaryStatus';
-import { authenticateRequest } from './utils/restAuth';
+import { requireAuth } from './utils/restAuth';
 
-export async function registerSummaryRoutes(
+export async function registerGenerateSummaryRoutes(
     app: FastifyInstance
 ): Promise<void> {
     const limiters = setupAiLimiters(app);
 
     app.post(
-        '/api/horse-summary',
+        '/api/generate-summary',
         withAiRateLimit(limiters, 'ai', async (request, reply) => {
-            if (authenticateRequest(request, reply)) return;
+            const auth = requireAuth(request);
 
             // Resolve rider to get barnId
             const rider = await prisma.rider.findUnique({
-                where: { id: request.auth!.riderId },
+                where: { id: auth.riderId },
                 select: { barnId: true },
             });
             if (!rider) {
@@ -205,7 +205,7 @@ export async function registerSummaryRoutes(
                 };
             } catch (error) {
                 Sentry.captureException(error, {
-                    tags: { 'rest.route': '/api/horse-summary' },
+                    tags: { 'rest.route': '/api/generate-summary' },
                     extra: { horseId },
                 });
                 console.error('[horse-summary] Generation error:', error);

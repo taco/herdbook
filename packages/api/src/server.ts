@@ -15,10 +15,10 @@ import { getJwtSecretOrThrow, getCorsOrigin, isDevelopment } from '@/config';
 import { createResolvers, type Context } from '@/graphql/resolvers';
 import { secureByDefaultTransformer } from '@/graphql/directives';
 import { buildContext } from '@/graphql/utils/buildContext';
-import { registerVoiceRoutes } from '@/rest/voice';
-import { registerSummaryRoutes } from '@/rest/horseSummary';
+import { registerParseSessionRoutes } from '@/rest/parseSession';
+import { registerGenerateSummaryRoutes } from '@/rest/generateSummary';
 import { registerHealthRoutes } from '@/rest/health';
-import { registerEnvBannerRoutes } from '@/rest/envBanner';
+import { registerDevToolbarRoutes } from '@/rest/devToolbar';
 import * as Sentry from '@sentry/node';
 import { prisma } from '@/db';
 import { sentryApolloPlugin } from '@/graphql/utils/sentryApolloPlugin';
@@ -69,9 +69,16 @@ export async function createApiApp(httpsOptions?: {
 
     // REST routes
     await registerHealthRoutes(app);
-    await registerEnvBannerRoutes(app);
-    await registerVoiceRoutes(app);
-    await registerSummaryRoutes(app);
+    if (isDevelopment()) {
+        await app.register(
+            async (devApp) => {
+                await registerDevToolbarRoutes(devApp);
+            },
+            { prefix: '/api/dev' }
+        );
+    }
+    await registerParseSessionRoutes(app);
+    await registerGenerateSummaryRoutes(app);
 
     // GraphQL
     const schema = secureByDefaultTransformer(

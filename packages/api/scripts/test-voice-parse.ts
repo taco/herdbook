@@ -4,7 +4,7 @@ import { readFileSync, appendFileSync } from 'node:fs';
 import { SAMPLE_TRANSCRIPTS, TEST_CONTEXT } from './voiceFixtures';
 import { VOICE_PARSE_PROMPTS, type VoiceParseVersion } from '../src/prompts';
 import { estimateCost, formatCost, SUPPORTED_MODELS } from './voiceCost';
-import type { ParseSessionContext } from '../src/rest/voice';
+import type { ParseSessionContext } from '../src/rest/parseSession';
 import OpenAI from 'openai';
 
 // --- CLI argument parsing ---
