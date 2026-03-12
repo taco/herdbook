@@ -13,7 +13,7 @@ interface BarnNameEditSheetProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     currentName: string;
-    onSave: (name: string) => void;
+    onSave: (name: string) => Promise<void>;
     saving: boolean;
     error?: string | null;
 }
@@ -35,9 +35,9 @@ export default function BarnNameEditSheet({
     const trimmed = name.trim();
     const canSave = trimmed.length > 0 && trimmed.length <= 100 && !saving;
 
-    const handleSave = (): void => {
+    const handleSave = async (): Promise<void> => {
         if (canSave) {
-            onSave(trimmed);
+            await onSave(trimmed);
         }
     };
 
