@@ -32,7 +32,7 @@ interface FieldEditSheetProps {
     onOpenChange: (open: boolean) => void;
     fieldType: FieldType | null;
     value: string | number | WorkType | null;
-    onSave: (value: string | number | WorkType | null) => void;
+    onSave: (value: string | number | WorkType | null) => void | Promise<void>;
 }
 
 const TITLES: Record<FieldType, string> = {
@@ -49,7 +49,7 @@ export default function FieldEditSheet({
     fieldType,
     value,
     onSave,
-}: FieldEditSheetProps) {
+}: FieldEditSheetProps): React.ReactNode {
     const [localValue, setLocalValue] = useState<
         string | number | WorkType | null
     >(value);
@@ -71,13 +71,13 @@ export default function FieldEditSheet({
         setLocalValue(value);
     }, [value, open]);
 
-    const handleSelect = (key: string) => {
-        onSave(key);
+    const handleSelect = async (key: string): Promise<void> => {
+        await onSave(key);
         onOpenChange(false);
     };
 
-    const handleSave = () => {
-        onSave(localValue);
+    const handleSave = async (): Promise<void> => {
+        await onSave(localValue);
         onOpenChange(false);
     };
 

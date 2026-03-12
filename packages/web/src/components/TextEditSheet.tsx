@@ -11,7 +11,7 @@ interface TextEditSheetProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     value: string;
-    onSave: (value: string) => void;
+    onSave: (value: string) => void | Promise<void>;
     placeholder?: string;
 }
 
@@ -28,9 +28,9 @@ export default function TextEditSheet({
         setLocalValue(value);
     }, [value, open]);
 
-    const handleOpenChange = (nextOpen: boolean): void => {
+    const handleOpenChange = async (nextOpen: boolean): Promise<void> => {
         if (!nextOpen) {
-            onSave(localValue);
+            await onSave(localValue);
         }
         onOpenChange(nextOpen);
     };
