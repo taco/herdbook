@@ -5,6 +5,7 @@ import { VitePWA } from 'vite-plugin-pwa';
 import { sentryVitePlugin } from '@sentry/vite-plugin';
 import path from 'path';
 import fs from 'fs';
+import { execSync } from 'child_process';
 
 function getHttpsConfig(): { key: string; cert: string } | false {
     if (process.env.USE_HTTPS === 'false') {
@@ -18,12 +19,24 @@ function getHttpsConfig(): { key: string; cert: string } | false {
     return false;
 }
 
+const gitSha = (() => {
+    try {
+        return execSync('git rev-parse --short HEAD').toString().trim();
+    } catch {
+        return 'unknown';
+    }
+})();
+
 const httpsConfig = getHttpsConfig();
 const apiTarget =
     process.env.VITE_API_URL ??
     (httpsConfig ? 'https://localhost:4000' : 'http://localhost:4000');
 
 export default defineConfig({
+    define: {
+        __BUILD_SHA__: JSON.stringify(gitSha),
+        __BUILD_TIME__: JSON.stringify(new Date().toISOString()),
+    },
     build: {
         sourcemap: 'hidden',
     },
@@ -31,7 +44,7 @@ export default defineConfig({
         react(),
         tailwindcss(),
         VitePWA({
-            registerType: 'autoUpdate',
+            registerType: 'prompt',
             manifest: {
                 name: 'Herdbook',
                 short_name: 'Herdbook',
