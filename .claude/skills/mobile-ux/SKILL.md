@@ -111,8 +111,8 @@ After analysis, produce a summary with:
 
 ## Reference Files
 
-- `docs/design-navigation.md` — layout rules, mobile conventions, accessibility
-- `docs/design-ai-horse-intelligence.md` — example of this methodology applied
+- `docs/design/navigation.md` — layout rules, mobile conventions, accessibility
+- `docs/design/ai-horse-intelligence.md` — example of this methodology applied
 - `packages/web/src/pages/HorseProfile.tsx` — reference page with good mobile patterns
 - `packages/web/src/components/ui/sheet.tsx` — bottom sheet component
 - `packages/web/src/components/ui/skeleton.tsx` — loading states

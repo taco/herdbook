@@ -13,15 +13,15 @@ AI-powered training summaries and recommendations on horse profile pages. Two ti
 
 Factual, data-driven summary of a horse's recent training history. Shipped end-to-end:
 
-| Component        | Location                                                                                                        |
-| ---------------- | --------------------------------------------------------------------------------------------------------------- |
-| REST endpoint    | [`packages/api/src/rest/horseSummary.ts`](../packages/api/src/rest/horseSummary.ts)                             |
-| Prompt config    | [`packages/api/src/prompts/horseSummary.v1.ts`](../packages/api/src/prompts/horseSummary.v1.ts)                 |
-| Frontend section | [`packages/web/src/components/HorseSummarySection.tsx`](../packages/web/src/components/HorseSummarySection.tsx) |
-| Data hook        | [`packages/web/src/hooks/useHorseSummary.ts`](../packages/web/src/hooks/useHorseSummary.ts)                     |
-| GraphQL type     | `HorseSummary` in schema.graphql                                                                                |
+| Component        | Location                                                                                                           |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------ |
+| REST endpoint    | [`packages/api/src/rest/generateSummary.ts`](../../packages/api/src/rest/generateSummary.ts)                       |
+| Prompt config    | [`packages/api/src/prompts/horseSummary.v1.ts`](../../packages/api/src/prompts/horseSummary.v1.ts)                 |
+| Frontend section | [`packages/web/src/components/HorseSummarySection.tsx`](../../packages/web/src/components/HorseSummarySection.tsx) |
+| Data hook        | [`packages/web/src/hooks/useHorseSummary.ts`](../../packages/web/src/hooks/useHorseSummary.ts)                     |
+| GraphQL type     | `HorseSummary` in schema.graphql                                                                                   |
 
-**Model:** `gpt-5-mini` (Floor tier). See [ai-guidelines.md](ai-guidelines.md) for model tiers.
+**Model:** `gpt-5-mini` (Floor tier). See [ai-guidelines.md](../ai-guidelines.md) for model tiers.
 
 **Implementation note:** The actual implementation differs from the original design below — summary data is stored on the Horse model directly (`summaryContent`, `summaryGeneratedAt`) rather than a separate `HorseSummary` Prisma model. The GraphQL layer exposes a `HorseSummary` type with computed fields.
 

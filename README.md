@@ -36,6 +36,19 @@ React SPA → Fastify GraphQL API → PostgreSQL. AI features call OpenAI (Whisp
 | Navigation system      | [`web/src/hooks/useAppNavigate`](packages/web/src/hooks/useAppNavigate.ts)    | View Transitions API for native-feeling page animations. Two layout types: tab bar and full-screen overlay.                                    |
 | E2E test tiers         | [`e2e/tests/`](packages/e2e/tests/)                                           | Smoke (auth, nav) runs on PRs. Full regression (Pixel 5 + iPhone 12) runs on main and nightly cron.                                            |
 
+## Engineering Decisions
+
+Key architectural choices are documented as [ADRs](docs/adr/) — each covers the problem, the decision, alternatives considered, and consequences.
+
+| Decision                                                                         | Core trade-off                                                                                    |
+| -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| [GraphQL Data-Fetching Strategy](docs/adr/001-graphql-data-fetching.md)          | Uniform DataLoaders everywhere vs. optimizing per-resolver — why we batch even when N=1           |
+| [GraphQL Authorization Strategy](docs/adr/002-graphql-authorization-strategy.md) | Deny-all schema transformer vs. per-resolver auth checks — making "forgot to add auth" impossible |
+| [Multi-Tenant Data Isolation](docs/adr/003-multi-tenant-data-isolation.md)       | Postgres RLS vs. application-level filtering — why the database is the last line of defense       |
+| [AI Feature Architecture](docs/adr/004-ai-feature-architecture.md)               | Prompt registry + model tiers + rate limiting — cost discipline for LLM features                  |
+| [API Protocol Boundary](docs/adr/005-api-protocol-boundary.md)                   | GraphQL for data, REST for AI pipelines — when to break the "one API style" rule                  |
+| [Target Device Strategy](docs/adr/006-target-device-strategy.md)                 | Mobile-only vs. responsive — why skipping desktop halves the engineering surface                  |
+
 ## Tech Stack
 
 | Layer   | Stack                                                        |
@@ -46,7 +59,49 @@ React SPA → Fastify GraphQL API → PostgreSQL. AI features call OpenAI (Whisp
 | Infra   | Railway (hosting), Neon (database branching), GitHub Actions |
 | Ops     | Sentry (error + performance tracing, API + web)              |
 
-## Project Structure
+<details>
+<summary><strong>Development Setup</strong></summary>
+
+### Getting Started
+
+**Prerequisites**: Node.js (see `.node-version`), pnpm 10.4+, PostgreSQL
+
+```bash
+cp packages/api/.env.example .env.api.local  # Add DATABASE_URL, JWT_SECRET, OPENAI_API_KEY
+pnpm env:local                # Point API at local database
+pnpm run init                 # Install deps + generate Prisma client
+pnpm --filter api run prisma:migrate  # Run migrations
+pnpm dev                      # Start API (port 4000) + Web (port 5173)
+```
+
+### Testing
+
+```bash
+pnpm run test       # Unit/integration tests (Vitest)
+pnpm run test:e2e   # Full E2E suite (spins up Docker Postgres, runs Playwright)
+pnpm run check      # Format check + typecheck (also runs as pre-commit hook)
+```
+
+E2E tests are split into **smoke** (fast, PR-blocking) and **regression** (full feature coverage, runs on main + nightly). Docker must be running — the test harness handles container lifecycle automatically.
+
+### Environment Management
+
+Environment config lives at the repo root as `.env.api.*` files (gitignored), symlinked into `packages/api/.env`:
+
+```bash
+pnpm env:local      # Local PostgreSQL (default)
+pnpm env:neon-dev   # Neon dev branch (child of production)
+pnpm env:neon-prod  # Neon production
+pnpm env:status     # Check which env is active
+```
+
+| Variable         | Description                                       |
+| ---------------- | ------------------------------------------------- |
+| `DATABASE_URL`   | PostgreSQL connection string                      |
+| `JWT_SECRET`     | Secret for signing JWTs (32+ chars in production) |
+| `OPENAI_API_KEY` | Required for voice capture and AI summaries       |
+
+### Project Structure
 
 ```
 herdbook/
@@ -64,48 +119,13 @@ herdbook/
 │   │       ├── layouts/  # TabLayout, FullScreenLayout
 │   │       └── components/
 │   └── e2e/              # Playwright tests (smoke + regression)
-├── docs/                 # Design docs and product roadmap
+├── docs/
+│   ├── adr/              # Architecture decision records
+│   └── design/           # Feature design docs
 └── scripts/              # Dev tooling
 ```
 
-## Getting Started
-
-**Prerequisites**: Node.js (see `.node-version`), pnpm 10.4+, PostgreSQL
-
-```bash
-cp packages/api/.env.example .env.api.local  # Add DATABASE_URL, JWT_SECRET, OPENAI_API_KEY
-pnpm env:local                # Point API at local database
-pnpm run init                 # Install deps + generate Prisma client
-pnpm --filter api run prisma:migrate  # Run migrations
-pnpm dev                      # Start API (port 4000) + Web (port 5173)
-```
-
-## Testing
-
-```bash
-pnpm run test       # Unit/integration tests (Vitest)
-pnpm run test:e2e   # Full E2E suite (spins up Docker Postgres, runs Playwright)
-pnpm run check      # Format check + typecheck (also runs as pre-commit hook)
-```
-
-E2E tests are split into **smoke** (fast, PR-blocking) and **regression** (full feature coverage, runs on main + nightly). Docker must be running — the test harness handles container lifecycle automatically.
-
-## Environment Management
-
-Environment config lives at the repo root as `.env.api.*` files (gitignored), symlinked into `packages/api/.env`:
-
-```bash
-pnpm env:local      # Local PostgreSQL (default)
-pnpm env:neon-dev   # Neon dev branch (child of production)
-pnpm env:neon-prod  # Neon production
-pnpm env:status     # Check which env is active
-```
-
-| Variable         | Description                                       |
-| ---------------- | ------------------------------------------------- |
-| `DATABASE_URL`   | PostgreSQL connection string                      |
-| `JWT_SECRET`     | Secret for signing JWTs (32+ chars in production) |
-| `OPENAI_API_KEY` | Required for voice capture and AI summaries       |
+</details>
 
 ## License
 

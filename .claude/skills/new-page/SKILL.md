@@ -20,7 +20,7 @@ Read these files to match current patterns:
 - **Edit/create form**: `packages/web/src/pages/EditHorse.tsx` or `packages/web/src/pages/EditSession.tsx`
 - **Navigation hook**: `packages/web/src/hooks/useAppNavigate.ts`
 - **Layout components**: `packages/web/src/layouts/TabLayout.tsx`, `packages/web/src/layouts/FullScreenLayout.tsx`
-- **Design doc**: `docs/design-navigation.md` (layout rules, view/edit cascade, drawer editing, animation)
+- **Design doc**: `docs/design/navigation.md` (layout rules, view/edit cascade, drawer editing, animation)
 
 ## Steps
 
@@ -32,7 +32,7 @@ Read these files to match current patterns:
 
 - FullScreen pages: header with back button (`aria-label="Go back"`)
 - View/edit cascade: edit overlay slides in from right (read `SessionDetail.tsx` for pattern)
-- Drawer editing: SummaryRow + FieldEditSheet (read `docs/design-navigation.md`)
+- Drawer editing: SummaryRow + FieldEditSheet (read `docs/design/navigation.md`)
 - Apollo cache: evict after mutations (see Cache Pattern below)
 - Post-save: create → `backTo('/')`, edit overlay → close overlay, delete → `backTo('/')`
 - Mobile: 44x44px touch targets, `pb-20` for tab bar padding, `min-h-dvh` for full screen
