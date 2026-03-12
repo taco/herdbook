@@ -33,12 +33,12 @@ This is a **conversation, not a pipeline**. Every step pauses for alignment befo
 
 Based on the agreed approach, recommend the right level of overhead:
 
-| Scope level          | When                                                      | What happens next                            |
-| -------------------- | --------------------------------------------------------- | -------------------------------------------- |
-| **Just build it**    | Small enough for a feature branch right now               | Start working or suggest `/gh-issue`         |
-| **A few issues**     | Needs to be broken into shippable slices                  | Create issues, optionally a milestone        |
-| **Design doc first** | Big enough or uncertain enough to write down the approach | Write `docs/design-*.md`, then derive issues |
-| **Just capture it**  | User wants to remember the idea but not act yet           | Single issue or note                         |
+| Scope level          | When                                                      | What happens next                                 |
+| -------------------- | --------------------------------------------------------- | ------------------------------------------------- |
+| **Just build it**    | Small enough for a feature branch right now               | Start working or suggest `/gh-issue`              |
+| **A few issues**     | Needs to be broken into shippable slices                  | Create issues, optionally a milestone             |
+| **Design doc first** | Big enough or uncertain enough to write down the approach | Write `docs/design/<name>.md`, then derive issues |
+| **Just capture it**  | User wants to remember the idea but not act yet           | Single issue or note                              |
 
 - **Bias toward lightweight** — default to "just build it" unless complexity is clearly there
 - **Pause** — user confirms the scope level
@@ -55,7 +55,7 @@ Based on the agreed approach, recommend the right level of overhead:
 | -------------------- | ------------------------------------------------------------------------------- |
 | **Just build it**    | Start working or suggest `/gh-issue`                                            |
 | **A few issues**     | Invoke `/write-issue` for each agreed issue, then create with `gh issue create` |
-| **Design doc first** | Write full draft to `docs/design-*.md`, then derive and create issues           |
+| **Design doc first** | Write full draft to `docs/design/<name>.md`, then derive and create issues      |
 | **Just capture it**  | Create a single issue or add to `docs/product-roadmap.md`                       |
 
 ## Key Rules
@@ -68,7 +68,7 @@ Based on the agreed approach, recommend the right level of overhead:
 
 ## Design Doc Format
 
-When writing a design doc, follow the existing format in `docs/design-*.md`:
+When writing a design doc, follow the existing format in `docs/design/`:
 
 1. **Context** — what's the problem, current state
 2. **Strategic Decisions** — key choices with reasoning
@@ -76,7 +76,7 @@ When writing a design doc, follow the existing format in `docs/design-*.md`:
 4. **Future** — things explicitly deferred
 5. **Verification** — how to confirm the design worked
 
-Reference: `docs/design-barns-multi-tenancy.md`
+Reference: `docs/design/barns-multi-tenancy.md`
 
 ## After Issues Are Created
 
