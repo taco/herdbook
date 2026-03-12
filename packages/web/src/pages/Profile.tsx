@@ -58,8 +58,13 @@ export default function Profile() {
             </Button>
 
             <p className="text-center text-xs text-muted-foreground/60">
-                Version: {__BUILD_SHA__} &middot;{' '}
-                {new Date(__BUILD_TIME__).toLocaleDateString()}
+                Build:{' '}
+                {new Date(__BUILD_TIME__).toLocaleString('en-US', {
+                    dateStyle: 'medium',
+                    timeStyle: 'short',
+                    timeZone: 'UTC',
+                })}{' '}
+                UTC
             </p>
         </div>
     );

@@ -25,9 +25,6 @@ const apiTarget =
 
 export default defineConfig({
     define: {
-        __BUILD_SHA__: JSON.stringify(
-            process.env.RAILWAY_DEPLOYMENT_ID?.slice(0, 7) ?? 'unknown'
-        ),
         __BUILD_TIME__: JSON.stringify(new Date().toISOString()),
     },
     build: {
