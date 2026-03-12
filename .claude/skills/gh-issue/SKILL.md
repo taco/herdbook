@@ -35,8 +35,24 @@ Check that the current environment matches the issue:
 3. **Check branch name looks right** for this issue (e.g., branch contains a slug derived from the issue title). If it doesn't match, ask the user if they're in the right worktree before proceeding.
 
 4. **Track the issue number** for statusline:
+
     ```bash
     printf "ISSUE=<issue_number>\n" > .state
+    ```
+
+5. **Set project board status to In Progress:**
+    ```bash
+    # Substitute the issue number as an integer, not a string
+    ITEM_ID=$(gh project item-list 1 --owner taco --limit 100 --format json | python3 -c "
+    import json, sys
+    for item in json.load(sys.stdin)['items']:
+        if item['content'].get('number') == <issue_number>:
+            print(item['id']); break
+    ")
+    if [ -z "$ITEM_ID" ]; then echo "ERROR: issue not found in project"; fi
+    # Status field: PVTSSF_lAHOACMj-84BRjUGzg_WM4I, "In Progress": 47fc9ee4
+    gh project item-edit --project-id PVT_kwHOACMj-84BRjUG --id $ITEM_ID \
+      --field-id PVTSSF_lAHOACMj-84BRjUGzg_WM4I --single-select-option-id 47fc9ee4
     ```
 
 Display a summary: title, description, labels, and any relevant comments.

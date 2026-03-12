@@ -109,6 +109,18 @@ Leave the codebase slightly better than you found it. When a change reveals near
 - The top message should be short and easy to read without losing context
 - Seperate details should be order in terms for weight, most important at the top
 
+## Project Board
+
+All issues are tracked in the [Herdbook Backlog](https://github.com/users/taco/projects/1) GitHub Project (project #1, owner: taco).
+
+- **Priority lives on the board** (custom field), not in labels. Do not create priority labels.
+- Every new issue must be added to the project with **Priority**, **Type**, and **Package** fields set (see `/write-issue` skill for field IDs).
+- When starting work on an issue, set its Status to **In Progress** (see `/gh-issue` skill).
+- **Active milestone**: Marked with `[ACTIVE]` prefix in its GitHub description. Issues in the active milestone default to P2-medium; other milestones default to P3-low. Bugs always default to P1-high regardless of milestone.
+    - Query: `gh api repos/taco/herdbook/milestones --jq '.[] | select(.description | startswith("[ACTIVE]"))'`
+    - To change: remove `[ACTIVE]` from old milestone description, add to new one.
+- Cherry-picking across milestones is fine — priority on the board is the final word on what to work next.
+
 ## Design Docs
 
 - After `/design` creates issues on GitHub, update the design doc's issue headings to use real issue numbers with full links: `### [#84](https://github.com/taco/herdbook/issues/84): Title`
