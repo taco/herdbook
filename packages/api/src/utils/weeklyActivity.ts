@@ -13,9 +13,10 @@ export async function getWeeklyActivity(
     horseId: string,
     weeks: number
 ): Promise<WeekBucket[]> {
+    const cappedWeeks = Math.min(weeks, 52);
     const now = new Date();
     const startDate = new Date(now);
-    startDate.setDate(startDate.getDate() - weeks * 7);
+    startDate.setDate(startDate.getDate() - cappedWeeks * 7);
 
     const sessions = await prisma.session.findMany({
         where: {
@@ -28,7 +29,7 @@ export async function getWeeklyActivity(
     });
 
     const activity: WeekBucket[] = [];
-    for (let i = 0; i < weeks; i++) {
+    for (let i = 0; i < cappedWeeks; i++) {
         const weekEnd = new Date(now);
         weekEnd.setDate(weekEnd.getDate() - i * 7);
         const weekStart = new Date(weekEnd);

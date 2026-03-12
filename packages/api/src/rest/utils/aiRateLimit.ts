@@ -66,10 +66,11 @@ export function withAiRateLimit(
         ];
         for (const [name, limiter] of checks) {
             const rl = await limiter(request);
-            if (!rl.isAllowed && rl.isExceeded) {
+            if (!rl.isAllowed && (rl.isExceeded || rl.isBanned)) {
                 const key = rateLimitKey(request);
+                const reason = rl.isBanned ? 'banned' : 'exceeded';
                 console.warn(
-                    `[rest:rate-limit] ${bucket}:${name} exceeded for ${request.url} — key=${key}, ttl=${rl.ttl}s`
+                    `[rest:rate-limit] ${bucket}:${name} ${reason} for ${request.url} — key=${key}, ttl=${rl.ttl}s`
                 );
                 const message =
                     name === 'daily'
