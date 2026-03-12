@@ -66,7 +66,7 @@ export function withAiRateLimit(
         ];
         for (const [name, limiter] of checks) {
             const rl = await limiter(request);
-            if (!rl.isAllowed && rl.isExceeded) {
+            if (!rl.isAllowed && (rl.isExceeded || rl.isBanned)) {
                 const key = rateLimitKey(request);
                 console.warn(
                     `[rest:rate-limit] ${bucket}:${name} exceeded for ${request.url} — key=${key}, ttl=${rl.ttl}s`

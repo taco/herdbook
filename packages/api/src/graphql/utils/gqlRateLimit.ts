@@ -50,7 +50,7 @@ export async function enforceRateLimit(
     code = 'RATE_LIMITED'
 ): Promise<void> {
     const res = await limiter(context.reply.request);
-    if (!res.isAllowed && res.isExceeded) {
+    if (!res.isAllowed && (res.isExceeded || res.isBanned)) {
         console.warn(
             `[gql:rate-limit] ${bucket} bucket exceeded for ${resolverName} — key=${res.key}, ttl=${res.ttl}s`
         );
