@@ -5,7 +5,6 @@ import { VitePWA } from 'vite-plugin-pwa';
 import { sentryVitePlugin } from '@sentry/vite-plugin';
 import path from 'path';
 import fs from 'fs';
-import { execSync } from 'child_process';
 
 function getHttpsConfig(): { key: string; cert: string } | false {
     if (process.env.USE_HTTPS === 'false') {
@@ -19,17 +18,6 @@ function getHttpsConfig(): { key: string; cert: string } | false {
     return false;
 }
 
-const gitSha = (() => {
-    if (process.env.RAILWAY_GIT_COMMIT_SHA) {
-        return process.env.RAILWAY_GIT_COMMIT_SHA.slice(0, 7);
-    }
-    try {
-        return execSync('git rev-parse --short HEAD').toString().trim();
-    } catch {
-        return 'unknown';
-    }
-})();
-
 const httpsConfig = getHttpsConfig();
 const apiTarget =
     process.env.VITE_API_URL ??
@@ -37,7 +25,9 @@ const apiTarget =
 
 export default defineConfig({
     define: {
-        __BUILD_SHA__: JSON.stringify(gitSha),
+        __BUILD_SHA__: JSON.stringify(
+            process.env.RAILWAY_DEPLOYMENT_ID?.slice(0, 7) ?? 'unknown'
+        ),
         __BUILD_TIME__: JSON.stringify(new Date().toISOString()),
     },
     build: {
