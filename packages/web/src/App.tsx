@@ -9,6 +9,7 @@ import * as Sentry from '@sentry/react';
 
 import { useAuth } from '@/context/AuthContext';
 import { DevToolbar } from '@/components/DevToolbar';
+import { ServiceWorkerUpdater } from '@/components/ServiceWorkerUpdater';
 
 import Login from '@/pages/Login';
 import Signup from '@/pages/Signup';
@@ -73,6 +74,7 @@ function App(): React.ReactNode {
     return (
         <Router>
             <DevToolbar />
+            <ServiceWorkerUpdater />
             <AppRoutes />
         </Router>
     );

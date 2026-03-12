@@ -56,6 +56,11 @@ export default function Profile() {
                 <LogOut className="h-4 w-4 mr-2" />
                 Log Out
             </Button>
+
+            <p className="text-center text-xs text-muted-foreground/60">
+                Version: {__BUILD_SHA__} &middot;{' '}
+                {new Date(__BUILD_TIME__).toLocaleDateString()}
+            </p>
         </div>
     );
 }
