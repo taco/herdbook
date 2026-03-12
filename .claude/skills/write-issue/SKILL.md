@@ -147,6 +147,75 @@ gh issue edit <number> --add-sub-issue <dep-number>
 
 Ask the user about dependencies when context suggests them (e.g., schema work that unblocks a UI issue, or a feature that requires an API endpoint first).
 
+## Project Board
+
+After creating the issue, add it to the **Herdbook Backlog** project board (project #1, owner: taco) and set its custom fields.
+
+### Add to project and set fields
+
+```bash
+# Add issue to project
+gh project item-add 1 --owner taco --url "https://github.com/taco/herdbook/issues/<number>"
+
+# Get the item ID (substitute the issue number as an integer, not a string)
+ITEM_ID=$(gh project item-list 1 --owner taco --limit 100 --format json | python3 -c "
+import json, sys
+for item in json.load(sys.stdin)['items']:
+    if item['content'].get('number') == <issue_number>:
+        print(item['id']); break
+")
+if [ -z "$ITEM_ID" ]; then echo "ERROR: issue not found in project"; exit 1; fi
+
+# Set all three fields (Priority, Type, Package)
+PROJECT_ID="PVT_kwHOACMj-84BRjUG"
+gh project item-edit --project-id $PROJECT_ID --id $ITEM_ID --field-id <PRIORITY_FIELD_ID> --single-select-option-id <PRIORITY_OPTION_ID>
+gh project item-edit --project-id $PROJECT_ID --id $ITEM_ID --field-id <TYPE_FIELD_ID> --single-select-option-id <TYPE_OPTION_ID>
+gh project item-edit --project-id $PROJECT_ID --id $ITEM_ID --field-id <PACKAGE_FIELD_ID> --single-select-option-id <PACKAGE_OPTION_ID>
+```
+
+### Field IDs
+
+**Priority** (`PVTSSF_lAHOACMj-84BRjUGzg_WM8I`) — source of truth for prioritization (no priority labels):
+| Option | ID |
+|--------|-----|
+| P0-critical | `2c26d657` |
+| P1-high | `95acdd5f` |
+| P2-medium | `7771b4e8` |
+| P3-low | `aa387660` |
+
+**Type** (`PVTSSF_lAHOACMj-84BRjUGzg_WPJY`):
+| Option | ID |
+|--------|-----|
+| feature | `7711276b` |
+| bug | `8720351c` |
+| chore | `1bb60516` |
+| refactor | `67d23443` |
+| docs | `55b2d675` |
+
+**Package** (`PVTSSF_lAHOACMj-84BRjUGzg_WM8c`):
+| Option | ID |
+|--------|-----|
+| api | `0ecce83b` |
+| web | `ae70ba8a` |
+| e2e | `1f4d129d` |
+| both | `211c2787` |
+| infra | `75373afa` |
+
+### Choosing Priority
+
+- Ask the user what priority to assign.
+- Bugs always default to P1-high regardless of milestone (security bugs to P0-critical).
+- If the issue belongs to the **active milestone**, default to P2-medium unless the user says otherwise.
+- Issues in non-active milestones default to P3-low.
+
+### Choosing Milestone
+
+Ask the user if the issue belongs to an existing milestone. The active milestone is marked with `[ACTIVE]` in its description:
+
+```bash
+gh api repos/taco/herdbook/milestones --jq '.[] | select(.description | startswith("[ACTIVE]")) | "\(.number): \(.title)"'
+```
+
 ## Quick Quality Checklist
 
 - Title is specific and searchable.
@@ -156,3 +225,4 @@ Ask the user about dependencies when context suggests them (e.g., schema work th
 - Links exist for deep context.
 - Labels applied: exactly one type label + applicable scope labels.
 - Dependencies linked if applicable.
+- Added to project board with Priority, Type, and Package set.
