@@ -59,4 +59,12 @@ describe('getWeeklyActivity', () => {
             })
         );
     });
+
+    it('caps weeks at 52', async () => {
+        mockFindMany.mockResolvedValue([]);
+
+        const result = await getWeeklyActivity('horse-1', 10_000);
+
+        expect(result).toHaveLength(52);
+    });
 });

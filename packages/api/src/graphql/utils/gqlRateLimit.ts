@@ -50,9 +50,10 @@ export async function enforceRateLimit(
     code = 'RATE_LIMITED'
 ): Promise<void> {
     const res = await limiter(context.reply.request);
-    if (!res.isAllowed && res.isExceeded) {
+    if (!res.isAllowed && (res.isExceeded || res.isBanned)) {
+        const reason = res.isBanned ? 'banned' : 'exceeded';
         console.warn(
-            `[gql:rate-limit] ${bucket} bucket exceeded for ${resolverName} — key=${res.key}, ttl=${res.ttl}s`
+            `[gql:rate-limit] ${bucket} bucket ${reason} for ${resolverName} — key=${res.key}, ttl=${res.ttl}s`
         );
         throw new GraphQLError('Too many requests', {
             extensions: {

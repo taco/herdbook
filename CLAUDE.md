@@ -77,7 +77,7 @@ Leave the codebase slightly better than you found it. When a change reveals near
 - Throw `GraphQLError` with codes (`NOT_FOUND`, `BAD_USER_INPUT`, `FORBIDDEN`) for data lookup failures and validation — don't return null for non-nullable fields
 - Auth is handled by `secureByDefaultTransformer`, which rejects unauthenticated requests for all non-`@public` fields before resolvers run. Do not add inline `if (!context.rider)` checks — use `context.rider!` (non-null assertion) for TypeScript. Use shared helpers (`getBarnId`, `requireTrainer`, `requireOwnerOrTrainer`) for role-based guards and type narrowing.
 - Update `schema.graphql` when `schema.prisma` changes
-- Watch for N+1 queries in nested resolvers
+- **Field resolvers must use DataLoaders** (`context.loaders.*`), not direct Prisma calls. Add new loaders to `loaders.ts` when adding field resolvers. This keeps the pattern uniform and prevents N+1 queries regardless of how queries are composed.
 
 ## Frontend (packages/web)
 

@@ -1,14 +1,23 @@
 import { RiderRole } from '@prisma/client';
-import { prisma } from '@/db';
+import { GraphQLError } from 'graphql';
 import { getSummaryStatus } from '@/utils/summaryStatus';
 import { getWeeklyActivity } from '@/utils/weeklyActivity';
 import type { Context } from './utils/authGuard';
 
+const loadBarn = (barnId: string, context: Context) =>
+    context.loaders.barn.load(barnId).then((b) => {
+        if (!b)
+            throw new GraphQLError('Barn not found', {
+                extensions: { code: 'NOT_FOUND' },
+            });
+        return b;
+    });
+
 export const horseFieldResolvers = {
-    sessions: (parent: { id: string }) =>
-        prisma.session.findMany({ where: { horseId: parent.id } }),
-    barn: (parent: { barnId: string }) =>
-        prisma.barn.findUniqueOrThrow({ where: { id: parent.barnId } }),
+    sessions: (parent: { id: string }, _: unknown, context: Context) =>
+        context.loaders.sessionsByHorseId.load(parent.id),
+    barn: (parent: { barnId: string }, _: unknown, context: Context) =>
+        loadBarn(parent.barnId, context),
     summary: async (parent: {
         id: string;
         summaryContent: string | null;
@@ -38,18 +47,15 @@ export const barnFieldResolvers = {
         _: unknown,
         context: Context
     ) => (context.rider?.role === RiderRole.TRAINER ? parent.inviteCode : null),
-    riders: (parent: { id: string }) =>
-        prisma.rider.findMany({
-            where: { barnId: parent.id },
-            omit: { password: true },
-        }),
+    riders: (parent: { id: string }, _: unknown, context: Context) =>
+        context.loaders.ridersByBarnId.load(parent.id),
 };
 
 export const riderFieldResolvers = {
-    sessions: (parent: { id: string }) =>
-        prisma.session.findMany({ where: { riderId: parent.id } }),
-    barn: (parent: { barnId: string }) =>
-        prisma.barn.findUniqueOrThrow({ where: { id: parent.barnId } }),
+    sessions: (parent: { id: string }, _: unknown, context: Context) =>
+        context.loaders.sessionsByRiderId.load(parent.id),
+    barn: (parent: { barnId: string }, _: unknown, context: Context) =>
+        loadBarn(parent.barnId, context),
 };
 
 export const sessionFieldResolvers = {
