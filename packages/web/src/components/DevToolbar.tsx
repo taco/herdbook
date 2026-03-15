@@ -5,6 +5,7 @@ export function DevToolbar(): React.ReactNode {
     const [banner, setBanner] = useState<{
         dbLabel: string;
         bgColor: string;
+        gitBranch: string;
     } | null>(null);
 
     useEffect(() => {
@@ -14,6 +15,7 @@ export function DevToolbar(): React.ReactNode {
                 return res.json() as Promise<{
                     dbLabel: string;
                     bgColor: string;
+                    gitBranch: string;
                 }>;
             })
             .then((data) => {
@@ -31,7 +33,7 @@ export function DevToolbar(): React.ReactNode {
             className="text-center text-xs font-semibold py-1"
             style={{ backgroundColor: banner.bgColor, color: '#1a1a1a' }}
         >
-            DB: {banner.dbLabel}
+            {banner.gitBranch} · DB: {banner.dbLabel}
         </div>
     );
 }
