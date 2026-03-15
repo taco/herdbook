@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { gql } from '@apollo/client';
 import { useQuery } from '@apollo/client/react';
 import {
@@ -38,6 +39,13 @@ const GET_RIDERS_QUERY = gql`
 
 export default function VoiceSessionCapture() {
     const { push, back } = useAppNavigate();
+    const location = useLocation();
+    const locationState = location.state as {
+        horseId?: string;
+        horseName?: string;
+    } | null;
+    const prefillHorseId = locationState?.horseId ?? null;
+    const prefillHorseName = locationState?.horseName ?? null;
 
     const { data: horsesData, loading: horsesLoading } =
         useQuery<GetHorsesQuery>(GET_HORSES_QUERY);
@@ -72,7 +80,7 @@ export default function VoiceSessionCapture() {
             push('/sessions/new', {
                 state: {
                     prefill: {
-                        horseId: parsedFields.horseId,
+                        horseId: parsedFields.horseId ?? prefillHorseId,
                         riderId: parsedFields.riderId,
                         date: formatAsDateTimeLocalValue(new Date()),
                         durationMinutes: parsedFields.durationMinutes,
@@ -85,7 +93,7 @@ export default function VoiceSessionCapture() {
                 },
             });
         }
-    }, [state, parsedFields, push]);
+    }, [state, parsedFields, push, prefillHorseId]);
 
     const handleBack = () => {
         if (state === 'recording') {
@@ -95,7 +103,11 @@ export default function VoiceSessionCapture() {
     };
 
     const handleManualEntry = () => {
-        push('/sessions/new');
+        push('/sessions/new', {
+            state: prefillHorseId
+                ? { prefill: { horseId: prefillHorseId } }
+                : undefined,
+        });
     };
 
     const isRecording = state === 'recording';
@@ -116,7 +128,14 @@ export default function VoiceSessionCapture() {
                 >
                     <ChevronLeft className="h-6 w-6" />
                 </Button>
-                <h1 className="text-lg font-semibold">Log Session</h1>
+                <div className="flex-1 min-w-0">
+                    <h1 className="text-lg font-semibold">Log Session</h1>
+                    {prefillHorseName && (
+                        <p className="text-sm text-muted-foreground truncate">
+                            {prefillHorseName}
+                        </p>
+                    )}
+                </div>
             </div>
 
             {/* Main content */}
@@ -192,12 +211,21 @@ export default function VoiceSessionCapture() {
 
             {/* Footer hint */}
             {(isIdle || isRecording) && !dataLoading && (
-                <div className="p-6 pt-0">
+                <div className="p-6 pt-0 space-y-3">
                     <p className="text-center text-base text-muted-foreground">
                         {isRecording
                             ? 'Describe your session: horse, duration, what you worked on...'
                             : "Speak naturally about your ride and we'll extract the details"}
                     </p>
+                    {isIdle && (
+                        <Button
+                            variant="link"
+                            onClick={handleManualEntry}
+                            className="mx-auto text-sm"
+                        >
+                            Enter manually
+                        </Button>
+                    )}
                 </div>
             )}
         </div>

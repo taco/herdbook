@@ -21,11 +21,9 @@ test.describe('Horse Profile', () => {
         await page.click(`text=${TEST_HORSE_NAME}`);
 
         await page.getByRole('button', { name: 'Log Session' }).click();
-        await expect(page).toHaveURL('/sessions/new');
+        await expect(page).toHaveURL('/sessions/voice');
 
-        // Horse should be prefilled in the summary row
-        await expect(
-            page.getByRole('button', { name: 'Edit Horse' })
-        ).toContainText(TEST_HORSE_NAME);
+        // Horse name should appear in the voice capture header
+        await expect(page.getByText(TEST_HORSE_NAME)).toBeVisible();
     });
 });
