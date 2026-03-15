@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { gql } from '@apollo/client';
 import { useQuery } from '@apollo/client/react';
-import { Calendar, SlidersHorizontal } from 'lucide-react';
+import { Calendar, Mic, SlidersHorizontal } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -179,7 +179,7 @@ export default function Sessions(): React.ReactNode {
     };
 
     return (
-        <div className="p-4 space-y-4">
+        <div className="p-4 pb-24 space-y-4">
             <h1 className="text-lg font-semibold">Sessions</h1>
 
             {/* Filter chip bar */}
@@ -251,6 +251,18 @@ export default function Sessions(): React.ReactNode {
                     )}
                 </div>
             )}
+
+            {/* Voice capture FAB */}
+            <div className="fixed bottom-24 right-4 z-20">
+                <Button
+                    size="icon"
+                    className="h-14 w-14 rounded-full shadow-lg"
+                    onClick={() => push('/sessions/voice')}
+                    aria-label="Log session"
+                >
+                    <Mic className="h-6 w-6" />
+                </Button>
+            </div>
 
             {/* Horse filter */}
             <PickerSheet
