@@ -1,0 +1,36 @@
+name: Bundle Size
+
+on:
+    pull_request:
+        branches: [main]
+
+permissions:
+    contents: read
+    pull-requests: write
+
+jobs:
+    bundle-size:
+        runs-on: ubuntu-latest
+        continue-on-error: true
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Setup pnpm
+              uses: pnpm/action-setup@v4
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: '24'
+                  cache: 'pnpm'
+
+            - name: Compare compressed size
+              uses: preactjs/compressed-size-action@v2
+              with:
+                  repo-token: ${{ secrets.GITHUB_TOKEN }}
+                  pattern: 'packages/web/dist/assets/**/*.{js,css}'
+                  exclude: '**/*.map'
+                  strip-hash: '\-([a-zA-Z0-9_-]{8})\.'
+                  build-script: 'build:web'
