@@ -5,8 +5,6 @@ import {
     Route,
     Navigate,
 } from 'react-router-dom';
-import * as Sentry from '@sentry/react';
-
 import { useAuth } from '@/context/AuthContext';
 import { DevToolbar } from '@/components/DevToolbar';
 import { ServiceWorkerUpdater } from '@/components/ServiceWorkerUpdater';
@@ -25,8 +23,6 @@ import VoiceSessionCapture from '@/pages/VoiceSessionCapture';
 import TabLayout from '@/layouts/TabLayout';
 import FullScreenLayout from '@/layouts/FullScreenLayout';
 
-const SentryRoutes = Sentry.withSentryReactRouterV7Routing(Routes);
-
 const PublicRoute: React.FC<{ element: React.ReactElement }> = ({
     element,
 }) => {
@@ -43,7 +39,7 @@ const TrainerRoute: React.FC<{ element: React.ReactElement }> = ({
 
 function AppRoutes(): React.ReactNode {
     return (
-        <SentryRoutes>
+        <Routes>
             <Route
                 path="/login"
                 element={<PublicRoute element={<Login />} />}
@@ -79,7 +75,7 @@ function AppRoutes(): React.ReactNode {
             </Route>
 
             <Route path="*" element={<Navigate to="/" />} />
-        </SentryRoutes>
+        </Routes>
     );
 }
 
