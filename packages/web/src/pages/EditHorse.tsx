@@ -1,9 +1,8 @@
-import { useState, useEffect } from 'react';
-import { useParams, Navigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useParams } from 'react-router-dom';
 import { gql } from '@apollo/client';
 import { useMutation, useQuery } from '@apollo/client/react';
 
-import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import {
     Card,
@@ -72,19 +71,21 @@ const UPDATE_HORSE_MUTATION = gql`
 `;
 
 export default function EditHorse() {
+    const [{ name, notes, isActive, errorMessage }, setFormState] = useState<{
+        name: string;
+        notes: string;
+        isActive: boolean;
+        errorMessage: string | null;
+    }>({
+        name: '',
+        notes: '',
+        isActive: true,
+        errorMessage: null,
+    });
+
     const { id } = useParams<{ id: string }>();
-    const isEditMode = id !== undefined && id !== 'new';
+    const isEditMode = id !== undefined;
     const { back, backTo } = useAppNavigate();
-    const { isTrainer } = useAuth();
-
-    if (!isTrainer) {
-        return <Navigate to="/horses" replace />;
-    }
-
-    const [name, setName] = useState('');
-    const [notes, setNotes] = useState('');
-    const [isActive, setIsActive] = useState(true);
-    const [formError, setFormError] = useState<string | null>(null);
 
     const { data, loading: horseLoading } = useQuery<
         GetHorseForEditQuery,
@@ -96,9 +97,13 @@ export default function EditHorse() {
 
     useEffect(() => {
         if (isEditMode && data?.horse) {
-            setName(data.horse.name);
-            setNotes(data.horse.notes ?? '');
-            setIsActive(data.horse.isActive);
+            const { horse } = data;
+            setFormState((prev) => ({
+                ...prev,
+                name: horse.name,
+                isActive: horse.isActive,
+                notes: horse.notes ?? '',
+            }));
         }
     }, [data, isEditMode]);
 
@@ -121,11 +126,17 @@ export default function EditHorse() {
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        setFormError(null);
+        setFormState((prev) => ({
+            ...prev,
+            errorMessage: null,
+        }));
 
         const trimmedName = name.trim();
         if (!trimmedName) {
-            setFormError('Name is required.');
+            setFormState((prev) => ({
+                ...prev,
+                errorMessage: 'Name is required.',
+            }));
             return;
         }
 
@@ -158,9 +169,11 @@ export default function EditHorse() {
             }
             backTo('/');
         } catch (err) {
-            setFormError(
-                err instanceof Error ? err.message : 'An error occurred'
-            );
+            setFormState((prev) => ({
+                ...prev,
+                errorMessage:
+                    err instanceof Error ? err.message : 'An error occurred',
+            }));
         }
     };
 
@@ -230,7 +243,12 @@ export default function EditHorse() {
                                     id="name"
                                     type="text"
                                     value={name}
-                                    onChange={(e) => setName(e.target.value)}
+                                    onChange={(e) =>
+                                        setFormState((prev) => ({
+                                            ...prev,
+                                            name: e.target.value,
+                                        }))
+                                    }
                                     placeholder="e.g. Midnight"
                                     required
                                 />
@@ -241,7 +259,12 @@ export default function EditHorse() {
                                 <textarea
                                     id="notes"
                                     value={notes}
-                                    onChange={(e) => setNotes(e.target.value)}
+                                    onChange={(e) =>
+                                        setFormState((prev) => ({
+                                            ...prev,
+                                            notes: e.target.value,
+                                        }))
+                                    }
                                     placeholder="e.g. 'Chestnut gelding, 14 hands'"
                                     rows={4}
                                     className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-base shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
@@ -255,7 +278,10 @@ export default function EditHorse() {
                                         id="isActive"
                                         checked={isActive}
                                         onChange={(e) =>
-                                            setIsActive(e.target.checked)
+                                            setFormState((prev) => ({
+                                                ...prev,
+                                                isActive: e.target.checked,
+                                            }))
                                         }
                                         className="h-4 w-4 rounded border-input bg-background accent-primary"
                                     />
@@ -268,29 +294,9 @@ export default function EditHorse() {
                                 </div>
                             )}
 
-                            {isEditMode && recentSessions && (
-                                <div className="space-y-2">
-                                    <Label>Recent sessions</Label>
-                                    <div className="space-y-2">
-                                        {recentSessions.length > 0 ? (
-                                            recentSessions.map((session) => (
-                                                <ActivityCard
-                                                    key={session.id}
-                                                    session={session}
-                                                />
-                                            ))
-                                        ) : (
-                                            <p className="text-sm text-muted-foreground">
-                                                No sessions yet.
-                                            </p>
-                                        )}
-                                    </div>
-                                </div>
-                            )}
-
-                            {formError && (
+                            {errorMessage && (
                                 <p className="text-sm text-red-500">
-                                    {formError}
+                                    {errorMessage}
                                 </p>
                             )}
 
@@ -312,6 +318,26 @@ export default function EditHorse() {
                                     </>
                                 )}
                             </Button>
+
+                            {isEditMode && recentSessions && (
+                                <div className="space-y-2">
+                                    <Label>Recent sessions</Label>
+                                    <div className="space-y-2">
+                                        {recentSessions.length > 0 ? (
+                                            recentSessions.map((session) => (
+                                                <ActivityCard
+                                                    key={session.id}
+                                                    session={session}
+                                                />
+                                            ))
+                                        ) : (
+                                            <p className="text-sm text-muted-foreground">
+                                                No sessions yet.
+                                            </p>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
                         </form>
                     </CardContent>
                 </Card>
