@@ -3,14 +3,14 @@ import { ChevronDown, ChevronUp } from 'lucide-react';
 
 interface NotesSectionProps {
     notes: string | null;
-    onEdit: () => void;
+    onClick: () => void;
 }
 
 const MAX_LINES = 4;
 const LINE_HEIGHT_PX = 24;
 const COLLAPSED_HEIGHT = MAX_LINES * LINE_HEIGHT_PX;
 
-export default function NotesSection({ notes, onEdit }: NotesSectionProps) {
+export default function NotesSection({ notes, onClick }: NotesSectionProps) {
     const [expanded, setExpanded] = useState(false);
     const hasNotes = notes !== null && notes.trim().length > 0;
 
@@ -24,7 +24,7 @@ export default function NotesSection({ notes, onEdit }: NotesSectionProps) {
                 <span className="text-base font-medium">Notes</span>
                 <button
                     type="button"
-                    onClick={onEdit}
+                    onClick={onClick}
                     className="text-sm text-primary font-medium"
                     aria-label="Edit Notes"
                 >
@@ -33,7 +33,7 @@ export default function NotesSection({ notes, onEdit }: NotesSectionProps) {
             </div>
             <div
                 className="relative bg-muted/50 rounded-lg p-3 cursor-pointer active:bg-muted transition-colors"
-                onClick={onEdit}
+                onClick={onClick}
             >
                 {hasNotes ? (
                     <>

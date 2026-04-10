@@ -17,7 +17,7 @@ async function selectFieldOption(
     fieldLabel: string,
     optionText: string
 ): Promise<void> {
-    // Tap the SummaryRow to open the FieldEditSheet
+    // Tap the SummaryRow to open the Field Editor
     await page.getByLabel(`Edit ${fieldLabel}`).click();
     // Wait for the sheet to appear and pick the option
     const sheet = page.getByRole('dialog');

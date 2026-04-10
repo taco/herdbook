@@ -5,12 +5,19 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import SummaryRow from '@/components/session/SummaryRow';
 import NotesSection from '@/components/session/NotesSection';
-import FieldEditSheet, { FieldType } from '@/components/session/FieldEditSheet';
-import TextEditSheet from '@/components/TextEditSheet';
 import { formatSessionDateTime } from '@/lib/dateUtils';
 import { Intensity, WorkType } from '@/generated/graphql';
 import IntensitySelector from '@/components/session/IntensitySelector';
 import RatingSelector from '@/components/session/RatingSelector';
+
+import DateTimeSheet from '@/components/fields/sheets/DateTimeSheet';
+import DurationSheet from '@/components/fields/sheets/DurationSheet';
+import HorsePickerSheet from '@/components/fields/sheets/HorsePickerSheet';
+import NotesSheet from '@/components/fields/sheets/NotesSheet';
+import RiderPickerSheet from '@/components/fields/sheets/RiderPickerSheet';
+import WorkTypePickerSheet from '@/components/fields/sheets/WorkTypePickerSheet';
+
+import { useFieldEditor } from '@/hooks/useFieldEditor';
 
 const WORK_TYPE_LABELS: Record<WorkType, string> = {
     [WorkType.Flatwork]: 'Flatwork',
@@ -42,6 +49,14 @@ interface Rider {
     name: string;
 }
 
+type FieldType =
+    | 'horse'
+    | 'rider'
+    | 'workType'
+    | 'duration'
+    | 'dateTime'
+    | 'notes';
+
 interface SessionEditorProps {
     initialValues: SessionValues;
     horses: Horse[];
@@ -68,10 +83,9 @@ export default function SessionEditor({
     error,
 }: SessionEditorProps): React.ReactNode {
     const [values, setValues] = useState<SessionValues>(initialValues);
-    const [sheetOpen, setSheetOpen] = useState(false);
-    const [editingField, setEditingField] = useState<FieldType | null>(null);
-    const [notesSheetOpen, setNotesSheetOpen] = useState(false);
     const [formError, setFormError] = useState<string | null>(null);
+
+    const { editField, sheetProps } = useFieldEditor<FieldType>();
 
     const horseName = horses.find((h) => h.id === values.horseId)?.name ?? null;
     const riderName = riders.find((r) => r.id === values.riderId)?.name ?? null;
@@ -91,49 +105,6 @@ export default function SessionEditor({
             dateDisplay = null;
         }
     }
-
-    const openSheet = (field: FieldType): void => {
-        setEditingField(field);
-        setSheetOpen(true);
-    };
-
-    const getFieldValue = (): string | number | WorkType | null => {
-        switch (editingField) {
-            case 'horse':
-                return values.horseId;
-            case 'rider':
-                return values.riderId;
-            case 'workType':
-                return values.workType;
-            case 'duration':
-                return values.durationMinutes;
-            case 'dateTime':
-                return values.dateTime;
-            default:
-                return null;
-        }
-    };
-
-    const handleFieldSave = (
-        value: string | number | WorkType | null
-    ): void => {
-        setValues((prev) => {
-            switch (editingField) {
-                case 'horse':
-                    return { ...prev, horseId: value as string | null };
-                case 'rider':
-                    return { ...prev, riderId: value as string | null };
-                case 'workType':
-                    return { ...prev, workType: value as WorkType | null };
-                case 'duration':
-                    return { ...prev, durationMinutes: value as number | null };
-                case 'dateTime':
-                    return { ...prev, dateTime: (value as string) ?? '' };
-                default:
-                    return prev;
-            }
-        });
-    };
 
     const canSave =
         values.horseId !== null &&
@@ -175,29 +146,29 @@ export default function SessionEditor({
                             <SummaryRow
                                 label="Horse"
                                 value={horseName}
-                                onClick={() => openSheet('horse')}
+                                onClick={() => editField('horse')}
                             />
                             {showRiderPicker && (
                                 <SummaryRow
                                     label="Rider"
                                     value={riderName}
-                                    onClick={() => openSheet('rider')}
+                                    onClick={() => editField('rider')}
                                 />
                             )}
                             <SummaryRow
                                 label="Work Type"
                                 value={workTypeLabel}
-                                onClick={() => openSheet('workType')}
+                                onClick={() => editField('workType')}
                             />
                             <SummaryRow
                                 label="Duration"
                                 value={durationDisplay}
-                                onClick={() => openSheet('duration')}
+                                onClick={() => editField('duration')}
                             />
                             <SummaryRow
                                 label="Date & Time"
                                 value={dateDisplay}
-                                onClick={() => openSheet('dateTime')}
+                                onClick={() => editField('dateTime')}
                             />
                         </div>
 
@@ -233,7 +204,7 @@ export default function SessionEditor({
 
                         <NotesSection
                             notes={values.notes}
-                            onEdit={() => setNotesSheetOpen(true)}
+                            onClick={() => editField('notes')}
                         />
 
                         {formError && (
@@ -261,21 +232,56 @@ export default function SessionEditor({
                 </Card>
             </div>
 
-            <FieldEditSheet
-                open={sheetOpen}
-                onOpenChange={setSheetOpen}
-                fieldType={editingField}
-                value={getFieldValue()}
-                onSave={handleFieldSave}
+            <HorsePickerSheet
+                horses={horses}
+                {...sheetProps('horse', {
+                    value: values.horseId,
+                    onSave: (horseId) =>
+                        setValues((prev) => ({ ...prev, horseId })),
+                })}
             />
 
-            <TextEditSheet
-                open={notesSheetOpen}
-                onOpenChange={setNotesSheetOpen}
-                value={values.notes}
-                onSave={(text) =>
-                    setValues((prev) => ({ ...prev, notes: text }))
-                }
+            {showRiderPicker && (
+                <RiderPickerSheet
+                    riders={riders}
+                    {...sheetProps('rider', {
+                        value: values.riderId,
+                        onSave: (riderId) =>
+                            setValues((prev) => ({ ...prev, riderId })),
+                    })}
+                />
+            )}
+
+            <WorkTypePickerSheet
+                {...sheetProps('workType', {
+                    value: values.workType,
+                    onSave: (workType) =>
+                        setValues((prev) => ({ ...prev, workType })),
+                })}
+            />
+
+            <DurationSheet
+                {...sheetProps('duration', {
+                    value: values.durationMinutes,
+                    onSave: (durationMinutes) =>
+                        setValues((prev) => ({ ...prev, durationMinutes })),
+                })}
+            />
+
+            <DateTimeSheet
+                {...sheetProps('dateTime', {
+                    value: values.dateTime,
+                    onSave: (dateTime) =>
+                        setValues((prev) => ({ ...prev, dateTime })),
+                })}
+            />
+
+            <NotesSheet
+                {...sheetProps('notes', {
+                    value: values.notes,
+                    onSave: (notes) =>
+                        setValues((prev) => ({ ...prev, notes })),
+                })}
             />
         </div>
     );
