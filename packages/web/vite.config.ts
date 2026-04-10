@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import { VitePWA } from 'vite-plugin-pwa';
 import { sentryVitePlugin } from '@sentry/vite-plugin';
+import { visualizer } from 'rollup-plugin-visualizer';
 import path from 'path';
 import fs from 'fs';
 
@@ -67,6 +68,14 @@ export default defineConfig({
                 filesToDeleteAfterUpload: ['./dist/**/*.map'],
             },
         }),
+        process.env.ANALYZE &&
+            visualizer({
+                filename: 'dist/stats.html',
+                open: true,
+                gzipSize: true,
+                brotliSize: true,
+                template: 'treemap',
+            }),
     ],
     resolve: {
         alias: {
