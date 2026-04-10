@@ -34,6 +34,13 @@ const PublicRoute: React.FC<{ element: React.ReactElement }> = ({
     return !isAuthenticated ? element : <Navigate to="/" />;
 };
 
+const TrainerRoute: React.FC<{ element: React.ReactElement }> = ({
+    element,
+}) => {
+    const { isTrainer } = useAuth();
+    return isTrainer ? element : <Navigate to="/horses" replace />;
+};
+
 function AppRoutes(): React.ReactNode {
     return (
         <SentryRoutes>
@@ -60,9 +67,15 @@ function AppRoutes(): React.ReactNode {
                 />
                 <Route path="/sessions/new" element={<EditSession />} />
                 <Route path="/sessions/:id" element={<SessionDetail />} />
-                <Route path="/horses/new" element={<EditHorse />} />
                 <Route path="/horses/:id" element={<HorseProfile />} />
-                <Route path="/horses/:id/edit" element={<EditHorse />} />
+                <Route
+                    path="/horses/new"
+                    element={<TrainerRoute element={<EditHorse />} />}
+                />
+                <Route
+                    path="/horses/:id/edit"
+                    element={<TrainerRoute element={<EditHorse />} />}
+                />
             </Route>
 
             <Route path="*" element={<Navigate to="/" />} />
