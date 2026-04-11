@@ -261,8 +261,11 @@ export default function HorseProfile(): React.ReactNode {
                     size="lg"
                     className="pointer-events-auto shadow-lg rounded-full px-6 h-12"
                     onClick={() =>
-                        push('/sessions/new', {
-                            state: { prefill: { horseId: id } },
+                        push('/sessions/voice', {
+                            state: {
+                                horseId: id,
+                                horseName: horse.name,
+                            },
                         })
                     }
                 >
