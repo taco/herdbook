@@ -59,4 +59,5 @@ jobs:
             - ✅ if no issues found
             - ⚠️ with short bullet points if there are issues that should be fixed before merging
           claude_args: |
+            --model claude-sonnet-5
             --allowedTools "Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh issue create:*),Bash(gh api:repos/*/pulls/*/comments*),Bash(gh api:repos/*/issues/*/comments*)"
