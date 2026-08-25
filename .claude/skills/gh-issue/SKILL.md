@@ -59,8 +59,8 @@ Display a summary: title, description, labels, and any relevant comments.
 
 ### 2. Explore & plan
 
-- Use Explore agents (Sonnet) to understand the relevant code areas
-- Use a Plan agent (Opus) to design the implementation
+- Use Explore agents (low effort) to understand the relevant code areas
+- Use a Plan agent (high effort) to design the implementation
 - Present the plan to the user with:
     - What files will be created/modified
         - Explain why for each and alternatives you considered

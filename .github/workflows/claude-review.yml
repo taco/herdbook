@@ -25,6 +25,8 @@ jobs:
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           track_progress: true
+          # The security list below is a condensed twin of the auth/tenancy checklist
+          # in .claude/skills/pre-review/SKILL.md — keep the two in sync.
           prompt: |
             REPO: ${{ github.repository }}
             PR NUMBER: ${{ github.event.pull_request.number }}
@@ -38,10 +40,12 @@ jobs:
             Focus on (in priority order):
             1. Bugs and logic errors
             2. Security:
-               - Missing auth checks (context.rider), data ownership leaks
+               - Auth is secure-by-default (secureByDefaultTransformer): flag new @public fields that shouldn't be public, and flag inline `if (!context.rider)` checks (use shared helpers: getBarnId, requireTrainer, requireOwnerOrTrainer)
+               - Barn scoping: queries/mutations must filter by barnId from context — missing it is a cross-tenant data leak
                - Secrets or credentials in committed code
                - Raw SQL ($queryRaw/$executeRaw) without parameterization
                - Unbounded GraphQL inputs (missing pagination limits, deep nesting)
+               - Dev-only surfaces (/api/dev/, introspection) must fail closed in production
             3. Suspicious dependency additions in package.json
             4. N+1 queries in nested GraphQL resolvers
             5. schema.prisma ↔ schema.graphql out of sync
