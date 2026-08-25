@@ -2,21 +2,22 @@
 
 ## Agent Workflow
 
-Use lead/builder/verifier pattern with cost-conscious model allocation:
+Use lead/builder/verifier pattern. Don't hardcode model names in skills, plans, or prompts — subagents inherit the session model, and named generations go stale. Steer cost with **reasoning effort** instead:
 
-### Model Tiers (Claude 5 family)
+### Effort Allocation
 
-- **Haiku 4.5**: Exploration, file searches, running commands, simple mechanical tasks
-- **Sonnet 5**: Default for implementation, standard code reviews, test writing — escalate to Opus only when it demonstrably struggles
-- **Opus 5**: Planning phase (Plan agent), security audits, complex architectural decisions
-- **Fable 5**: Frontier tier above Opus — reserve for reasoning tasks where Opus 5 falls short
+- **Low effort**: Exploration, file searches, running commands, simple mechanical tasks
+- **Default effort**: Most implementation, standard code reviews, test writing
+- **High effort**: Planning, security review, complex architectural decisions
+
+Pin a specific model only at the extremes, and only where it demonstrably matters: a smaller model (e.g. Haiku) for high-volume mechanical fan-out where speed and cost dominate, or a frontier tier (e.g. Fable) for a single hard problem where high effort on the session model falls short.
 
 ### Workflow
 
-1. Explore with Haiku agents (Sonnet for nuanced searches)
-2. Plan with Opus
-3. Build with Sonnet (Opus for complex or cross-cutting changes)
-4. Verify with Sonnet (Opus for security-critical)
+1. Explore (low effort)
+2. Plan (high effort)
+3. Build (default effort)
+4. Verify (default effort; high for security-critical)
 
 ### Planning Convention
 
@@ -32,7 +33,10 @@ Example:
 | Build horse profile page | `/new-page` | New FullScreenLayout page with view/edit |
 | Write resolver tests | `/test-api` | Integration test for new query |
 | Pre-commit checks | `/preflight` | Format + typecheck |
+| Pre-PR review | `/pre-review` | Independent review before push |
 ```
+
+Plans must always include `/pre-review` after `/preflight`, in both the Skills table and the Verification section.
 
 ## Commands
 
