@@ -119,6 +119,9 @@ export async function createApiApp(httpsOptions?: {
     const apollo = new ApolloServer<Context>({
         schema,
         plugins,
+        // Expose the schema via introspection only in development; keep it
+        // hidden in production to reduce attack-surface reconnaissance.
+        introspection: isDevelopment(),
     });
 
     await apollo.start();
