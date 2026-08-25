@@ -2,7 +2,11 @@ import { networkInterfaces } from 'os';
 import type { SignOptions } from 'jsonwebtoken';
 
 export function isDevelopment(): boolean {
-    return process.env.NODE_ENV !== 'production';
+    // Fail closed: only an explicit NODE_ENV=development enables dev-only
+    // behavior (permissive CORS, the dev toolbar, the auto-minted landing-page
+    // token, GraphQL introspection). Any other value — including unset —
+    // is treated as production so a misconfigured deploy never falls open.
+    return process.env.NODE_ENV === 'development';
 }
 
 export function getLocalNetworkIPs(): string[] {
