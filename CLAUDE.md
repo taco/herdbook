@@ -4,17 +4,18 @@
 
 Use lead/builder/verifier pattern with cost-conscious model allocation:
 
-### Model Tiers
+### Model Tiers (Claude 5 family)
 
-- **Haiku**: Exploration, file searches, running commands, simple mechanical tasks
-- **Sonnet**: Most implementation, standard code reviews, test writing
-- **Opus**: Planning phase (Plan agent), security audits, complex architectural decisions
+- **Haiku 4.5**: Exploration, file searches, running commands, simple mechanical tasks
+- **Sonnet 5**: Default for implementation, standard code reviews, test writing — escalate to Opus only when it demonstrably struggles
+- **Opus 5**: Planning phase (Plan agent), security audits, complex architectural decisions
+- **Fable 5**: Frontier tier above Opus — reserve for reasoning tasks where Opus 5 falls short
 
 ### Workflow
 
-1. Explore with Sonnet agents
+1. Explore with Haiku agents (Sonnet for nuanced searches)
 2. Plan with Opus
-3. Build with Opus
+3. Build with Sonnet (Opus for complex or cross-cutting changes)
 4. Verify with Sonnet (Opus for security-critical)
 
 ### Planning Convention
