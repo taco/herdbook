@@ -221,7 +221,7 @@ export default function VoiceSessionCapture() {
                         <Button
                             variant="link"
                             onClick={handleManualEntry}
-                            className="mx-auto text-sm"
+                            className="mx-auto min-h-11 text-sm"
                         >
                             Enter manually
                         </Button>
