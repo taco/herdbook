@@ -42,6 +42,7 @@ jobs:
             2. Security:
                - Auth is secure-by-default (secureByDefaultTransformer): flag new @public fields that shouldn't be public, and flag inline `if (!context.rider)` checks (use shared helpers: getBarnId, requireTrainer, requireOwnerOrTrainer)
                - Barn scoping: queries/mutations must filter by barnId from context — missing it is a cross-tenant data leak
+               - Rider queries use `omit: { password: true }` — a missing omit exposes password hashes to the client
                - Secrets or credentials in committed code
                - Raw SQL ($queryRaw/$executeRaw) without parameterization
                - Unbounded GraphQL inputs (missing pagination limits, deep nesting)
