@@ -1,0 +1,9 @@
+# Gitignored files copied into every new Claude Code worktree.
+# Symlinks are NOT copied: packages/api/.env must be recreated per-worktree
+# via `pnpm run env:local` / `env:neon-dev` (see CLAUDE.md → Worktrees).
+/.env.api.local
+/.env.api.neon-dev
+/.env.api.neon-prod
+/.env.root
+/packages/web/.env
+/*.pem
