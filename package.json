@@ -32,10 +32,5 @@
         "husky": "^9.1.7",
         "prettier": "^3.7.4"
     },
-    "packageManager": "pnpm@10.4.0+sha512.6b849d0787d97f8f4e1f03a9b8ff8f038e79e153d6f11ae539ae7c435ff9e796df6a862c991502695c7f9e8fac8aeafc1ac5a8dab47e36148d183832d886dd52",
-    "pnpm": {
-        "onlyBuiltDependencies": [
-            "@sentry/cli"
-        ]
-    }
+    "packageManager": "pnpm@11.24.0+sha512.bd27e345e976dcb0be0b7a1228217b049a817e21b1f355c90dbe7dc46671895a8bc1e6d06c24554505ea93ea0b45f489a27ec1bfbc8de6a9659fca0f16fa0000"
 }
