@@ -10,7 +10,7 @@ allowed-tools: Bash, Read, Glob, Grep, Edit, Write, Task, Skill, AskUserQuestion
 - `/gh-issue <number>` — implement GitHub issue by number
 - `/gh-issue <url>` — implement GitHub issue by URL
 
-**Prerequisite:** Run `/worktree <number>` from the main herdbook first to set up the worktree, then launch Claude from the worktree directory.
+**Prerequisite:** Launch Claude in a native worktree from the main herdbook checkout: `claude -w issue-<number>`. Root env files are copied in via `.worktreeinclude`; in a fresh worktree run `pnpm install && pnpm run env:local && pnpm --filter api exec prisma generate` (the `env:*` step recreates the `packages/api/.env` symlink, which isn't copied).
 
 ## Workflow
 
@@ -24,7 +24,7 @@ Check that the current environment matches the issue:
     git branch --show-current
     ```
 
-    If on `main`, halt — tell the user to run `/worktree <number>` first.
+    If on `main` (i.e., running in the main checkout, not a worktree), halt — tell the user to relaunch with `claude -w issue-<number>`.
 
 2. **Fetch the issue:**
 
@@ -32,7 +32,13 @@ Check that the current environment matches the issue:
     gh issue view <number_or_url> --json title,body,labels,comments,assignees
     ```
 
-3. **Check branch name looks right** for this issue (e.g., branch contains a slug derived from the issue title). If it doesn't match, ask the user if they're in the right worktree before proceeding.
+3. **Check the branch matches the issue.** A native worktree starts on an auto-generated branch like `worktree-issue-<number>` — confirm the number matches this issue, then rename it to the conventional form (label → prefix: `bug` → `fix/`, `documentation` → `docs/`, `chore`/`maintenance` → `chore/`, `refactor` → `refactor/`, otherwise `feat/`; slugify the title, lowercase hyphens, max ~40 chars):
+
+    ```bash
+    git branch -m <prefix><issue-number>-<slug>   # e.g. fix/42-login-crash
+    ```
+
+    If the branch is already a conventional name containing a different issue number, ask the user if they're in the right worktree before proceeding.
 
 4. **Track the issue number** for statusline:
 
@@ -119,4 +125,4 @@ Once the user approves:
 - If the issue requires schema changes, use `/schema` skill first
 - If the issue requires a new page, use `/new-page` skill for conventions
 - Reference the issue number in the commit message: `fixes #<number>`
-- When done, exit Claude and run `/worktree done` from the main herdbook to clean up
+- When done, exit Claude — it offers to remove the worktree on exit (or run `git worktree remove <path>` from the main checkout later)

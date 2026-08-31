@@ -114,6 +114,16 @@ Leave the codebase slightly better than you found it. When a change reveals near
 - The top message should be short and easy to read without losing context
 - Seperate details should be order in terms for weight, most important at the top
 
+## Worktrees
+
+Parallel work uses Claude Code's native worktrees (the old `/worktree` skill is retired):
+
+- Start a session in a worktree: `claude -w issue-<number>` (or any name; `claude -w "#<PR>"` branches from a PR). Worktrees live under `.claude/worktrees/` and branch from up-to-date `origin/main`.
+- Gitignored env files and local SSL certs are copied into new worktrees automatically via `.worktreeinclude` (repo root).
+- Fresh worktree setup (once per new worktree): `pnpm install && pnpm run env:local && pnpm --filter api exec prisma generate` (use `env:neon-dev` instead if working against Neon). The `env:*` step is required — `packages/api/.env` is a symlink, which `.worktreeinclude` cannot copy.
+- Rename the auto-generated `worktree-*` branch to the conventional form before pushing: `git branch -m <type>/<issue>-<slug>` (e.g. `fix/42-login-crash`), using the commit-type prefixes above.
+- Clean up finished worktrees with `git worktree remove <path>` (add `--force` if dirty).
+
 ## Project Board
 
 All issues are tracked in the [Herdbook Backlog](https://github.com/users/taco/projects/1) GitHub Project (project #1, owner: taco).
@@ -153,7 +163,6 @@ Use these skills for common workflows. Invoke with `/skillname` or the Skill too
 | Writing web unit tests             | `/test-web`       |
 | Writing API integration tests      | `/test-api`       |
 | Pre-commit checks                  | `/preflight`      |
-| Git worktree setup                 | `/worktree`       |
 | Railway preview deploys            | `/deploy-preview` |
 | Update docs after changes          | `/updatedocs`     |
 | Implement a GitHub issue           | `/gh-issue`       |
