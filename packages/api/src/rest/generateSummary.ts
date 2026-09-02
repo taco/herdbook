@@ -18,7 +18,12 @@ import {
 } from '@/utils/summaryValidation';
 import { getSummaryStatus } from '@/utils/summaryStatus';
 import { requireAuth } from './utils/restAuth';
-import { setDomainAttributes, tracedChatCompletion } from '@/utils/tracing';
+import {
+    HERDBOOK_ATTR,
+    setDomainAttributes,
+    setRequestAttributes,
+    tracedChatCompletion,
+} from '@/utils/tracing';
 
 export async function registerGenerateSummaryRoutes(
     app: FastifyInstance
@@ -173,7 +178,8 @@ export async function registerGenerateSummaryRoutes(
                     const completion = await tracedChatCompletion(
                         openai,
                         promptConfig,
-                        { model, messages }
+                        { model, messages },
+                        { [HERDBOOK_ATTR.SUMMARY_ATTEMPT]: attempt + 1 }
                     );
 
                     content = completion.choices[0].message.content;
@@ -183,6 +189,10 @@ export async function registerGenerateSummaryRoutes(
                     }
 
                     const validation = validateSummary(content);
+                    setRequestAttributes({
+                        [HERDBOOK_ATTR.SUMMARY_ATTEMPTS]: attempt + 1,
+                        [HERDBOOK_ATTR.SUMMARY_VALID]: validation.valid,
+                    });
                     if (validation.valid) break;
 
                     console.warn(

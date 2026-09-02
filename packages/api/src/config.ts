@@ -136,6 +136,11 @@ export function isTelemetryEnabled(): boolean {
     return getHoneycombApiKey() !== undefined;
 }
 
+/** Honeycomb configuration key with "Manage Markers"; enables deploy markers. */
+export function getHoneycombConfigKey(): string | undefined {
+    return process.env.HONEYCOMB_CONFIG_KEY || undefined;
+}
+
 export function getJwtExpiration(): SignOptions['expiresIn'] {
     return (process.env.JWT_EXPIRATION ??
         '30 days') as SignOptions['expiresIn'];

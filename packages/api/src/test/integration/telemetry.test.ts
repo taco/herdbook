@@ -172,6 +172,9 @@ describe('OpenTelemetry tracing', () => {
         expect(transcription?.attributes).toMatchObject({
             'gen_ai.provider.name': 'openai',
             'gen_ai.request.model': 'whisper-1',
+            [HERDBOOK_ATTR.AUDIO_BYTES]: Buffer.byteLength('fake-audio-data'),
+            [HERDBOOK_ATTR.AUDIO_MIME_TYPE]: 'audio/webm',
+            [HERDBOOK_ATTR.TRANSCRIPT_CHARS]: TRANSCRIPT.length,
         });
 
         const chat = findByAttribute(spans, 'gen_ai.operation.name', 'chat');
@@ -186,6 +189,15 @@ describe('OpenTelemetry tracing', () => {
             'gen_ai.usage.output_tokens': 45,
             [HERDBOOK_ATTR.PROMPT_NAME]: 'voiceParse',
             [HERDBOOK_ATTR.PROMPT_VERSION]: 'v2',
+        });
+
+        // Parse outcome: horse matched, no rider, duration + work type extracted.
+        expect(
+            findByAttribute(spans, HERDBOOK_ATTR.PARSE_HORSE_RESOLVED, true)
+                ?.attributes
+        ).toMatchObject({
+            [HERDBOOK_ATTR.PARSE_RIDER_RESOLVED]: false,
+            [HERDBOOK_ATTR.PARSE_FIELDS_EXTRACTED]: 2,
         });
 
         // The request is tagged with who asked, their barn, and the horse resolved.

@@ -12,10 +12,17 @@ import { getOpenAI } from './utils/openai';
 import { requireAuth } from './utils/restAuth';
 import { prisma } from '@/db';
 import {
+    HERDBOOK_ATTR,
     setDomainAttributes,
+    setRequestAttributes,
     tracedChatCompletion,
     withGenAiSpan,
 } from '@/utils/tracing';
+
+/** Whisper has no PromptConfig; honour the per-feature env override convention directly. */
+function resolveTranscriptionModel(): string {
+    return process.env.VOICE_TRANSCRIBE_MODEL ?? 'whisper-1';
+}
 
 // Types for parse-session endpoint
 export interface ParseSessionContext {
@@ -75,11 +82,25 @@ export async function transcribeAudio(
         type: mimeType,
     });
 
-    const model = 'whisper-1';
+    const model = resolveTranscriptionModel();
     const transcription = await withGenAiSpan(
         { operation: 'transcription', model },
-        () =>
-            openai.audio.transcriptions.create({ model, file, language: 'en' })
+        async (span) => {
+            span.setAttributes({
+                [HERDBOOK_ATTR.AUDIO_BYTES]: audioBuffer.length,
+                [HERDBOOK_ATTR.AUDIO_MIME_TYPE]: mimeType,
+            });
+            const result = await openai.audio.transcriptions.create({
+                model,
+                file,
+                language: 'en',
+            });
+            span.setAttribute(
+                HERDBOOK_ATTR.TRANSCRIPT_CHARS,
+                result.text.length
+            );
+            return result;
+        }
     );
 
     return transcription.text;
@@ -193,6 +214,18 @@ export async function registerParseSessionRoutes(
                 // Step 2: Parse transcript into structured fields
                 const { parsed } = await parseTranscript(transcript, context);
                 setDomainAttributes({ horseId: parsed.horseId });
+                setRequestAttributes({
+                    [HERDBOOK_ATTR.PARSE_HORSE_RESOLVED]:
+                        parsed.horseId !== null,
+                    [HERDBOOK_ATTR.PARSE_RIDER_RESOLVED]:
+                        parsed.riderId !== null,
+                    [HERDBOOK_ATTR.PARSE_FIELDS_EXTRACTED]: [
+                        parsed.durationMinutes,
+                        parsed.workType,
+                        parsed.intensity,
+                        parsed.rating,
+                    ].filter((value) => value != null).length,
+                });
 
                 return {
                     notes: transcript,
