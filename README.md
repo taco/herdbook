@@ -95,12 +95,13 @@ pnpm env:neon-prod  # Neon production
 pnpm env:status     # Check which env is active
 ```
 
-| Variable            | Description                                          |
-| ------------------- | ---------------------------------------------------- |
-| `DATABASE_URL`      | PostgreSQL connection string                         |
-| `JWT_SECRET`        | Secret for signing JWTs (32+ chars in production)    |
-| `OPENAI_API_KEY`    | Required for voice capture and AI summaries          |
-| `HONEYCOMB_API_KEY` | Optional. Enables OpenTelemetry tracing to Honeycomb |
+| Variable               | Description                                               |
+| ---------------------- | --------------------------------------------------------- |
+| `DATABASE_URL`         | PostgreSQL connection string                              |
+| `JWT_SECRET`           | Secret for signing JWTs (32+ chars in production)         |
+| `OPENAI_API_KEY`       | Required for voice capture and AI summaries               |
+| `HONEYCOMB_API_KEY`    | Optional. Enables OpenTelemetry tracing to Honeycomb      |
+| `HONEYCOMB_CONFIG_KEY` | Optional. Lets Railway deploys drop a marker in Honeycomb |
 
 ### Project Structure
 

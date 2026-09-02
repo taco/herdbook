@@ -27,7 +27,7 @@ import {
 } from '@opentelemetry/semantic-conventions';
 import { SentryContextManager } from '@sentry/node';
 import { SentryPropagator } from '@sentry/opentelemetry';
-import { getHoneycombApiKey } from '@/config';
+import { getHoneycombApiKey, getHoneycombConfigKey } from '@/config';
 
 /**
  * OpenTelemetry tracing for the API, exported to Honeycomb. Traces only: no
@@ -46,6 +46,8 @@ const SERVICE_NAME = 'herdbook-api';
 // Incubating semconv attribute; see the note in utils/tracing.ts.
 const ATTR_DEPLOYMENT_ENVIRONMENT_NAME = 'deployment.environment.name';
 const HONEYCOMB_TRACES_URL = 'https://api.honeycomb.io/v1/traces';
+// `__all__` makes the marker environment-wide rather than per dataset.
+const HONEYCOMB_MARKERS_URL = 'https://api.honeycomb.io/1/markers/__all__';
 
 let provider: NodeTracerProvider | null = null;
 let unregisterInstrumentations: (() => void) | null = null;
@@ -141,6 +143,44 @@ export function initTelemetry(options: TelemetryOptions = {}): boolean {
         });
     }
     return true;
+}
+
+/**
+ * Drop a deploy marker in Honeycomb so graphs show where each release
+ * landed. Fires once at boot when HONEYCOMB_CONFIG_KEY is set and Railway
+ * has stamped the commit SHA; a no-op everywhere else. Never throws.
+ */
+export async function announceDeploy(): Promise<void> {
+    const configKey = getHoneycombConfigKey();
+    const sha = process.env.RAILWAY_GIT_COMMIT_SHA;
+    if (!configKey || !sha) return;
+
+    const owner = process.env.RAILWAY_GIT_REPO_OWNER;
+    const repo = process.env.RAILWAY_GIT_REPO_NAME;
+    try {
+        const response = await fetch(HONEYCOMB_MARKERS_URL, {
+            method: 'POST',
+            headers: {
+                'X-Honeycomb-Team': configKey,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                message: `deploy ${sha.slice(0, 7)}`,
+                type: 'deploy',
+                url:
+                    owner && repo
+                        ? `https://github.com/${owner}/${repo}/commit/${sha}`
+                        : undefined,
+            }),
+        });
+        if (!response.ok) {
+            console.error(
+                `[telemetry] Deploy marker rejected: ${response.status} ${response.statusText}`
+            );
+        }
+    } catch (error) {
+        console.error('[telemetry] Deploy marker failed:', error);
+    }
 }
 
 /** Flush pending spans and unregister tracing. Safe to call when not started. */

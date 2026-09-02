@@ -3,6 +3,7 @@ import { existsSync, readFileSync } from 'fs';
 import { resolve } from 'path';
 import { createApiApp } from '@/server';
 import { getServerHost } from '@/config';
+import { announceDeploy } from '@/telemetry';
 
 function getHttpsOptions(): { key: Buffer; cert: Buffer } | undefined {
     if (process.env.USE_HTTPS === 'false') {
@@ -37,6 +38,7 @@ async function start(): Promise<void> {
             console.log(
                 `Server is running on ${protocol}://${host}:${port}/graphql`
             );
+            void announceDeploy();
             return;
         } catch (err: unknown) {
             if (

@@ -36,6 +36,17 @@ export const HERDBOOK_ATTR = {
     SESSION_ID: 'herdbook.session.id',
     PROMPT_NAME: 'herdbook.prompt.name',
     PROMPT_VERSION: 'herdbook.prompt.version',
+    // Voice parse: input shape and what the AI managed to extract.
+    AUDIO_BYTES: 'herdbook.audio.bytes',
+    AUDIO_MIME_TYPE: 'herdbook.audio.mime_type',
+    TRANSCRIPT_CHARS: 'herdbook.transcript.chars',
+    PARSE_HORSE_RESOLVED: 'herdbook.parse.horse_resolved',
+    PARSE_RIDER_RESOLVED: 'herdbook.parse.rider_resolved',
+    PARSE_FIELDS_EXTRACTED: 'herdbook.parse.fields_extracted',
+    // Horse summary: how often the first prompt passes validation.
+    SUMMARY_ATTEMPT: 'herdbook.summary.attempt',
+    SUMMARY_ATTEMPTS: 'herdbook.summary.attempts',
+    SUMMARY_VALID: 'herdbook.summary.valid',
 } as const;
 
 /**
@@ -135,11 +146,13 @@ export async function withGenAiSpan<T>(
 export function tracedChatCompletion(
     openai: OpenAI,
     prompt: PromptIdentity,
-    params: OpenAI.ChatCompletionCreateParamsNonStreaming
+    params: OpenAI.ChatCompletionCreateParamsNonStreaming,
+    attributes: Attributes = {}
 ): Promise<OpenAI.ChatCompletion> {
     return withGenAiSpan(
         { operation: 'chat', model: params.model, prompt },
         async (span) => {
+            span.setAttributes(attributes);
             const completion = await openai.chat.completions.create(params);
             span.setAttributes({
                 [ATTR_GEN_AI_RESPONSE_ID]: completion.id,
