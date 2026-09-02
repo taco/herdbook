@@ -3,6 +3,7 @@ import type { FastifyRequest, FastifyReply } from 'fastify';
 import { prisma } from '@/db';
 import { getJwtSecretOrThrow } from '@/config';
 import { setSentryUser } from '@/utils/sentry';
+import { setDomainAttributes } from '@/utils/tracing';
 import { createLoaders } from '../loaders';
 import type { Context } from './authGuard';
 
@@ -34,6 +35,7 @@ export async function buildContext(
         context.rider = rider;
         if (rider) {
             setSentryUser(rider.id);
+            setDomainAttributes({ riderId: rider.id, barnId: rider.barnId });
         }
         const barnId = rider?.barnId ?? '';
         await prisma.$executeRaw`SELECT set_config('app.current_barn_id', ${barnId}, false)`;

@@ -18,6 +18,7 @@ import {
 } from '@/utils/summaryValidation';
 import { getSummaryStatus } from '@/utils/summaryStatus';
 import { requireAuth } from './utils/restAuth';
+import { setDomainAttributes, tracedChatCompletion } from '@/utils/tracing';
 
 export async function registerGenerateSummaryRoutes(
     app: FastifyInstance
@@ -40,6 +41,11 @@ export async function registerGenerateSummaryRoutes(
 
             const body = request.body as { horseId?: string } | null;
             const horseId = body?.horseId;
+            setDomainAttributes({
+                riderId: auth.riderId,
+                barnId: rider.barnId,
+                horseId,
+            });
             if (!horseId) {
                 return reply.status(400).send({ error: 'horseId is required' });
             }
@@ -164,10 +170,11 @@ export async function registerGenerateSummaryRoutes(
                         );
                     }
 
-                    const completion = await openai.chat.completions.create({
-                        model,
-                        messages,
-                    });
+                    const completion = await tracedChatCompletion(
+                        openai,
+                        promptConfig,
+                        { model, messages }
+                    );
 
                     content = completion.choices[0].message.content;
                     usage = completion.usage;

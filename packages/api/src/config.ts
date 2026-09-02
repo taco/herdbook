@@ -127,6 +127,15 @@ export function getJwtSecretOrThrow(): string {
     return secret;
 }
 
+/** Honeycomb ingest key. Absent → OpenTelemetry stays off (no SDK, no exporter, no network). */
+export function getHoneycombApiKey(): string | undefined {
+    return process.env.HONEYCOMB_API_KEY || undefined;
+}
+
+export function isTelemetryEnabled(): boolean {
+    return getHoneycombApiKey() !== undefined;
+}
+
 export function getJwtExpiration(): SignOptions['expiresIn'] {
     return (process.env.JWT_EXPIRATION ??
         '30 days') as SignOptions['expiresIn'];

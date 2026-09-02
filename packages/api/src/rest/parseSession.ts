@@ -10,6 +10,12 @@ import * as Sentry from '@sentry/node';
 import { setupAiLimiters, withAiRateLimit } from './utils/aiRateLimit';
 import { getOpenAI } from './utils/openai';
 import { requireAuth } from './utils/restAuth';
+import { prisma } from '@/db';
+import {
+    setDomainAttributes,
+    tracedChatCompletion,
+    withGenAiSpan,
+} from '@/utils/tracing';
 
 // Types for parse-session endpoint
 export interface ParseSessionContext {
@@ -69,11 +75,12 @@ export async function transcribeAudio(
         type: mimeType,
     });
 
-    const transcription = await openai.audio.transcriptions.create({
-        model: 'whisper-1',
-        file,
-        language: 'en',
-    });
+    const model = 'whisper-1';
+    const transcription = await withGenAiSpan(
+        { operation: 'transcription', model },
+        () =>
+            openai.audio.transcriptions.create({ model, file, language: 'en' })
+    );
 
     return transcription.text;
 }
@@ -97,7 +104,7 @@ export async function parseTranscript(
 
     const systemPrompt = promptConfig.buildSystemPrompt(context);
 
-    const completion = await openai.chat.completions.create({
+    const completion = await tracedChatCompletion(openai, promptConfig, {
         model,
         messages: [
             { role: 'system', content: systemPrompt },
@@ -138,7 +145,15 @@ export async function registerParseSessionRoutes(
     app.post(
         '/api/parse-session',
         withAiRateLimit(limiters, 'ai', async (request, reply) => {
-            requireAuth(request);
+            const auth = requireAuth(request);
+            const rider = await prisma.rider.findUnique({
+                where: { id: auth.riderId },
+                select: { barnId: true },
+            });
+            setDomainAttributes({
+                riderId: auth.riderId,
+                barnId: rider?.barnId,
+            });
 
             const parts = request.parts();
             let audioBuffer: Buffer | null = null;
@@ -177,6 +192,7 @@ export async function registerParseSessionRoutes(
 
                 // Step 2: Parse transcript into structured fields
                 const { parsed } = await parseTranscript(transcript, context);
+                setDomainAttributes({ horseId: parsed.horseId });
 
                 return {
                     notes: transcript,

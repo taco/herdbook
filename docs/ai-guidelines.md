@@ -59,6 +59,10 @@ Every feature gets a `<FEATURE>_MODEL` env var. This allows changing models in p
 
 All AI endpoints use the shared `withAiRateLimit()` wrapper with burst + daily buckets. New AI features must be rate limited.
 
+### Tracing
+
+Every OpenAI call goes through `tracedChatCompletion()` (chat) or `withGenAiSpan()` (anything else) from `packages/api/src/utils/tracing.ts`. The span follows the GenAI semantic conventions: model, token usage, response id, finish reasons, plus `herdbook.prompt.name`/`herdbook.prompt.version` so a bad prompt rollout shows up as a step-change in Honeycomb. Prompt and completion text are never recorded.
+
 ### Cost estimation
 
 `packages/api/scripts/voiceCost.ts` exports `estimateCost(model, usage)` for logging per-call costs. Use this in development and testing. Keep `MODEL_PRICING` in that file up to date when adding models.
@@ -68,5 +72,5 @@ All AI endpoints use the shared `withAiRateLimit()` wrapper with burst + daily b
 1. **Never skip model selection** — every AI call must have an explicit tier choice with rationale
 2. **Default to Floor** — use `gpt-5-mini` unless you can articulate why it's insufficient
 3. **Validate before upgrading** — if Floor fails, test with real data before moving to Mid/Full
-4. **Log token usage** — all AI calls should log prompt/completion tokens for cost monitoring
+4. **Log token usage** — all AI calls record prompt/completion tokens on their trace span (see Tracing) for cost monitoring
 5. **Background extraction is always Floor** — if the user doesn't see the AI working (enrichment, backfill), use the cheapest model that works

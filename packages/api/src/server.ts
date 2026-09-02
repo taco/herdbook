@@ -22,6 +22,7 @@ import { registerDevToolbarRoutes } from '@/rest/devToolbar';
 import * as Sentry from '@sentry/node';
 import { prisma } from '@/db';
 import { sentryApolloPlugin } from '@/graphql/utils/sentryApolloPlugin';
+import { telemetryApolloPlugin } from '@/graphql/utils/telemetryApolloPlugin';
 
 function readSchemaSDLOrThrow(): string {
     // In dev/test, this file lives next to this module in `src/graphql/`.
@@ -88,7 +89,7 @@ export async function createApiApp(httpsOptions?: {
         })
     );
 
-    const plugins = [sentryApolloPlugin];
+    const plugins = [sentryApolloPlugin, telemetryApolloPlugin];
     if (isDevelopment()) {
         const rider = await prisma.rider.findFirst({
             select: { id: true, name: true },
