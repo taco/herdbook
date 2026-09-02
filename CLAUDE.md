@@ -36,7 +36,7 @@ Example:
 | Pre-PR review | `/pre-review` | Independent review before push |
 ```
 
-Plans must always include `/pre-review` after `/preflight`, in both the Skills table and the Verification section.
+Plans must always include `/pre-review` after `/preflight`, in both the Skills table and the Verification section. (Trial caveat: while the mattpocock-skills trial is active — see Skills section — work done via `/implement` uses its built-in code-review in place of `/pre-review`; `/preflight` is still required.)
 
 ## Commands
 
@@ -170,7 +170,50 @@ Use these skills for common workflows. Invoke with `/skillname` or the Skill too
 | Pre-PR independent code review     | `/pre-review`     |
 | Design conversation before coding  | `/design`         |
 
+### Workflow trial: mattpocock-skills (started 2026-08-31)
+
+We are trialing the `mattpocock-skills` flow as the **primary** idea → ship workflow. The Herdbook flow skills below stay installed as the fallback; to end the trial, delete this subsection and the trial caveats elsewhere in this file.
+
+During the trial, use the Matt flow for these stages instead of the Herdbook equivalents:
+
+| Stage                                     | Use (trial)                                        | Replaces                   |
+| ----------------------------------------- | -------------------------------------------------- | -------------------------- |
+| Sharpening an idea                        | `/grill-with-docs` (leaves `CONTEXT.md` + ADRs)    | `/design`                  |
+| Spec + tickets for multi-session work     | `/to-spec` → `/to-tickets`                         | `/write-issue`             |
+| Implementing a ticket (fresh context per) | `/implement` (drives `/tdd`, runs its code-review) | `/gh-issue`, `/pre-review` |
+| Incoming raw bugs/requests                | `/triage`                                          | ad-hoc issue writing       |
+| Hard bug, flake, or regression            | `/diagnosing-bugs`                                 | —                          |
+| Foggy multi-session effort                | `/wayfinder` → hands off to `/to-spec`             | —                          |
+
+Standalone additions usable any time: `/prototype`, `/resolving-merge-conflicts`, `/research`, `/wizard`, `/handoff`.
+
+**Still mandatory during the trial** (Herdbook-specific; the Matt flow doesn't know these):
+
+- `/preflight` before every commit — format + typecheck are non-negotiable
+- Domain skills whenever applicable: `/schema`, `/new-page`, `/mobile-ux`, `/test-api`, `/test-web`, `/e2e`, `/deploy-preview`, `/updatedocs`
+- Project board conventions: issues created by `/to-tickets` or `/triage` still get Priority/Type/Package fields on the board, and Status → In Progress when picked up
+- Git conventions above (conventional commits, no co-authors)
+- Testing Philosophy above: `/tdd` inside `/implement` is fine, but keep tests high-ROI and integration-focused — no red-green-refactoring trivial code
+
+**Precondition**: run `/setup-matt-pocock-skills` once before the first flow, pointing it at the existing GitHub Project board (custom trackers are supported). Do not let it create priority labels — priority lives on the board.
+
+## Agent skills
+
+### Issue tracker
+
+Issues live in GitHub Issues and must land on the Herdbook Backlog project board. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Default five-role vocabulary (`needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`). See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context: `CONTEXT.md` at root (created lazily) + existing `docs/adr/`. See `docs/agents/domain.md`.
+
 ## New Feature Workflow
+
+(Trial caveat: while the mattpocock-skills trial is active, steps 0, and 6–7's review, follow the trial table in the Skills section instead: `/grill-with-docs` → `/to-spec` → `/to-tickets` → `/implement`. Steps 1–5 and `/preflight` still apply inside implementation.)
 
 0. Design conversation (if needed) → `/design`
 1. Mobile UX analysis → `/mobile-ux`
