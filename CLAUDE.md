@@ -74,6 +74,7 @@ Leave the codebase slightly better than you found it. When a change reveals near
 - Every AI prompt lives in `packages/api/src/prompts/` as a versioned `PromptConfig`
 - Every AI feature gets a `<FEATURE>_MODEL` env var override
 - All AI endpoints must use `withAiRateLimit()`
+- Route every OpenAI call through `tracedChatCompletion()`/`withGenAiSpan()` from `utils/tracing.ts` (GenAI semantic conventions: model + token usage, never prompt or completion text)
 - **When adding or changing AI features**, update the "Current feature assignments" table in `docs/ai-guidelines.md`
 
 ## Backend (packages/api)
@@ -82,6 +83,7 @@ Leave the codebase slightly better than you found it. When a change reveals near
 - Throw `GraphQLError` with codes (`NOT_FOUND`, `BAD_USER_INPUT`, `FORBIDDEN`) for data lookup failures and validation — don't return null for non-nullable fields
 - Auth is handled by `secureByDefaultTransformer`, which rejects unauthenticated requests for all non-`@public` fields before resolvers run. Do not add inline `if (!context.rider)` checks — use `context.rider!` (non-null assertion) for TypeScript. Use shared helpers (`getBarnId`, `requireTrainer`, `requireOwnerOrTrainer`) for role-based guards and type narrowing.
 - Update `schema.graphql` when `schema.prisma` changes
+- **Tracing**: OpenTelemetry → Honeycomb, gated on `HONEYCOMB_API_KEY` (`telemetry.ts`). Tag requests with tenant IDs via `setDomainAttributes()` (`herdbook.*` attributes, opaque IDs only). Sentry is errors-only.
 - **Field resolvers must use DataLoaders** (`context.loaders.*`), not direct Prisma calls. Add new loaders to `loaders.ts` when adding field resolvers. This keeps the pattern uniform and prevents N+1 queries regardless of how queries are composed.
 
 ## Frontend (packages/web)
@@ -210,6 +212,15 @@ Default five-role vocabulary (`needs-triage`, `needs-info`, `ready-for-agent`, `
 ### Domain docs
 
 Single-context: `CONTEXT.md` at root (created lazily) + existing `docs/adr/`. See `docs/agents/domain.md`.
+
+## Honeycomb MCP Usage
+
+When working with Honeycomb:
+
+- Always call `get_workspace_context` first to understand available environments and datasets
+- Use `find_columns` or `get_dataset_columns` to discover fields before running queries
+- Use human-readable time ranges (e.g., "last 2 hours", "24h") — avoid epoch timestamps
+- Specify the environment and dataset explicitly in every query
 
 ## New Feature Workflow
 

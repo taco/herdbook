@@ -203,6 +203,7 @@ describe('initSentry', () => {
     const originalEnv = process.env;
     let sentryInit: ReturnType<typeof vi.fn>;
     let initSentry: () => void;
+    let errorsOnlyIntegrations: typeof import('./sentry').errorsOnlyIntegrations;
 
     beforeEach(async () => {
         process.env = { ...originalEnv };
@@ -211,6 +212,7 @@ describe('initSentry', () => {
         sentryInit.mockClear();
         const sentry = await import('./sentry');
         initSentry = sentry.initSentry;
+        errorsOnlyIntegrations = sentry.errorsOnlyIntegrations;
     });
 
     afterEach(() => {
@@ -223,34 +225,53 @@ describe('initSentry', () => {
         expect(sentryInit).not.toHaveBeenCalled();
     });
 
-    it('passes parsed SENTRY_TRACES_SAMPLE_RATE to Sentry.init', () => {
+    it('is errors-only: never configures tracesSampleRate', () => {
         process.env.SENTRY_DSN =
             'https://examplePublicKey@o0.ingest.sentry.io/0';
-        process.env.SENTRY_TRACES_SAMPLE_RATE = '0.25';
+        initSentry();
+        const options = sentryInit.mock.calls[0][0] as Record<string, unknown>;
+        expect(options).not.toHaveProperty('tracesSampleRate');
+        expect(options).not.toHaveProperty('tracesSampler');
+        expect(options.integrations).toBe(errorsOnlyIntegrations);
+    });
+
+    it('keeps its own OpenTelemetry context when Honeycomb is off', () => {
+        process.env.SENTRY_DSN =
+            'https://examplePublicKey@o0.ingest.sentry.io/0';
+        delete process.env.HONEYCOMB_API_KEY;
         initSentry();
         expect(sentryInit).toHaveBeenCalledWith(
-            expect.objectContaining({ tracesSampleRate: 0.25 })
+            expect.objectContaining({ skipOpenTelemetrySetup: false })
         );
     });
 
-    it('defaults tracesSampleRate to 0 when env var is unset', () => {
+    it('defers OpenTelemetry setup to our SDK when Honeycomb is on', () => {
         process.env.SENTRY_DSN =
             'https://examplePublicKey@o0.ingest.sentry.io/0';
-        delete process.env.SENTRY_TRACES_SAMPLE_RATE;
+        process.env.HONEYCOMB_API_KEY = 'hcaik_test';
         initSentry();
         expect(sentryInit).toHaveBeenCalledWith(
-            expect.objectContaining({ tracesSampleRate: 0 })
+            expect.objectContaining({ skipOpenTelemetrySetup: true })
         );
     });
+});
 
-    it('falls back to 0 when env var is not a number', () => {
-        process.env.SENTRY_DSN =
-            'https://examplePublicKey@o0.ingest.sentry.io/0';
-        process.env.SENTRY_TRACES_SAMPLE_RATE = 'notanumber';
-        initSentry();
-        expect(sentryInit).toHaveBeenCalledWith(
-            expect.objectContaining({ tracesSampleRate: 0 })
-        );
+describe('errorsOnlyIntegrations', () => {
+    it('drops performance integrations and disables request spans even when Sentry sees a sample rate', async () => {
+        const Sentry = await import('@sentry/node');
+        const { errorsOnlyIntegrations } = await import('./sentry');
+        // Defaults as Sentry would build them with SENTRY_TRACES_SAMPLE_RATE set.
+        const defaults = Sentry.getDefaultIntegrations({ tracesSampleRate: 1 });
+        const names = errorsOnlyIntegrations(defaults).map((i) => i.name);
+
+        for (const perf of ['Fastify', 'Prisma', 'Graphql', 'Postgres']) {
+            expect(defaults.map((i) => i.name)).toContain(perf);
+            expect(names).not.toContain(perf);
+        }
+        // Error capture and request isolation stay.
+        expect(names).toContain('Http');
+        expect(names).toContain('NodeFetch');
+        expect(names).toContain('OnUncaughtException');
     });
 });
 
